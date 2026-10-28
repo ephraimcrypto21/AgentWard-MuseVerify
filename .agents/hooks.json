@@ -1,0 +1,17 @@
+{
+  "agentward-acp": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ../enforce_permissions.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

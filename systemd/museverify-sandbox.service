@@ -1,0 +1,21 @@
+[Unit]
+Description=MuseVerify Docker Sandbox Execution Service (Stage 2)
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/agentward-node
+Environment="PATH=/home/ubuntu/agentward-node/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/home/ubuntu/agentward-node/venv/bin/uvicorn sandbox_server:app --host 0.0.0.0 --port 8001 --workers 1
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

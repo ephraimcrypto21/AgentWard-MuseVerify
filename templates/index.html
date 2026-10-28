@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AgentWard + MuseVerify Security Cockpit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+  <div class="max-w-7xl mx-auto p-6 space-y-6">
+    <!-- Header -->
+    <header class="flex justify-between items-center border-b border-slate-800 pb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span class="text-blue-500">🛡️ AgentWard</span> + <span class="text-purple-400">MuseVerify</span>
+        </h1>
+        <p class="text-sm text-slate-400">Zero-Trust Agentic Remediation Harness & Runtime Circuit Breaker</p>
+      </div>
+      <div class="flex gap-3">
+        <span class="px-3 py-1 bg-green-950 border border-green-800 text-green-400 text-xs rounded-full flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Lightsail Node: Active
+        </span>
+        <span class="px-3 py-1 bg-purple-950 border border-purple-800 text-purple-300 text-xs rounded-full">
+          Meta Model API: Connected
+        </span>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap gap-4 items-center justify-between">
+      <div class="flex items-center gap-4">
+        <label class="text-sm font-medium text-slate-300">Select Target:</label>
+        <select id="targetSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+          <option value="poisoned_app.py">poisoned_app.py (SQLi + $META_API_KEY Exfil)</option>
+          <option value="benchmark_targets/sqli_app.py">sqli_app.py (CWE-89 Injection)</option>
+          <option value="benchmark_targets/rce_app.py">rce_app.py (CWE-78 + Destructive Injection)</option>
+          <option value="benchmark_targets/false_positive_app.py">false_positive_app.py (Benign Query)</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="cleanBtn" onclick="triggerClean()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-700 transition duration-150 flex items-center gap-2">
+          <span>🧹 Prune Workspaces</span>
+        </button>
+        <button id="batchBtn" onclick="triggerBatch()" class="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white font-semibold rounded-lg shadow-lg shadow-purple-950/50 transition duration-150 flex items-center gap-2">
+          <span>🚀 Run Batch Test (3x Concurrency)</span>
+        </button>
+        <button id="runBtn" onclick="triggerAudit()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg shadow-blue-950/50 transition duration-150 flex items-center gap-2">
+          <span>⚡ Run Autonomous Triage & Defense</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 5-Stage Live Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div id="card-1" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 1</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Ingress Shield</div>
+        <div id="status-1" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+      <div id="card-2" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 2</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Docker Sandbox</div>
+        <div id="status-2" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+      <div id="card-3" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 3</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Runtime Hooks</div>
+        <div id="status-3" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+      <div id="card-4" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 4</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">CodeShield Gate</div>
+        <div id="status-4" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+      <div id="card-5" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 5</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Regression Test</div>
+        <div id="status-5" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+    </div>
+
+    <!-- Live Event Console & Telemetry Log -->
+    <section class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Live Harness Telemetry & Syscall Interception</h2>
+        <span class="text-xs font-mono text-slate-500" id="clock">READY</span>
+      </div>
+      <pre id="consoleOutput" class="bg-slate-950 border border-slate-800/80 rounded-lg p-4 font-mono text-xs text-emerald-400 h-72 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">AgentWard + MuseVerify initialized. Select a candidate file and launch triage...</pre>
+    </section>
+  </div>
+
+  <script>
+    let ws;
+    function connectWS() {
+      ws = new WebSocket("ws://" + window.location.host + "/ws/telemetry");
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        const logBox = document.getElementById("consoleOutput");
+        
+        if (msg.type === "log") {
+          logBox.textContent += "\n" + msg.data;
+          logBox.scrollTop = logBox.scrollHeight;
+        } else if (msg.type === "phase_update") {
+          updateCard(msg.phase, msg.status, msg.color, msg.note);
+        }
+      };
+      ws.onclose = () => setTimeout(connectWS, 2000);
+    }
+    connectWS();
+
+    function updateCard(phase, status, color, note) {
+      const card = document.getElementById("card-" + phase);
+      const text = document.getElementById("status-" + phase);
+      card.className = "p-4 rounded-xl border transition-all " + color;
+      text.innerHTML = `<strong>${status}</strong><br><span class="text-[10px] text-slate-300">${note}</span>`;
+    }
+
+    async function triggerAudit() {
+      const target = document.getElementById("targetSelect").value;
+      document.getElementById("consoleOutput").textContent = `[*] Triggering pipeline for: ${target}...\n`;
+      for (let i = 1; i <= 5; i++) updateCard(i, "Pending", "bg-slate-900/60 border-slate-800", "Waiting");
+      await fetch("/api/run", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({target_file: target})
+      });
+    }
+
+    async function triggerClean() {
+      const cleanBtn = document.getElementById("cleanBtn");
+      cleanBtn.disabled = true;
+      cleanBtn.innerHTML = "<span>⏳ Pruning...</span>";
+      try {
+        const resp = await fetch("/api/clean", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({remove_all: false})
+        });
+        const data = await resp.json();
+        const logBox = document.getElementById("consoleOutput");
+        logBox.textContent += `\n[UI] Workspace prune complete: ${data.result.cleaned_count} files removed (${data.result.bytes_freed} bytes freed).`;
+        logBox.scrollTop = logBox.scrollHeight;
+      } catch (e) {
+        console.error("Clean error:", e);
+      } finally {
+        cleanBtn.disabled = false;
+        cleanBtn.innerHTML = "<span>🧹 Prune Workspaces</span>";
+      }
+    }
+
+    async function triggerBatch() {
+      const batchBtn = document.getElementById("batchBtn");
+      batchBtn.disabled = true;
+      batchBtn.innerHTML = "<span>⏳ Batch Running...</span>";
+      document.getElementById("consoleOutput").textContent = "[*] Launching Concurrent Batch Stress Test (MAX_PARALLEL_SANDBOXES = 3)...\n";
+      for (let i = 1; i <= 5; i++) updateCard(i, "Batch Active", "bg-purple-950/40 border-purple-800", "Parallel Execution");
+      try {
+        await fetch("/api/batch", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"}
+        });
+      } catch (e) {
+        console.error("Batch error:", e);
+      } finally {
+        setTimeout(() => {
+          batchBtn.disabled = false;
+          batchBtn.innerHTML = "<span>🚀 Run Batch Test (3x Concurrency)</span>";
+        }, 5000);
+      }
+    }
+  </script>
+</body>
+</html>
