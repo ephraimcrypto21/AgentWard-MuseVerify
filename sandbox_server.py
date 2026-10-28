@@ -95,7 +95,9 @@ def _hook(event, args):
     elif event == "os.system":
         _emit("sys_enter_execve", {"argv": "/bin/sh", "args": str(args[0])[:400], "source": event})
     elif event == "open":
-        path = str(args[0]) if args else "?"
+        raw_path = args[0] if args else "?"
+        # The audit event reports an int when an existing fd is re-opened.
+        path = f"fd:{raw_path}" if isinstance(raw_path, int) else str(raw_path)
         if _noisy(path):
             return
         mode = args[1] if len(args) > 1 else "r"
