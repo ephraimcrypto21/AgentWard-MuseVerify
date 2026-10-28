@@ -48,6 +48,22 @@ echo "[+] Using Virtualenv: ${VENV_PATH}"
 echo "[+] Using Uvicorn:    ${UVICORN_BIN}"
 
 # ------------------------------------------------------------------------------
+# 0. Refresh application code so the daemons never start a stale build.
+#    sandbox_server.py must stream syscall telemetry (strace / audit hook);
+#    a node running the pre-telemetry build reports only exit codes.
+# ------------------------------------------------------------------------------
+if [[ -d "${APP_DIR}/.git" ]]; then
+    echo "[*] Updating application code in ${APP_DIR}..."
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" fetch --quiet origin
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" checkout --quiet \
+        "$(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --abbrev-ref HEAD)"
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" reset --hard --quiet origin/HEAD
+    echo "  [✓] Code at $(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --short HEAD)"
+else
+    echo "[!] ${APP_DIR} is not a git checkout; copy sandbox_server.py there manually."
+fi
+
+# ------------------------------------------------------------------------------
 # 1. /etc/systemd/system/agentward-ingress.service (Port 8000)
 # ------------------------------------------------------------------------------
 echo "[*] Generating /etc/systemd/system/agentward-ingress.service..."
@@ -126,6 +142,16 @@ systemctl is-active --quiet agentward-ingress.service && \
 systemctl is-active --quiet museverify-sandbox.service && \
     echo "  [✓] museverify-sandbox.service is RUNNING (Port 8001)" || \
     echo "  [✗] museverify-sandbox.service failed to start. Run: journalctl -u museverify-sandbox.service -n 50"
+
+echo ""
+echo "[*] Verifying the sandbox actually streams syscall telemetry..."
+HEALTH="$(curl -s -m 5 http://127.0.0.1:8001/health || true)"
+if [[ "${HEALTH}" == *"syscall_telemetry"* ]]; then
+    echo "  [✓] /health advertises syscall telemetry"
+else
+    echo "  [✗] /health has no syscall_telemetry field — node is still stale."
+    echo "      Check: journalctl -u museverify-sandbox.service -n 50"
+fi
 
 echo ""
 echo "======================================================================"

@@ -1,13 +1,37 @@
-"""Educational CWE-89 SQL Injection test case for static analysis benchmarking."""
+#!/usr/bin/env python3
+"""Benchmark target: CWE-89 SQL Injection (reachable sink)."""
 import sqlite3
 
+DB_PATH = "inventory.db"
 
-def get_user_by_username(db_path: str, username: str) -> list:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    # CWE-89: Unsanitized string concatenation in SQL query
-    query = "SELECT id, username, role FROM users WHERE username = '" + username + "'"
-    cursor.execute(query)
-    results = cursor.fetchall()
+
+def _connect():
+    return sqlite3.connect(DB_PATH)
+
+
+def init_db():
+    conn = _connect()
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT, sku TEXT)"
+    )
+    conn.commit()
     conn.close()
-    return results
+
+
+def search_products(name_fragment):
+    """Builds the query with an f-string, so user input lands straight in SQL."""
+    conn = _connect()
+    cursor = conn.cursor()
+    query = f"SELECT id, name, sku FROM products WHERE name LIKE '%{name_fragment}%'"
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+
+if __name__ == "__main__":
+    init_db()
+    # Benign input
+    print(search_products("widget"))
+    # Exploit payload breaks out of the quoted string
+    print(search_products("' OR '1'='1"))

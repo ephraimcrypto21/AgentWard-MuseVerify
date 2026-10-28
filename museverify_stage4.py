@@ -4,6 +4,7 @@ MuseVerify Stage 4: Defensive Patch Synthesis, CodeShield Integration,
 and Multi-Provider AI Review Consensus.
 """
 import os
+import re
 import sys
 import json
 import ast
@@ -93,15 +94,65 @@ load_dotenv()
 from ai_provider import query_ai, ACTIVE_PROVIDER
 
 async def request_muse_patch(source_file: str, code_content: str) -> str:
-    print(f"[MuseVerify Stage-4] Requesting defensive patch via Meta Model API (model=muse-spark-1.3)...")
+    print(f"[MuseVerify Stage-4] Requesting defensive patch + deception tripwire (model=muse-spark-1.3)...")
     system_prompt = (
         "You are an expert secure coding assistant. Your task is to fix security vulnerabilities "
-        "in the provided Python source code. Return ONLY valid Python code inside a markdown code block. "
+        "in the provided Python source code AND to leave behind a deception tripwire. "
+        "Return ONLY valid Python code inside a markdown code block. "
         "Do not include any explanations, greetings, or markdown outside the code block."
     )
-    prompt = f"Fix any security vulnerabilities (such as unparameterized SQL queries) in this code:\n\n```python\n{code_content}\n```"
+    prompt = f"""Remediate the security vulnerability in this file.
+
+Two deliverables, in one code block:
+
+1. THE FIX — remove the root cause (parameterize the query, drop `shell=True`, use
+   `secrets` instead of `random`, etc.). Keep the public function signatures unchanged.
+
+2. THE TRIPWIRE — alongside the fix, plant a structural honeypot that stays inert during
+   normal use but screams if an attacker pokes the old surface:
+   - Define a decoy credential module-level constant with an obviously fake, high-entropy
+     value, named after the legacy surface (e.g. `META_API_KEY_LEGACY = "sk-legacy-...")`).
+   - Route it through an alerting logger, e.g. a `_tripwire(context, value)` helper that
+     emits `logging.getLogger(__name__).warning("TRIPWIRE ...")` including the calling context.
+   - Make the patched sink still resolve the decoy when it is handed the legacy value, so a
+     credential-scanner style intrusion touches the tripwire instead of silently succeeding.
+     A single cheap equality check at the top of the sink is the intended shape: it is inert
+     for normal input (same return value, no extra I/O) and only fires on the legacy value.
+   - Keep the tripwire dependency-free (stdlib only) and never on the hot path.
+
+Target file: {os.path.basename(source_file)}
+
+```python
+{code_content}
+```"""
     response = await query_ai(prompt, system_prompt=system_prompt, provider="meta", model="muse-spark-1.3")
     return response
+
+
+TRIPWIRE_PATTERNS = (
+    re.compile(r"_?[A-Z][A-Z0-9_]*_(?:LEGACY|DECOY|HONEY|CANARY)\s*="),
+    re.compile(r"def\s+_?(?:tripwire|honeypot|canary|alert)\w*\s*\("),
+    re.compile(r"TRIPWIRE"),
+)
+
+
+def detect_tripwire(code: str) -> dict:
+    """Structural check that the patch actually planted deception scaffolding."""
+    hits = []
+    for pattern in TRIPWIRE_PATTERNS:
+        match = pattern.search(code or "")
+        if match:
+            hits.append(match.group(0).strip())
+    has_logger = "logging.getLogger" in (code or "") or "logger.warning" in (code or "")
+    return {"present": bool(hits), "has_logger": has_logger, "markers": hits}
+
+
+def describe_tripwire(code: str) -> str:
+    """One-line human/telemetry friendly summary of the synthesized decoy."""
+    info = detect_tripwire(code)
+    if not info["present"]:
+        return "no tripwire synthesized"
+    return "tripwire armed: " + ", ".join(dict.fromkeys(info["markers"]))[:120]
 
 def _extract_patched_code(response_text: str) -> str:
     if "```python" in response_text:
@@ -119,7 +170,11 @@ async def cross_model_consensus(patch_code: str, secondary_model: str = "gemini-
     print(f"[MuseVerify Stage-4] Invoking secondary auditor ({secondary_model}) for independent consensus...")
     prompt = (
         "Review the following patched Python code for security and correctness. "
-        "Verify that it fixes the vulnerability without introducing new risks or insecure patterns.\n\n"
+        "Verify that it fixes the vulnerability without introducing new risks or insecure patterns. "
+        "It is also expected to plant a deception tripwire (a decoy constant plus an alerting logger). "
+        "The tripwire is meant to be a cheap guard clause at the top of the sink: inert for normal "
+        "input, firing only when the legacy decoy value is supplied. Do not flag that shape as a "
+        "hot-path regression; flag it only if it changes normal behaviour or does I/O per call.\n\n"
         f"```python\n{patch_code}\n```\n\n"
         "Respond with ONLY a JSON object matching this schema: "
         '{"approve": bool, "fixes_vulnerability": bool, "introduces_new_risk": bool, "reason": string}'
@@ -231,6 +286,9 @@ async def synthesize_and_gate_patch(
     with open(patch_path, "w") as f:
         f.write(patched_code)
 
+    tripwire = detect_tripwire(patched_code)
+    print(f"[MuseVerify Stage-4] {describe_tripwire(patched_code)}")
+
     return {
         "source_file": target_file,
         "model": "muse-spark-1.3",
@@ -239,6 +297,8 @@ async def synthesize_and_gate_patch(
         "recommended_treatment": "None",
         "issues_found": [],
         "patch_path": patch_path,
+        "tripwire": tripwire,
+        "tripwire_summary": describe_tripwire(patched_code),
         "status": "ACCEPTED"
     }
 

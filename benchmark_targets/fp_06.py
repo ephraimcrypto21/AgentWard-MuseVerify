@@ -1,8 +1,24 @@
-"""False Positive 06: Using random module for non-security UI color selection."""
-import random
+#!/usr/bin/env python3
+"""FP-06: MD5 used as a non-cryptographic content checksum."""
+import hashlib
 
-PASTEL_COLORS = ["#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "#BAE1FF"]
+
+def checksum_bytes(payload):
+    """Integrity only: no secret, no attacker-controlled collision target."""
+    return hashlib.md5(payload).hexdigest()
 
 
-def pick_avatar_background() -> str:
-    return random.choice(PASTEL_COLORS)
+def checksum_file(path, chunk_size=65536):
+    digest = hashlib.md5()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(chunk_size), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def manifest(paths):
+    return {p: checksum_file(p) for p in paths}
+
+
+if __name__ == "__main__":
+    print(checksum_bytes(b"release-artifact"))

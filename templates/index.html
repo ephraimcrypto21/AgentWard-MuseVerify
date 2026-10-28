@@ -50,7 +50,7 @@
     </section>
 
     <!-- 5-Stage Live Status Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-7 gap-4">
       <div id="card-1" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
         <div class="text-xs uppercase font-semibold text-slate-400">Phase 1</div>
         <div class="text-sm font-bold mt-1 text-slate-200">Ingress Shield</div>
@@ -58,7 +58,7 @@
       </div>
       <div id="card-2" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
         <div class="text-xs uppercase font-semibold text-slate-400">Phase 2</div>
-        <div class="text-sm font-bold mt-1 text-slate-200">Docker Sandbox</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Syscall Sandbox</div>
         <div id="status-2" class="text-xs mt-3 text-slate-500">Idle</div>
       </div>
       <div id="card-3" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
@@ -68,14 +68,42 @@
       </div>
       <div id="card-4" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
         <div class="text-xs uppercase font-semibold text-slate-400">Phase 4</div>
-        <div class="text-sm font-bold mt-1 text-slate-200">CodeShield Gate</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">CodeShield + Tripwire</div>
         <div id="status-4" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+      <div id="card-4.5" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 4.5</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Self-Play</div>
+        <div id="status-4.5" class="text-xs mt-3 text-slate-500">Idle</div>
       </div>
       <div id="card-5" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
         <div class="text-xs uppercase font-semibold text-slate-400">Phase 5</div>
         <div class="text-sm font-bold mt-1 text-slate-200">Regression Test</div>
         <div id="status-5" class="text-xs mt-3 text-slate-500">Idle</div>
       </div>
+      <div id="card-5.1" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
+        <div class="text-xs uppercase font-semibold text-slate-400">Phase 5.1</div>
+        <div class="text-sm font-bold mt-1 text-slate-200">Semantic Hunter</div>
+        <div id="status-5.1" class="text-xs mt-3 text-slate-500">Idle</div>
+      </div>
+    </div>
+
+    <!-- Syscall / Self-Play / Tripwire / Hunter telemetry -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <section class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-emerald-400 mb-2">Syscall Audit Trail</h2>
+        <pre id="syscallOutput" class="bg-slate-950 border border-slate-800/80 rounded-lg p-3 font-mono text-[11px] text-emerald-300 h-44 overflow-y-auto whitespace-pre-wrap">sys_enter_execve / sys_enter_openat will stream here…</pre>
+        <div id="analysisOutput" class="mt-2 text-[11px] font-mono text-slate-400">verdict: —</div>
+      </section>
+      <section class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-fuchsia-400 mb-2">Adversarial Self-Play</h2>
+        <ul id="selfplayOutput" class="space-y-1 text-[11px] font-mono text-slate-400 h-44 overflow-y-auto">awaiting mutations…</ul>
+      </section>
+      <section class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-violet-400 mb-2">Tripwire & Variant Hunt</h2>
+        <div id="tripwireOutput" class="text-[11px] font-mono text-violet-300">no tripwire armed</div>
+        <ul id="hunterOutput" class="mt-2 space-y-1 text-[11px] font-mono text-slate-400 h-28 overflow-y-auto"></ul>
+      </section>
     </div>
 
     <!-- Live Event Console & Telemetry Log -->
@@ -101,6 +129,45 @@
           logBox.scrollTop = logBox.scrollHeight;
         } else if (msg.type === "phase_update") {
           updateCard(msg.phase, msg.status, msg.color, msg.note);
+        } else if (msg.type === "syscall_trace") {
+          const box = document.getElementById("syscallOutput");
+          box.textContent = msg.data;
+          box.scrollTop = box.scrollHeight;
+        } else if (msg.type === "analysis") {
+          let info = {};
+          try { info = JSON.parse(msg.data); } catch (e) { info = {}; }
+          document.getElementById("analysisOutput").textContent =
+            `verdict: ${info.verdict || msg.status || "—"} | score: ${info.evasion_score ?? "—"} ` +
+            `(decisive ${info.decisive_score ?? 0} / weak ${info.weak_score ?? 0}) — ` +
+            `${(info.signals || []).join("; ") || msg.note}`;
+        } else if (msg.type === "tripwire") {
+          let tw = {};
+          try { tw = JSON.parse(msg.data); } catch (e) { tw = {}; }
+          document.getElementById("tripwireOutput").textContent =
+            `${msg.note || (tw.present ? "tripwire armed" : "no tripwire")} ` +
+            `[logger: ${tw.has_logger ? "yes" : "no"} | markers: ${(tw.markers || []).join(", ") || "none"}]`;
+        } else if (msg.type === "selfplay_mutation" || msg.type === "selfplay_result") {
+          let rec = {};
+          try { rec = JSON.parse(msg.data); } catch (e) { rec = {}; }
+          const li = document.createElement("li");
+          const red = msg.status === "FAIL";
+          li.className = red ? "text-red-400" : "text-emerald-400";
+          li.textContent = msg.type === "selfplay_result"
+            ? `RESULT: ${rec.accepted ? "patch robust" : `${rec.survived} bypass(es)`}`
+            : `[${rec.kind} ${rec.index}] ${rec.verdict} — ${String(rec.payload || "").slice(0, 46)}`;
+          const list = document.getElementById("selfplayOutput");
+          list.appendChild(li);
+          list.scrollTop = list.scrollHeight;
+        } else if (msg.type === "hunter_match") {
+          let rec = {};
+          try { rec = JSON.parse(msg.data); } catch (e) { rec = {}; }
+          const li = document.createElement("li");
+          li.className = rec.severity === "EXPLOITABLE" ? "text-red-400" : "text-amber-400";
+          li.textContent = `${rec.severity}: ${rec.file} — ${rec.reason}`;
+          document.getElementById("hunterOutput").appendChild(li);
+        } else if (msg.type === "hunter_scan" || msg.type === "hunter_root_cause") {
+          logBox.textContent += "\n[hunter] " + msg.note;
+          logBox.scrollTop = logBox.scrollHeight;
         }
       };
       ws.onclose = () => setTimeout(connectWS, 2000);
@@ -114,10 +181,17 @@
       text.innerHTML = `<strong>${status}</strong><br><span class="text-[10px] text-slate-300">${note}</span>`;
     }
 
+    const PHASES = [1, 2, 3, 4, 4.5, 5, 5.1];
+
     async function triggerAudit() {
       const target = document.getElementById("targetSelect").value;
       document.getElementById("consoleOutput").textContent = `[*] Triggering pipeline for: ${target}...\n`;
-      for (let i = 1; i <= 5; i++) updateCard(i, "Pending", "bg-slate-900/60 border-slate-800", "Waiting");
+      PHASES.forEach(p => updateCard(p, "Pending", "bg-slate-900/60 border-slate-800", "Waiting"));
+      document.getElementById("syscallOutput").textContent = "sys_enter_execve / sys_enter_openat will stream here…";
+      document.getElementById("analysisOutput").textContent = "verdict: —";
+      document.getElementById("selfplayOutput").innerHTML = "awaiting mutations…";
+      document.getElementById("tripwireOutput").textContent = "no tripwire armed";
+      document.getElementById("hunterOutput").innerHTML = "";
       await fetch("/api/run", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -152,7 +226,7 @@
       batchBtn.disabled = true;
       batchBtn.innerHTML = "<span>⏳ Batch Running...</span>";
       document.getElementById("consoleOutput").textContent = "[*] Launching Concurrent Batch Stress Test (MAX_PARALLEL_SANDBOXES = 3)...\n";
-      for (let i = 1; i <= 5; i++) updateCard(i, "Batch Active", "bg-purple-950/40 border-purple-800", "Parallel Execution");
+      PHASES.forEach(p => updateCard(p, "Batch Active", "bg-purple-950/40 border-purple-800", "Parallel Execution"));
       try {
         await fetch("/api/batch", {
           method: "POST",

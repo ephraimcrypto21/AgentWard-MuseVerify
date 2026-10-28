@@ -1,12 +1,34 @@
-"""False Positive 14: Strict allowlist validation for sort column names."""
-import sqlite3
+#!/usr/bin/env python3
+"""FP-14: file paths built with pathlib plus an explicit containment check."""
+from pathlib import Path
 
-ALLOWED_SORT_COLUMNS = {"created_at", "username", "id"}
+BASE_DIR = Path(__file__).resolve().parent / "uploads"
 
 
-def fetch_sorted_users(db_path: str, sort_by: str) -> list:
-    if sort_by not in ALLOWED_SORT_COLUMNS:
-        raise ValueError("Invalid sort column")
-    query = f"SELECT id, username, created_at FROM users ORDER BY {sort_by} ASC"
-    with sqlite3.connect(db_path) as conn:
-        return conn.execute(query).fetchall()
+def _contained(candidate):
+    try:
+        candidate.resolve().relative_to(BASE_DIR.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def read_upload(name):
+    """`..` traversal is rejected after resolution, not by string cleaning."""
+    target = BASE_DIR / name
+    if not _contained(target):
+        raise ValueError(f"path escapes upload dir: {name}")
+    return target.read_text(encoding="utf-8")
+
+
+def write_upload(name, content):
+    target = BASE_DIR / name
+    if not _contained(target):
+        raise ValueError(f"path escapes upload dir: {name}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
+    return target
+
+
+if __name__ == "__main__":
+    print(_contained(BASE_DIR / "../etc/passwd"))

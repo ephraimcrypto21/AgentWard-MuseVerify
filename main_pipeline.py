@@ -7,11 +7,14 @@ from agentward_stage1 import inspect_file_before_muse
 from museverify_stage2 import (
     create_isolated_worktree,
     synthesize_verification_harness,
-    execute_test_on_lightsail,
+    run_sandboxed,
+    triage_sandbox_result,
     clean_worktrees
 )
 from agentward_stage3 import AgentWardRuntimeGuard
 from museverify_stage4 import synthesize_and_gate_patch
+from adversarial_selfplay import run_selfplay
+from semantic_hunter import hunt_after_remediation
 
 MAX_PARALLEL_SANDBOXES = 3
 sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
@@ -45,12 +48,15 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = "VULN-001"):
 
     print("  └─ Running pre-patch verification in Lightsail Docker sandbox...")
     async with sandbox_semaphore:
-        pre_test_res = await asyncio.to_thread(
-            execute_test_on_lightsail,
+        pre_run = await asyncio.to_thread(
+            run_sandboxed,
             vuln_id, target_file, sanitized_code, triage["verification_test_code"]
         )
-    print(f"  └─ Sandbox Execution: exit_code={pre_test_res['exit_code']} | confirmed={pre_test_res['verified']}")
-    if not pre_test_res["verified"]:
+    pre_test_res = triage_sandbox_result(pre_run, target_file)
+    print(f"  └─ Sandbox Execution: exit_code={pre_test_res['exit_code']} | "
+          f"verdict={pre_test_res['verdict']} | confirmed={pre_test_res['confirmed']}")
+    print(f"  └─ Syscall signals: {'; '.join(pre_test_res['signals']) or 'none'}")
+    if not pre_test_res["confirmed"]:
         print("[!] Pre-test failed to confirm vulnerability. Halting pipeline.")
         return
 
@@ -61,7 +67,8 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = "VULN-001"):
     guard = AgentWardRuntimeGuard(wt_dir)
     # Perform pre-execution sanity check on tool execution policy
     audit_check = guard.audit_tool_call("bash", f"pytest {test_file}")
-    print(f"  └─ Tool authorization hook: {audit_check['allowed']} ({audit_check['message']})")
+    audit_note = audit_check.get("message") or audit_check.get("violation") or "no message"
+    print(f"  └─ Tool authorization hook: {audit_check['allowed']} ({audit_note[:100]})")
 
     # ---------------------------------------------------------
     # STAGE 4: Defensive Patching & CodeShield Gate
@@ -75,32 +82,68 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = "VULN-001"):
     patched_file = s4_res["patch_path"]
     with open(patched_file, "r") as f:
         patched_code = f.read()
+    print(f"  └─ {s4_res.get('tripwire_summary', 'no tripwire synthesized')}")
+
+    # ---------------------------------------------------------
+    # STAGE 4.5: Adversarial Self-Play (mutate, replay, gate)
+    # ---------------------------------------------------------
+    print("\n[PHASE 4.5] Adversarial Self-Play Patch Robustness...")
+    selfplay = await run_selfplay(
+        target_file, patched_code, sanitized_code,
+        triage["sqli_payloads"], triage["cmd_payload"],
+        on_event=lambda *_a, **_k: None,
+    )
+    print(f"  └─ {len(selfplay['survived'])}/{len(selfplay['mutations'])} mutations survived "
+          f"({selfplay['source']} mutator)")
+    if not selfplay["accepted"]:
+        print("[!] Patch defeated by a polymorphic mutation. Halting before regression.")
+        return
 
     # ---------------------------------------------------------
     # REGRESSION CHECK: Re-run Sandbox Against Patched Code
     # ---------------------------------------------------------
     print("\n[PHASE 5] Post-Patch Sandbox Regression Test...")
     async with sandbox_semaphore:
-        post_test_res = await asyncio.to_thread(
-            execute_test_on_lightsail,
+        post_run = await asyncio.to_thread(
+            run_sandboxed,
             vuln_id, target_file, patched_code, triage["verification_test_code"]
         )
+    post_test_res = triage_sandbox_result(post_run, target_file)
     # The vulnerability test should no longer detect the vulnerability
-    remediated = not post_test_res["verified"]
-    print(f"  └─ Post-Patch Sandbox: exit_code={post_test_res['exit_code']} | bug_still_active={post_test_res['verified']}")
+    remediated = not post_test_res["confirmed"]
+    print(f"  └─ Post-Patch Sandbox: exit_code={post_test_res['exit_code']} | "
+          f"verdict={post_test_res['verdict']} | bug_still_active={post_test_res['confirmed']}")
+    print(f"  └─ Syscall signals: {'; '.join(post_test_res['signals']) or 'none'}")
 
     if remediated:
         post_clean = clean_worktrees(vuln_id=vuln_id)
         print(f"  └─ Worktree Lifecycle: Cleaned {post_clean['cleaned_count']} temporary harness files ({post_clean['bytes_freed']} bytes freed)")
 
+    # ---------------------------------------------------------
+    # POST-REMEDIATION: Semantic Variant Hunting
+    # ---------------------------------------------------------
+    hunt = {}
+    if remediated:
+        print("\n[PHASE 5.1] Semantic Variant Hunt Across Codebase...")
+        hunt = await hunt_after_remediation(
+            target_file, sanitized_code, patched_code,
+            os.path.dirname(target_file) or ".",
+        )
+        print(f"  └─ {len(hunt['matches'])} semantic variant(s) in {hunt['scanned']} file(s)")
+
     summary = {
         "target_file": target_file,
         "vuln_id": vuln_id,
         "ingress_shield": s1_res["status"],
-        "vulnerability_confirmed": pre_test_res["verified"],
+        "vulnerability_confirmed": pre_test_res["confirmed"],
+        "pre_patch_verdict": pre_test_res["verdict"],
         "codeshield_status": s4_res["status"],
+        "tripwire": s4_res.get("tripwire"),
+        "selfplay_accepted": selfplay["accepted"],
+        "selfplay_survived": len(selfplay["survived"]),
         "patch_location": patched_file,
-        "regression_verified_fixed": remediated
+        "regression_verified_fixed": remediated,
+        "semantic_variants": hunt.get("matches", []),
     }
 
     print("\n" + border)
