@@ -54,11 +54,12 @@ echo "[+] Using Uvicorn:    ${UVICORN_BIN}"
 # ------------------------------------------------------------------------------
 if [[ -d "${APP_DIR}/.git" ]]; then
     echo "[*] Updating application code in ${APP_DIR}..."
-    sudo -u ${USER_NAME} git -C "${APP_DIR}" fetch --quiet origin
-    sudo -u ${USER_NAME} git -C "${APP_DIR}" checkout --quiet \
-        "$(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --abbrev-ref HEAD)"
-    sudo -u ${USER_NAME} git -C "${APP_DIR}" reset --hard --quiet origin/HEAD
-    echo "  [✓] Code at $(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --short HEAD)"
+    BRANCH="$(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --abbrev-ref HEAD)"
+    [[ "${BRANCH}" == "HEAD" ]] && BRANCH="main"
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" fetch --quiet origin "${BRANCH}"
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" checkout --quiet "${BRANCH}"
+    sudo -u ${USER_NAME} git -C "${APP_DIR}" reset --hard --quiet "origin/${BRANCH}"
+    echo "  [✓] Code at $(sudo -u ${USER_NAME} git -C "${APP_DIR}" rev-parse --short HEAD) on ${BRANCH}"
 else
     echo "[!] ${APP_DIR} is not a git checkout; copy sandbox_server.py there manually."
 fi
