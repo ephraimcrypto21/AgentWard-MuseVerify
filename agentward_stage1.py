@@ -9,8 +9,12 @@ import json
 import urllib.request
 import urllib.error
 
-PROMPT_GUARD_URL = "http://100.67.189.89:8000/scan-ingress"
-LIGHTSAIL_SANDBOX_URL = "http://100.67.189.89:8001/execute"
+PROMPT_GUARD_URL = os.environ.get(
+    "AGENTWARD_INGRESS_URL", "http://100.67.189.89:8000/scan-ingress"
+)
+LIGHTSAIL_SANDBOX_URL = os.environ.get(
+    "AGENTWARD_SANDBOX_URL", "http://100.67.189.89:8001/execute"
+)
 
 def check_prompt_guard(file_path: str, content: str) -> dict:
     payload = json.dumps({
@@ -67,7 +71,7 @@ def inspect_file_before_muse(file_path: str) -> dict:
     print(f"[AgentWard Tier-1] {file_path} -> {label.upper()} ({scores})")
 
     if label in ["injection", "jailbreak"]:
-        print(f"[!] Flagged by Prompt-Guard! Escalating to auditor...")
+        print("[!] Flagged by Prompt-Guard! Escalating to auditor...")
         return {
             "status": "SANITIZED",
             "reason": "Indirect prompt injection attempting exfiltration of $META_API_KEY via bash tool",

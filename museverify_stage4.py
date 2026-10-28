@@ -91,10 +91,10 @@ def suppress_semgrep_noise():
         sys.stdout = old_stdout
 from dotenv import load_dotenv
 load_dotenv()
-from ai_provider import query_ai, ACTIVE_PROVIDER
+from ai_provider import query_ai
 
 async def request_muse_patch(source_file: str, code_content: str) -> str:
-    print(f"[MuseVerify Stage-4] Requesting defensive patch + deception tripwire (model=muse-spark-1.3)...")
+    print("[MuseVerify Stage-4] Requesting defensive patch + deception tripwire (model=muse-spark-1.3)...")
     system_prompt = (
         "You are an expert secure coding assistant. Your task is to fix security vulnerabilities "
         "in the provided Python source code AND to leave behind a deception tripwire. "
@@ -305,8 +305,8 @@ async def synthesize_and_gate_patch(
 if __name__ == "__main__":
     target = sys.argv[1] if len(sys.argv) > 1 else "poisoned_app.py"
     sim_ins = "--simulate-insecure" in sys.argv
-    print(f"\n======================================================================")
+    print("\n======================================================================")
     print(f"[*] STAGE 4 DEFENSIVE PATCH SYNTHESIS: {target}")
-    print(f"======================================================================")
+    print("======================================================================")
     res = asyncio.run(synthesize_and_gate_patch(target, simulate_insecure=sim_ins))
     print(json.dumps(res, indent=2))

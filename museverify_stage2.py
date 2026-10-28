@@ -8,7 +8,6 @@ syscall trail is audited heuristically and by the AI auditor, so a polymorphic
 payload can no longer pass by returning exit code 0.
 """
 import os
-import re
 import sys
 import json
 import shutil
@@ -17,8 +16,12 @@ import subprocess
 import urllib.request
 import urllib.error
 
-PROMPT_GUARD_URL = "http://100.67.189.89:8000/scan-ingress"
-LIGHTSAIL_SANDBOX_URL = "http://100.67.189.89:8001/execute"
+PROMPT_GUARD_URL = os.environ.get(
+    "AGENTWARD_INGRESS_URL", "http://100.67.189.89:8000/scan-ingress"
+)
+LIGHTSAIL_SANDBOX_URL = os.environ.get(
+    "AGENTWARD_SANDBOX_URL", "http://100.67.189.89:8001/execute"
+)
 
 HARNESS_FILES = {"test_harness.py", "verify_test.py", "run_test.py", "agentward_runner.py"}
 
@@ -308,7 +311,7 @@ def synthesize_verification_harness(
     longer depends on the process exit code (which a polymorphic payload can fake).
     Payload lists are injectable so Stage 4.5 can re-run mutated variants.
     """
-    print(f"[MuseVerify Stage-2] Generating execution harness with live sycall probes...")
+    print("[MuseVerify Stage-2] Generating execution harness with live sycall probes...")
     target_name = os.path.basename(target_file)
     resolved_sqli = sqli_payloads or default_sqli_payloads()
     resolved_cmd = cmd_payload or DEFAULT_CMD_PAYLOAD

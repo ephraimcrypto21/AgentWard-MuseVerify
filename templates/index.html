@@ -123,7 +123,8 @@
   <script>
     let ws;
     function connectWS() {
-      ws = new WebSocket("ws://" + window.location.host + "/ws/telemetry");
+      const wsProto = window.location.protocol === "https:" ? "wss://" : "ws://";
+      ws = new WebSocket(wsProto + window.location.host + "/ws/telemetry");
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
         const logBox = document.getElementById("consoleOutput");

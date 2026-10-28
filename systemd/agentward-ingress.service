@@ -9,6 +9,7 @@ Group=ubuntu
 WorkingDirectory=/home/ubuntu/agentward-node
 Environment="PATH=/home/ubuntu/agentward-node/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
+Environment="AGENTWARD_SANDBOX_PROXY_URL=http://127.0.0.1:8001/run-sandbox-test"
 ExecStart=/home/ubuntu/agentward-node/venv/bin/uvicorn ingress_server:app --host 0.0.0.0 --port 8000 --workers 1
 Restart=always
 RestartSec=5

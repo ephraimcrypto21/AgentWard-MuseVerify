@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import itertools
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -10,7 +11,6 @@ from museverify_stage2 import (
     create_isolated_worktree,
     synthesize_verification_harness,
     run_sandboxed,
-    triage_sandbox_result,
     triage_sandbox_result_async,
     describe_syscall_trail,
     clean_worktrees
@@ -25,6 +25,7 @@ app = FastAPI(title="AgentWard + MuseVerify Cockpit")
 
 MAX_PARALLEL_SANDBOXES = 3
 sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
+_adhoc_seq = itertools.count(1)
 
 class AuditRequest(BaseModel):
     target_file: str
@@ -61,7 +62,8 @@ async def broadcast(event_type: str, data: str = "", phase: int = 0, status: str
 
 @app.get("/", response_class=HTMLResponse)
 async def get_index():
-    with open("templates/index.html") as f:
+    template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "index.html")
+    with open(template) as f:
         return f.read()
 
 @app.websocket("/ws/telemetry")
@@ -79,7 +81,7 @@ async def websocket_telemetry(websocket: WebSocket):
 
 @app.post("/api/run")
 async def run_pipeline_api(req: AuditRequest):
-    task = asyncio.create_task(execute_harness(req.target_file))
+    task = asyncio.create_task(execute_harness(req.target_file, f"ADHOC-{next(_adhoc_seq):03d}"))
     background_tasks.add(task)
     task.add_done_callback(background_tasks.discard)
     return {"status": "started", "file": req.target_file}
@@ -112,14 +114,13 @@ async def run_batch_benchmark_dashboard(targets_dir: str = "benchmark_targets"):
     async def process_one(idx, fpath):
         vid = f"VULN-{idx:03d}"
         await broadcast("log", f"[*] [Batch Dispatch] Running {vid}: {fpath}...")
-        await execute_harness(fpath)
+        await execute_harness(fpath, vid)
 
     tasks = [process_one(idx, fpath) for idx, fpath in enumerate(target_files, 1)]
     await asyncio.gather(*tasks)
     await broadcast("log", f"[+] BATCH STRESS TEST COMPLETED: {len(target_files)} alerts evaluated.")
 
-async def execute_harness(target_file: str):
-    vuln_id = "VULN-001"
+async def execute_harness(target_file: str, vuln_id: str = "VULN-001"):
     try:
         # Pre-run lifecycle cleanup: safely prune stale temporary harness files
         pre_clean = clean_worktrees(vuln_id=vuln_id)
@@ -178,8 +179,20 @@ async def execute_harness(target_file: str):
 
         # Phase 3: Runtime Policy & Rewind Baseline
         await broadcast("phase_update", phase=3, status="Armed", color="border-blue-600 bg-blue-950/40", note="Rewind Checkpointed")
+        test_file = os.path.join(wt, "verify_test.py")
+        with open(test_file, "w") as f:
+            f.write(triage["verification_test_code"])
         guard = AgentWardRuntimeGuard(wt)
         await broadcast("log", f"[Phase 3] Checkpoint SHA-256 manifest committed for {wt}")
+        audit_check = await asyncio.to_thread(
+            guard.audit_tool_call, "bash", f"pytest {test_file}"
+        )
+        audit_note = audit_check.get("message") or audit_check.get("violation") or "no message"
+        p3_color = "border-emerald-600 bg-emerald-950/40" if audit_check["allowed"] else "border-red-600 bg-red-950/40"
+        await broadcast("phase_update", phase=3,
+                        status="ALLOWED" if audit_check["allowed"] else "BLOCKED",
+                        color=p3_color, note=audit_note[:60])
+        await broadcast("log", f"[Phase 3] Tool authorization hook: allowed={audit_check['allowed']} ({audit_note[:100]})")
 
         # Phase 4: Patching, Tripwire Synthesis & CodeShield
         await broadcast("phase_update", phase=4, status="Validating", color="border-yellow-600 bg-yellow-950/40", note="CodeShield + Tripwire Synthesis")

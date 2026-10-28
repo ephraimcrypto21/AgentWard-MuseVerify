@@ -32,7 +32,19 @@ from pydantic import BaseModel
 
 app = FastAPI(title="MuseVerify Sandbox Node (Stage 2/5)")
 
-SANDBOX_IMAGE = os.environ.get("SANDBOX_IMAGE", "python:3.12-slim")
+def _default_image() -> str:
+    """Prefer the trace-capable derived image when it has been built locally."""
+    if shutil.which("docker"):
+        probe = subprocess.run(
+            ["docker", "image", "inspect", "agentward-sandbox:latest"],
+            capture_output=True, text=True,
+        )
+        if probe.returncode == 0:
+            return "agentward-sandbox:latest"
+    return "python:3.12-slim"
+
+
+SANDBOX_IMAGE = os.environ.get("SANDBOX_IMAGE") or _default_image()
 SANDBOX_TIMEOUT_S = int(os.environ.get("SANDBOX_TIMEOUT_S", "15"))
 MAX_EVENTS = 500
 TRACE_SYSCALLS = "execve,execveat,openat,open,connect,unlinkat"
@@ -293,15 +305,37 @@ def _run_local(sandbox_dir: str):
     )
 
 
+_TRACE_CAPABLE_CACHE = {}
+
+
+def _image_has_strace() -> bool:
+    """Cached probe: does the configured sandbox image ship strace?"""
+    if SANDBOX_IMAGE not in _TRACE_CAPABLE_CACHE:
+        try:
+            probe = subprocess.run(
+                ["docker", "run", "--rm", "--network", "none", SANDBOX_IMAGE,
+                 "/bin/sh", "-c", "command -v strace"],
+                capture_output=True, text=True, timeout=30,
+            )
+            _TRACE_CAPABLE_CACHE[SANDBOX_IMAGE] = probe.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            _TRACE_CAPABLE_CACHE[SANDBOX_IMAGE] = False
+    return _TRACE_CAPABLE_CACHE[SANDBOX_IMAGE]
+
+
 @app.get("/")
 @app.get("/health")
 def health():
     have_docker = shutil.which("docker") is not None
+    trace_capable = have_docker and _image_has_strace()
     return {
         "status": "ok",
         "service": "MuseVerify Sandbox Node",
         "docker": have_docker,
-        "syscall_telemetry": "strace+audit-hook (auto fallback)",
+        "sandbox_image": SANDBOX_IMAGE,
+        "trace_capable": trace_capable,
+        "syscall_telemetry": "strace+audit-hook (auto fallback)" if trace_capable
+                             else "audit-hook only (image lacks strace)",
     }
 
 

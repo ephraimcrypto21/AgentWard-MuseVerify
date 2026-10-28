@@ -12,7 +12,6 @@ import asyncio
 import hashlib
 import secrets
 import tempfile
-import subprocess
 import concurrent.futures
 
 try:

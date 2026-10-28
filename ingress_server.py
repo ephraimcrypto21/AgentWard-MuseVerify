@@ -12,10 +12,11 @@ Exposes:
 Binds explicitly to 127.0.0.1:8000 by default for SSH tunnel forwarding.
 """
 import argparse
+import json
 import os
-import shutil
-import subprocess
-import tempfile
+import urllib.error
+import urllib.request
+
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -28,6 +29,9 @@ torch.set_num_threads(2)
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 
 MODEL_ID = "Niansuh/Prompt-Guard-86M"
+LEGACY_SANDBOX_URL = os.environ.get(
+    "AGENTWARD_SANDBOX_PROXY_URL", "http://127.0.0.1:8001/run-sandbox-test"
+)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID)
 
@@ -53,6 +57,7 @@ def health_check():
         "status": "ok",
         "service": "AgentWard + MuseVerify Node (Stage 1 & 2)",
         "model": MODEL_ID,
+        "legacy_sandbox_proxy": LEGACY_SANDBOX_URL,
         "bind": "127.0.0.1:8000",
     }
 
@@ -84,54 +89,45 @@ def scan_ingress(req: ScanRequest):
 @app.post("/run-sandbox-test")
 @app.post("/run-poc-sandbox")
 def run_sandbox_test(req: SandboxTestRequest):
-    sandbox_dir = tempfile.mkdtemp(prefix=f"museverify_{req.vuln_id}_")
+    payload = json.dumps({
+        "vuln_id": req.vuln_id,
+        "target_filename": req.target_filename,
+        "sanitized_target_code": req.sanitized_target_code,
+        "test_script": req.test_script,
+        "poc_script": req.poc_script,
+    }).encode("utf-8")
+    request = urllib.request.Request(
+        LEGACY_SANDBOX_URL,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
     try:
-        script_content = req.test_script or req.poc_script
-        target_path = os.path.join(sandbox_dir, os.path.basename(req.target_filename))
-        test_path = os.path.join(sandbox_dir, "verify_test.py")
-
-        with open(target_path, "w") as f:
-            f.write(req.sanitized_target_code)
-        with open(test_path, "w") as f:
-            f.write(script_content)
-
-        docker_cmd = [
-            "docker", "run", "--rm",
-            "--network", "none",
-            "--memory", "256m",
-            "--cpus", "0.5",
-            "-v", f"{sandbox_dir}:/workspace:rw",
-            "-w", "/workspace",
-            "python:3.12-slim",
-            "python3", "verify_test.py",
-        ]
-        proc = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=15)
-
-        if proc.returncode != 0 and (
-            "permission denied" in proc.stderr.lower() or "cannot connect" in proc.stderr.lower()
-        ):
-            proc = subprocess.run(
-                ["python3", "verify_test.py"],
-                cwd=sandbox_dir,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-
-        stdout = proc.stdout.strip()
-        stderr = proc.stderr.strip()
-        verified = proc.returncode == 0 and ("VULN_CONFIRMED" in stdout or "EXPLOIT_VERIFIED" in stdout)
+        with urllib.request.urlopen(request, timeout=25) as resp:
+            return json.loads(resp.read().decode())
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
         return {
             "vuln_id": req.vuln_id,
-            "verified": verified,
-            "exit_code": proc.returncode,
-            "stdout": stdout,
-            "stderr": stderr,
+            "verified": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": f"Sandbox proxy HTTP {exc.code}: {detail[:200]}",
+            "engine": "proxy_error",
+            "trace_backend": "none",
+            "syscall_events": [],
         }
-    except subprocess.TimeoutExpired:
-        return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "", "stderr": "Sandbox timed out"}
-    finally:
-        shutil.rmtree(sandbox_dir, ignore_errors=True)
+    except (urllib.error.URLError, TimeoutError) as exc:
+        return {
+            "vuln_id": req.vuln_id,
+            "verified": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": f"Sandbox proxy unavailable: {exc}",
+            "engine": "proxy_error",
+            "trace_backend": "none",
+            "syscall_events": [],
+        }
 
 
 if __name__ == "__main__":

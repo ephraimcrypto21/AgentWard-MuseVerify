@@ -177,17 +177,20 @@ Confirm the node is streaming telemetry:
 ```bash
 curl -s http://<node>:8001/health
 # {"status":"ok","service":"MuseVerify Sandbox Node","docker":true,
+#  "sandbox_image":"agentward-sandbox:latest","trace_capable":true,
 #  "syscall_telemetry":"strace+audit-hook (auto fallback)"}
 ```
 
-If you move the daemons, edit the two endpoints at the top of `museverify_stage2.py`:
+If the daemons move, override the endpoints with environment variables instead of editing source:
 
-```python
-PROMPT_GUARD_URL     = "http://<node>:8000/scan-ingress"
-LIGHTSAIL_SANDBOX_URL = "http://<node>:8001/execute"
+```bash
+export AGENTWARD_INGRESS_URL="http://<node>:8000/scan-ingress"
+export AGENTWARD_SANDBOX_URL="http://<node>:8001/execute"
 ```
 
-The client detects a node running a pre-telemetry build and transparently degrades to a local audit-hook run rather than silently trusting exit codes.
+They default to the constants at the top of `museverify_stage2.py`, which you can still edit if you prefer.
+
+The client detects a node running a pre-telemetry build and transparently degrades to a local audit-hook run rather than silently trusting exit codes. When `trace_capable` is `false`, the image lacks `strace`, so only the in-process audit hook records events — rebuild `agentward-sandbox:latest` to restore kernel-level tracing.
 
 ### 4. Launch the local dashboard
 
@@ -197,7 +200,7 @@ python dashboard.py                      # 127.0.0.1:8080
 DASHBOARD_PORT=9000 python dashboard.py  # or pick your own
 ```
 
-Open <http://127.0.0.1:8080>. Telemetry binds to `ws://<host>/ws/telemetry` on the same origin, so a reverse proxy or SSH tunnel (`ssh -L 8080:127.0.0.1:8080 <node>`) works without code changes. `DASHBOARD_HOST` defaults to `127.0.0.1` — set it to `0.0.0.0` to expose the cockpit on your LAN.
+Open <http://127.0.0.1:8080>. Telemetry binds to `ws(s)://<host>/ws/telemetry` on the same origin, so a reverse proxy or SSH tunnel (`ssh -L 8080:127.0.0.1:8080 <node>`) works without code changes. `DASHBOARD_HOST` defaults to `127.0.0.1` — set it to `0.0.0.0` to expose the cockpit on your LAN.
 
 ---
 

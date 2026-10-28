@@ -22,7 +22,7 @@ sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
 async def run_unified_pipeline(target_file: str, vuln_id: str = "VULN-001"):
     border = "=" * 75
     print("\n" + border)
-    print(f"[*] AGENTWARD + MUSEVERIFY MASTER ORCHESTRATOR")
+    print("[*] AGENTWARD + MUSEVERIFY MASTER ORCHESTRATOR")
     print(f"[*] Target: {target_file} | Identifier: {vuln_id}")
     print(border)
 

@@ -95,6 +95,7 @@ Group=${USER_NAME}
 WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
+Environment="AGENTWARD_SANDBOX_PROXY_URL=http://127.0.0.1:8001/run-sandbox-test"
 ExecStart=${UVICORN_BIN} ingress_server:app --host 0.0.0.0 --port 8000 --workers 1
 Restart=always
 RestartSec=5
@@ -162,9 +163,11 @@ systemctl is-active --quiet museverify-sandbox.service && \
 
 echo ""
 echo "[*] Verifying the sandbox actually streams syscall telemetry..."
-HEALTH="$(curl -s -m 5 http://127.0.0.1:8001/health || true)"
-if [[ "${HEALTH}" == *"syscall_telemetry"* ]]; then
-    echo "  [✓] /health advertises syscall telemetry"
+HEALTH="$(curl -s -m 20 http://127.0.0.1:8001/health || true)"
+if [[ "${HEALTH}" == *"syscall_telemetry"* && "${HEALTH}" != *'"trace_capable":false'* ]]; then
+    echo "  [✓] /health advertises kernel-level syscall telemetry"
+elif [[ "${HEALTH}" == *"syscall_telemetry"* ]]; then
+    echo "  [!] /health reports trace_capable=false — audit-hook only. Rebuild ${SANDBOX_IMAGE}."
 else
     echo "  [✗] /health has no syscall_telemetry field — node is still stale."
     echo "      Check: journalctl -u museverify-sandbox.service -n 50"
