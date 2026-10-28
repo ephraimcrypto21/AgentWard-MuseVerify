@@ -65,6 +65,21 @@ else
 fi
 
 # ------------------------------------------------------------------------------
+# 0b. Sandbox image with strace baked in. python:3.12-slim has no strace, so
+#     without this the sandbox can only ever use the in-process audit hook.
+# ------------------------------------------------------------------------------
+SANDBOX_IMAGE="${SANDBOX_IMAGE:-agentward-sandbox:latest}"
+if ! docker image inspect "${SANDBOX_IMAGE}" >/dev/null 2>&1; then
+    echo "[*] Building ${SANDBOX_IMAGE} (adds strace to python:3.12-slim)..."
+    printf 'FROM python:3.12-slim\nRUN apt-get update -qq && apt-get install -y -qq --no-install-recommends strace && rm -rf /var/lib/apt/lists/*\n' \
+        | docker build -q -t "${SANDBOX_IMAGE}" - >/dev/null
+    echo "  [✓] Built ${SANDBOX_IMAGE}"
+else
+    echo "[✓] ${SANDBOX_IMAGE} already present"
+fi
+SANDBOX_IMAGE="${SANDBOX_IMAGE}"
+
+# ------------------------------------------------------------------------------
 # 1. /etc/systemd/system/agentward-ingress.service (Port 8000)
 # ------------------------------------------------------------------------------
 echo "[*] Generating /etc/systemd/system/agentward-ingress.service..."
@@ -108,6 +123,7 @@ Group=${USER_NAME}
 WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
+Environment="SANDBOX_IMAGE=${SANDBOX_IMAGE}"
 ExecStart=${UVICORN_BIN} sandbox_server:app --host 0.0.0.0 --port 8001 --workers 1
 Restart=always
 RestartSec=5
