@@ -193,10 +193,11 @@ The client detects a node running a pre-telemetry build and transparently degrad
 
 ```bash
 source venv/bin/activate
-uvicorn dashboard:app --host 127.0.0.1 --port 8080
+python dashboard.py                      # 127.0.0.1:8080
+DASHBOARD_PORT=9000 python dashboard.py  # or pick your own
 ```
 
-Open <http://127.0.0.1:8080>. Telemetry binds to `ws://<host>/ws/telemetry` on the same origin, so a reverse proxy or SSH tunnel (`ssh -L 8080:127.0.0.1:8080 <node>`) works without code changes.
+Open <http://127.0.0.1:8080>. Telemetry binds to `ws://<host>/ws/telemetry` on the same origin, so a reverse proxy or SSH tunnel (`ssh -L 8080:127.0.0.1:8080 <node>`) works without code changes. `DASHBOARD_HOST` defaults to `127.0.0.1` — set it to `0.0.0.0` to expose the cockpit on your LAN.
 
 ---
 
@@ -204,7 +205,7 @@ Open <http://127.0.0.1:8080>. Telemetry binds to `ws://<host>/ws/telemetry` on t
 
 **From the dashboard**
 
-1. Pick a target from **Select Target** — `poisoned_app.py` is the fully loaded demo (SQL injection *plus* an indirect injection targeting `$META_API_KEY`).
+1. Pick a target from **Select Target** — `poisoned_app.py` is the fully loaded demo (SQL injection *plus* an indirect injection targeting `$META_API_KEY`). The dropdown also offers the three CWE fixtures, both injection fixtures, and two benign decoys so you can watch a false positive get dropped unprompted.
 2. Press **▶ Run Autonomous Triage**.
 3. Watch the seven phase cards resolve in real time. The telemetry row streams the syscall trail, the auditor's reasoning, the self-play variants, the armed tripwire, and any semantic matches.
 

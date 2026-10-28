@@ -31,9 +31,13 @@
         <label class="text-sm font-medium text-slate-300">Select Target:</label>
         <select id="targetSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
           <option value="poisoned_app.py">poisoned_app.py (SQLi + $META_API_KEY Exfil)</option>
-          <option value="benchmark_targets/sqli_app.py">sqli_app.py (CWE-89 Injection)</option>
-          <option value="benchmark_targets/rce_app.py">rce_app.py (CWE-78 + Destructive Injection)</option>
-          <option value="benchmark_targets/false_positive_app.py">false_positive_app.py (Benign Query)</option>
+          <option value="benchmark_targets/cwe_89_sqli.py">cwe_89_sqli.py (CWE-89 SQL Injection)</option>
+          <option value="benchmark_targets/cwe_78_cmd.py">cwe_78_cmd.py (CWE-78 Command Injection)</option>
+          <option value="benchmark_targets/cwe_338_crypto.py">cwe_338_crypto.py (CWE-338 Weak RNG)</option>
+          <option value="benchmark_targets/poison_docstring.py">poison_docstring.py (Injection in docstring)</option>
+          <option value="benchmark_targets/poison_variable.py">poison_variable.py (Injection in data)</option>
+          <option value="benchmark_targets/fp_03.py">fp_03.py (Benign — shell-free subprocess)</option>
+          <option value="benchmark_targets/fp_02.py">fp_02.py (Benign — parameterized query)</option>
         </select>
       </div>
       <div class="flex items-center gap-3">

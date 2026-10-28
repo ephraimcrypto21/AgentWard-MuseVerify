@@ -277,3 +277,13 @@ async def execute_harness(target_file: str):
         await broadcast("log", f"[+] PIPELINE RUN COMPLETE. Patch saved to: {s4['patch_path']}")
     except Exception as e:
         await broadcast("log", f"[!] Pipeline execution error: {e}")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host=os.getenv("DASHBOARD_HOST", "127.0.0.1"),
+        port=int(os.getenv("DASHBOARD_PORT", "8080")),
+    )
