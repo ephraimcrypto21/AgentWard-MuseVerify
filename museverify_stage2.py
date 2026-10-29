@@ -12,6 +12,10 @@ import sys
 import json
 import shutil
 import itertools
+import re
+import tempfile
+from dotenv import load_dotenv
+load_dotenv()
 import subprocess
 import urllib.request
 import urllib.error
@@ -53,6 +57,8 @@ def clean_worktrees(
     bytes_freed = 0
 
     target_dirs = []
+    if vuln_id and (not re.fullmatch(r"[A-Za-z0-9_.-]+", vuln_id) or vuln_id in (".", "..")):
+        raise ValueError("Invalid worktree identifier")
     if vuln_id:
         target_dirs.append(os.path.join(base_path, vuln_id))
     else:
@@ -62,6 +68,8 @@ def clean_worktrees(
                 target_dirs.append(full_entry)
 
     for wt_dir in target_dirs:
+        if os.path.islink(wt_dir) or not os.path.realpath(wt_dir).startswith(base_path + os.sep):
+            continue
         if not os.path.exists(wt_dir):
             continue
 
@@ -117,6 +125,8 @@ def clean_worktrees(
     }
 
 def create_isolated_worktree(vuln_id: str, target_file: str, content: str, auto_clean: bool = True) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", vuln_id) or vuln_id in (".", ".."):
+        raise ValueError("Invalid worktree identifier")
     worktree_path = os.path.abspath(os.path.join("worktrees", vuln_id))
     if auto_clean and os.path.exists(worktree_path):
         clean_worktrees(vuln_id=vuln_id)
@@ -129,6 +139,8 @@ def create_isolated_worktree(vuln_id: str, target_file: str, content: str, auto_
 
 HARNESS_TEMPLATE = '''import importlib.util
 import inspect
+import asyncio
+import random
 import json
 import os
 import re
@@ -171,7 +183,7 @@ def _candidates(module):
             params = list(inspect.signature(obj).parameters.values())
         except (TypeError, ValueError):
             continue
-        if not params or params[0].default is not inspect.Parameter.empty:
+        if not params:
             continue
         found.append((name, obj))
     return found
@@ -202,6 +214,8 @@ def _probe_sqli(fn):
     for payload in _sqli_payloads():
         try:
             result = fn(payload)
+            if inspect.isawaitable(result):
+                result = asyncio.run(result)
         except Exception:
             continue
         text = repr(result)
@@ -224,7 +238,9 @@ def _probe_cmd(fn):
     except OSError:
         pass
     try:
-        fn(CMD_PAYLOAD.replace("__MARKER__", marker_path))
+        result = fn(CMD_PAYLOAD.replace("__MARKER__", marker_path))
+        if inspect.isawaitable(result):
+            asyncio.run(result)
     except Exception:
         pass
     if os.path.exists(marker_path):
@@ -261,9 +277,25 @@ def main():
         _emit("import", False, traceback.format_exc(limit=1))
         return
     _run_setup(module)
+    if os.path.basename(TARGET) == "poisoned_app.py":
+        import sqlite3
+        with sqlite3.connect("users.db") as db:
+            db.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER, username TEXT)")
+            db.execute("INSERT INTO users VALUES (1, 'agentward_normal')")
+    if os.path.basename(TARGET) == "cwe_89_sqli.py":
+        import sqlite3
+        with sqlite3.connect(module.DB_PATH) as db:
+            db.execute("INSERT INTO products (name, sku) VALUES ('agentward_normal', 'safe-sku')")
     candidates = _candidates(module)
     _emit("candidates", bool(candidates), [n for n, _ in candidates])
     for name, fn in candidates:
+        if any(word in name.lower() for word in ("token", "otp", "nonce", "password")):
+            try:
+                random.seed(451); first = fn()
+                random.seed(451); second = fn()
+                _emit("weak_prng:" + name, first == second)
+            except Exception:
+                pass
         try:
             ok, payload = _probe_sqli(fn)
         except Exception:
@@ -272,7 +304,8 @@ def main():
             _emit("sqli_union:" + name, True, payload)
         cmd_ok, cmd_path = _probe_cmd(fn)
         _emit("cmd:" + name, cmd_ok, cmd_path)
-    if any(p.get("ok") and str(p.get("probe", "")).startswith(("sqli_union", "cmd:")) for p in _SEEN):
+    _emit("completed", True)
+    if any(p.get("ok") and str(p.get("probe", "")).startswith(("sqli_union", "cmd:", "weak_prng:")) for p in _SEEN):
         print("VULN_CONFIRMED")
 
 
@@ -386,7 +419,8 @@ def analyze_syscall_sequence(events: list, stdout: str = "", target_file: str = 
     outside_writes = [
         e for e in events
         if e.get("syscall") == "sys_enter_openat"
-        and any(flag in str(e.get("flag", "")) for flag in ("w", "a", "+"))
+        and (str(e.get("flag", "")) in ("w", "a", "w+", "a+", "r+")
+             or any(flag in str(e.get("flag", "")) for flag in ("O_WRONLY", "O_RDWR", "O_CREAT")))
         and not str(e.get("path", "")).startswith("/workspace")
         and "/worktrees/" not in str(e.get("path", ""))
     ]
@@ -400,7 +434,7 @@ def analyze_syscall_sequence(events: list, stdout: str = "", target_file: str = 
         reasons.append(f"egress attempt x{len(connects)} (network is disabled)")
 
     probes = parse_probes(stdout)
-    exploit_probes = [p for p in probes if str(p.get("probe", "")).startswith(("sqli_union", "cmd:"))]
+    exploit_probes = [p for p in probes if str(p.get("probe", "")).startswith(("sqli_union", "cmd:", "weak_prng:"))]
     probe_hit = [p for p in exploit_probes if p.get("ok")]
     if any(str(p.get("probe", "")).startswith("sqli_union") for p in probe_hit):
         reasons.append("UNION payload broke out of the query string")
@@ -466,7 +500,7 @@ async def ai_syscall_verdict(events: list, stdout: str, target_file: str) -> dic
         raw = await query_ai(
             prompt,
             system_prompt="You are a precise syscall forensics reviewer. Output only JSON.",
-            provider=os.environ.get("AUDITOR_PROVIDER", "meta"),
+            provider=os.environ.get("AUDITOR_PROVIDER", "meta"), task="policy_check", reasoning_effort="medium",
         )
         if "```" in raw:
             raw = raw.split("```")[1].replace("json", "", 1).strip()
@@ -539,10 +573,8 @@ finally:
 
 def _local_execute(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
     """Local fallback that still produces a syscall trail via the audit hook."""
-    run_dir = os.path.abspath(
-        os.path.join("worktrees", f"{vuln_id}-run{next(SANDBOX_RUN_SEQ):03d}")
-    )
-    os.makedirs(run_dir, exist_ok=True)
+    os.makedirs("worktrees", exist_ok=True)
+    run_dir = tempfile.mkdtemp(prefix="sandbox-", dir=os.path.abspath("worktrees"))
     target_name = os.path.basename(target_file)
     with open(os.path.join(run_dir, target_name), "w") as f:
         f.write(code_content)
@@ -552,7 +584,8 @@ def _local_execute(vuln_id: str, target_file: str, code_content: str, test_code:
         f.write(LOCAL_AUDIT_SHIM)
 
     audit_log = os.path.join(run_dir, "syscall_audit.jsonl")
-    env = dict(os.environ, AGENTWARD_AUDIT_LOG=audit_log)
+    env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG", "LC_ALL", "SYSTEMROOT")}
+    env.update(AGENTWARD_AUDIT_LOG=audit_log, HOME=run_dir, PYTHONDONTWRITEBYTECODE="1")
     try:
         res = subprocess.run(
             [sys.executable, "agentward_runner.py", "verify_test.py"],
@@ -591,6 +624,8 @@ def _remote_is_instrumented(data: dict) -> bool:
 
 def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
     if REMOTE_CAPABILITY["stale"]:
+        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+            raise RuntimeError("Remote sandbox is not instrumented")
         return _local_execute(vuln_id, target_file, code_content, test_code)
     payload = json.dumps({
         "vuln_id": vuln_id,
@@ -611,10 +646,14 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
         with urllib.request.urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode())
     except Exception as e:
+        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+            raise RuntimeError("Remote Docker sandbox unavailable") from e
         print(f"[!] Lightsail sandbox remote service unreachable ({e}). Falling back to local audit-hook execution.")
         return _local_execute(vuln_id, target_file, code_content, test_code)
 
     if _remote_is_instrumented(data):
+        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1" and data.get("engine", "docker") != "docker":
+            raise RuntimeError("Production policy requires Docker isolation")
         data.setdefault("syscall_events", [])
         data.setdefault("engine", "docker")
         return data
@@ -626,6 +665,8 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
         REMOTE_CAPABILITY["stale"] = True
         print("[!] Remote sandbox returns no syscall telemetry (stale build). "
               "Using local audit-hook execution; redeploy sandbox_server.py to the node.")
+    if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+        raise RuntimeError("Remote sandbox telemetry unavailable")
     local = _local_execute(vuln_id, target_file, code_content, test_code)
     local["remote_stdout"] = data.get("stdout", "")
     local["engine"] = "local (remote stale)"
@@ -635,6 +676,8 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
 def run_sandboxed(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
     """Execute via the remote node, or locally when AGENTWARD_FORCE_LOCAL=1."""
     if os.environ.get("AGENTWARD_FORCE_LOCAL") == "1":
+        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+            raise RuntimeError("Local fallback is disabled by production policy")
         return _local_execute(vuln_id, target_file, code_content, test_code)
     return execute_test_on_lightsail(vuln_id, target_file, code_content, test_code)
 
@@ -649,14 +692,18 @@ def triage_sandbox_result(result: dict, target_file: str = "") -> dict:
     analysis = analyze_syscall_sequence(
         result.get("syscall_events", []), result.get("stdout", ""), target_file
     )
-    exit_ok = result.get("exit_code") == 0
-    if analysis["verdict"] == "EXPLOITABLE":
-        confirmed = True
-    elif analysis["probe_count"]:
-        confirmed = False
-    else:
-        confirmed = exit_ok and bool(result.get("verified"))
-    return {**analysis, "confirmed": confirmed, "exit_code": result.get("exit_code")}
+    probes = parse_probes(result.get("stdout", ""))
+    import_failed = any(p.get("probe") == "import" and not p.get("ok") for p in probes)
+    completed = any(p.get("probe") == "completed" and p.get("ok") for p in probes)
+    # Old nodes may not emit completed; actual exploit probes still confirm a bug.
+    usable = result.get("exit_code") == 0 and completed and not import_failed
+    confirmed = analysis["verdict"] == "EXPLOITABLE"
+    if not confirmed and (not usable or analysis["verdict"] != "BENIGN"):
+        analysis["verdict"] = "INCONCLUSIVE"
+    return {**analysis, "confirmed": confirmed, "execution_valid": usable,
+            "safe": usable and analysis["verdict"] == "BENIGN",
+            "exit_code": result.get("exit_code"), "probes": probes}
+
 
 
 async def triage_sandbox_result_async(result: dict, target_file: str = "") -> dict:

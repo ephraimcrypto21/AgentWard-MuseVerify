@@ -25,6 +25,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+import uuid
+import re
 
 import uvicorn
 from fastapi import FastAPI
@@ -37,7 +39,7 @@ def _default_image() -> str:
     if shutil.which("docker"):
         probe = subprocess.run(
             ["docker", "image", "inspect", "agentward-sandbox:latest"],
-            capture_output=True, text=True,
+            capture_output=True, text=True, timeout=10,
         )
         if probe.returncode == 0:
             return "agentward-sandbox:latest"
@@ -279,10 +281,15 @@ def _write_harness_files(sandbox_dir: str, req: SandboxRequest) -> str:
 
 def _run_container(sandbox_dir: str):
     use_trace = os.environ.get("SANDBOX_STRACE", "1") != "0"
+    name = "agentward-" + uuid.uuid4().hex
     base = [
-        "docker", "run", "--rm",
+        "docker", "run", "--rm", "--name", name,
         "--network", "none",
         "--memory", "256m",
+        "--pids-limit", "64",
+        "--user", f"{os.getuid()}:{os.getgid()}",
+        "--cap-drop", "ALL",
+        "--security-opt", "no-new-privileges",
         "--cpus", "0.5",
         "-v", f"{sandbox_dir}:/workspace:rw",
         "-w", "/workspace",
@@ -291,14 +298,20 @@ def _run_container(sandbox_dir: str):
     ]
     if use_trace:
         base += ["--cap-add", "SYS_PTRACE"]
-    return subprocess.run(
-        base + [SANDBOX_IMAGE, "/bin/sh", "/workspace/run.sh"],
-        capture_output=True, text=True, timeout=SANDBOX_TIMEOUT_S,
-    )
+    try:
+        return subprocess.run(
+            base + [SANDBOX_IMAGE, "/bin/sh", "/workspace/run.sh"],
+            capture_output=True, text=True, timeout=SANDBOX_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        # Killing the Docker client alone leaves the timed-out container running.
+        subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=10)
+        raise
+
 
 
 def _run_local(sandbox_dir: str):
-    env = dict(os.environ, AGENTWARD_AUDIT_LOG=os.path.join(sandbox_dir, "syscall_audit.jsonl"))
+    env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG", "LC_ALL")}
+    env.update(AGENTWARD_AUDIT_LOG=os.path.join(sandbox_dir, "syscall_audit.jsonl"), HOME=sandbox_dir)
     return subprocess.run(
         ["python3", "agentward_runner.py", "verify_test.py"],
         cwd=sandbox_dir, capture_output=True, text=True, timeout=10, env=env,
@@ -343,7 +356,7 @@ def health():
 @app.post("/run-sandbox-test")
 @app.post("/run-poc-sandbox")
 def execute(req: SandboxRequest):
-    sandbox_dir = tempfile.mkdtemp(prefix=f"museverify_{req.vuln_id}_")
+    sandbox_dir = tempfile.mkdtemp(prefix="museverify_")
     engine = "docker"
     try:
         _write_harness_files(sandbox_dir, req)
@@ -355,7 +368,11 @@ def execute(req: SandboxRequest):
                 or "cannot connect to the docker daemon" in proc.stderr.lower()
             ):
                 raise RuntimeError("docker unavailable")
-        except (RuntimeError, subprocess.TimeoutExpired, FileNotFoundError):
+        except (RuntimeError, FileNotFoundError):
+            if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+                return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
+                        "stderr": "Docker isolation unavailable", "engine": "unavailable",
+                        "trace_backend": "none", "syscall_events": []}
             engine = "local"
             proc = _run_local(sandbox_dir)
 
@@ -371,7 +388,7 @@ def execute(req: SandboxRequest):
         # Deduplicate but preserve ordering of first observation.
         seen, uniq = set(), []
         for event in events:
-            key = (event.get("syscall"), event.get("argv") or event.get("path") or event.get("addr"))
+            key = (event.get("syscall"), event.get("argv") or event.get("path") or event.get("addr"), event.get("args"), event.get("flag"))
             if key in seen:
                 continue
             seen.add(key)

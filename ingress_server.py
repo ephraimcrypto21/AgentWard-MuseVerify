@@ -16,24 +16,38 @@ import json
 import os
 import urllib.error
 import urllib.request
+import threading
+from ingress_sanitizer import sanitize_source
 
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-# Lock PyTorch to 2 threads for 2-vCPU instance
-torch.set_num_threads(2)
-
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 
 MODEL_ID = "Niansuh/Prompt-Guard-86M"
 LEGACY_SANDBOX_URL = os.environ.get(
     "AGENTWARD_SANDBOX_PROXY_URL", "http://127.0.0.1:8001/run-sandbox-test"
 )
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID)
+tokenizer = model = None
+_model_lock = threading.Lock()
+_model_error = None
+
+
+def load_classifier():
+    global tokenizer, model, _model_error
+    with _model_lock:
+        if model is not None or _model_error is not None:
+            return
+        try:
+            import torch
+            from transformers import AutoTokenizer, AutoModelForSequenceClassification
+            torch.set_num_threads(2)
+            tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, local_files_only=True)
+            model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, local_files_only=True)
+            model.eval()
+        except Exception as exc:
+            _model_error = type(exc).__name__
+
 
 
 class ScanRequest(BaseModel):
@@ -57,6 +71,8 @@ def health_check():
         "status": "ok",
         "service": "AgentWard + MuseVerify Node (Stage 1 & 2)",
         "model": MODEL_ID,
+        "model_loaded": model is not None,
+        "model_error": _model_error,
         "legacy_sandbox_proxy": LEGACY_SANDBOX_URL,
         "bind": "127.0.0.1:8000",
     }
@@ -67,6 +83,14 @@ def health_check():
 @app.post("/predict")
 def scan_ingress(req: ScanRequest):
     raw_text = req.content or req.text
+    cleaned = sanitize_source(raw_text)
+    load_classifier()
+    if model is None:
+        flagged = bool(cleaned['sanitized_count'])
+        return {'label': 'injection' if flagged else 'benign', 'blocked': flagged,
+                'backend': 'local_heuristic', 'sanitized_content': cleaned['content'],
+                'sanitized_count': cleaned['sanitized_count']}
+    import torch
     inputs = tokenizer(raw_text, return_tensors="pt", truncation=True, max_length=512)
     with torch.no_grad():
         logits = model(**inputs).logits
@@ -75,6 +99,9 @@ def scan_ingress(req: ScanRequest):
     top_idx = int(torch.argmax(logits, dim=-1))
     return {
         "file_path": req.file_path,
+        "backend": "prompt_guard",
+        "sanitized_content": cleaned["content"],
+        "sanitized_count": cleaned["sanitized_count"],
         "verdict": labels[top_idx],
         "label": labels[top_idx].lower(),
         "scores": {

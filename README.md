@@ -68,8 +68,9 @@ Before the agent is allowed to act, the worktree is snapshotted: every file is S
 Patch synthesis runs on Meta models, then the result faces **three independent checks before anything is written**:
 
 1. **Cross-model secondary audit** — a *different* provider (Anti-Gravity / Gemini) reviews the diff and votes `APPROVE` / `REJECT` with reasoning. Divergence halts.
-2. **Purple Llama CodeShield** — AST-level static validation for the target language.
-3. **AST smoke test** — the patched module must parse.
+2. **Purple Llama CodeShield** — Purple Llama security scanning with `Language.PYTHON`. Scanner errors fail the gate.
+3. **AST contract and architecture validation** — the module must parse, preserve public signatures, and avoid introduced cross-file taint, races, async blocking, and file/database TOCTOU hazards.
+4. **Deception validation** — a fake decoy, logging helper, and public input guard must be structurally connected; Phase 5 must observe the tripwire firing while normal input stays quiet.
 
 Public function signatures must survive unchanged, so downstream callers don't break.
 
@@ -91,7 +92,7 @@ A patch that only neutralizes the one payload we happened to try is a coincidenc
 '%0aUNION%0aSELECT%0a1,'AGENTWARD_SQLI'%0a--
 ```
 
-Every variant is replayed against the patched sandbox. **The patch is accepted only if all mutations are neutralized**; a single survivor means a bypass, and the run halts. The gate fights the model with the model.
+Every variant is replayed against the patched sandbox. **A positive control first replays every mutation against the original file.** Only effective original exploits blocked by a valid patched run count as neutralized. Invalid variants and incomplete executions are reported separately. At least one viable mutation must be exercised; a surviving exploit or incomplete execution rejects the patch. The gate fights the model with the model.
 
 ### 🍯 Automated Tripwire Synthesis (Deception)
 
@@ -145,7 +146,7 @@ AGY_SELECTED_MODEL=gemini-4-argon
 # Optional bring-your-own-key endpoint
 CUSTOM_API_URL=
 CUSTOM_API_KEY=
-CUSTOM_MODEL_NAME=
+CUSTOM_MODEL_NAME=openai/gpt-6.1-sol
 ```
 
 ### 3. Deploy the node daemons
@@ -170,7 +171,7 @@ sudo bash deploy_remote_services.sh
 # sandbox_server.py  → 0.0.0.0:8001  (Stage 2 syscall sandbox)
 ```
 
-> ⚠️ The deploy script `git reset --hard`s the checkout it is currently executing. After editing the script itself, run it **twice** so the new version takes effect.
+> The deploy script preserves local changes and only refreshes clean checkouts through a fast-forward merge. It never resets the checkout.
 
 Confirm the node is streaming telemetry:
 
@@ -240,20 +241,94 @@ A full run tightens the loop: exploit confirmed → patch gated → mutation-pro
 
 ---
 
-## 🏆 Hackathon Benchmark Results
+## Routing, telemetry, and compliance artifacts
 
-> 📊 **Placeholder — populated from the benchmark harness.** Run `venv/bin/python main_pipeline.py benchmark_targets` and record the run summary.
+The default centerpiece stays on Meta: `muse-spark-1.3` synthesizes patches and
+checks runtime policy; `muse-wonder-1.0` extracts root causes and hunts variants.
+`gemini-4-argon` reviews patches independently through the sandboxed Anti-Gravity
+CLI. Missing, malformed, or negative policy/review votes block the run.
 
-| Metric | Baseline (blind agent patch) | AgentWard + MuseVerify | Δ |
-|---|---|---|---|
-| **MTTR** (mean time to remediate) | `TBD` | `TBD` | `TBD` |
-| **False-positive reduction** | `0 %` (all 20 decoys patched) | `TBD %` | `TBD` |
-| **Exploits closed after 1st patch** | `TBD` | `TBD` | `TBD` |
-| **Self-play bypasses caught** | `0` (no such gate) | `TBD` | `TBD` |
-| **Injected payloads neutralized** | `TBD / 2` | `TBD / 2` | `TBD` |
-| **Syscall-level regressions** | `unmeasured` | `TBD` | `TBD` |
+Custom/BYOK routing accepts `openai/gpt-6.1-sol` for gateways and `gpt-6.1-sol`
+for direct OpenAI endpoints. Set `CUSTOM_API_URL` to a full Chat Completions or
+Responses endpoint, `CUSTOM_API_KEY`, and `CUSTOM_MODEL_NAME`. Optional selectors
+are `POLICY_PROVIDER`, `PATCH_PROVIDER`, `PATCH_MODEL`, `AUDITOR_PROVIDER`,
+`SECONDARY_PROVIDER`, and `SECONDARY_MODEL`. Keep synthesis and independent review
+on different providers. `query_ai` preserves its string return and existing
+positional arguments while adding keyword-only `task` and `reasoning_effort`.
 
-**Target outcomes:** 20/20 benign decoys correctly dropped unpatched, 2/2 indirect injections blocked at ingress, 3/3 real CWEs closed with zero surviving mutations.
+Sol supports `low`, `medium`, `high`, `xhigh`, and `max`: policy uses `medium`;
+patch synthesis/review and semantic hunting use `xhigh`. The router sends
+`reasoning_effort` to Chat Completions and `reasoning.effort` to Responses.
+Native prompt-prefix caching uses stable system prefixes and `prompt_cache_key`
+for Sol; security decisions are never cached locally. Set `CUSTOM_PROMPT_CACHE=0`
+for a gateway that does not support cache hints. Provider-reported cached tokens
+are included in telemetry. See the [official reasoning documentation](https://developers.openai.com/api/docs/guides/reasoning)
+and [prompt caching documentation](https://developers.openai.com/api/docs/guides/prompt-caching).
+
+Every single-file and batch invocation writes:
+
+- `reports/agentward_sarif_report.sarif` — schema-valid SARIF 2.1.0, findings,
+  verified replacements, terminal outcomes, and benchmark/provider telemetry.
+- `reports/benchmark_metrics.json` — triaged files, dropped alert percentage,
+  sanitized instruction blocks, behavioral anomaly categories, viable mutations
+  neutralized/survived, invalid/inconclusive variants, and MTTR.
+- `reports/runs/<id>/` — snapshots preserved per invocation.
+- `patches/<run-id>/*_patched.py` and `.diff` — immutable verified patch and a
+  deterministic unified diff against the original source. Candidates live under
+  `patches/.candidates/` until regression and tripwire checks succeed.
+
+MTTR measures start through successful Phase 5, excluding later variant hunting.
+The live dashboard value includes active elapsed time and is provisional. The
+false-positive reduction percentage is dropped alerts divided by triaged alerts;
+inconclusive runs are never dropped. Anomaly counts represent flagged behavioral
+signal categories, with actual Docker/strace/audit-hook backend recorded. No
+metric claims eBPF observation when that backend was not used.
+
+Tokens and latency come from each provider response/request. Missing usage or
+pricing stays unknown. Sol's estimated standard USD tariffs come from the
+[model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-sol).
+Configure other providers or gateway tariffs through `AI_PRICING_JSON`, keyed by
+`provider:model` (or model), with per-million-token fields `input`, `output`,
+`cached_input`, and optionally `cache_write`. These are estimates, not invoices.
+
+The dashboard streams aggregate KPIs and per-file events through
+`/ws/telemetry`, including reconnect replay. Select a batch run to inspect its
+seven cards, syscall trail, self-play and unified/side-by-side diff. Download the
+latest report through **📥 Export SARIF v2.1.0 Report** or `GET /api/sarif`.
+Overlapping top-level jobs and workspace cleanup during a run return HTTP 409.
+
+## Verification and deployment limits
+
+```bash
+# Automated offline verification: model fixtures, real local execution and CodeShield.
+AGENTWARD_FORCE_LOCAL=1 venv/bin/python -m unittest discover -s tests -v
+
+# Explicit offline dashboard and real HTTP/WebSocket exercise.
+AGENTWARD_FORCE_LOCAL=1 venv/bin/python -m tests.dry_run_dashboard
+venv/bin/python -m tests.run_e2e
+
+# Production dashboard startup.
+venv/bin/uvicorn dashboard:app --host 127.0.0.1 --port 8080
+```
+
+Dry-run reports are marked `verification_mode: dry_run`. Production routes never
+import model fixtures. The requested poisoned SQLi, true CWE-89 and benign FP-01
+fixtures are covered, including concurrency/TOCTOU negatives, fail-closed reviews,
+positive mutation controls, atomic reports, schema validation and live sockets.
+
+Tailscale endpoints and the existing local audit-hook fallback remain available.
+The local fallback is a development execution mode: removing provider secrets
+from the child environment does not provide Docker's kernel or network isolation.
+Set `AGENTWARD_REQUIRE_DOCKER=1` on client and node to reject local fallback in
+production. Remote containers use zero network, bounded CPU/memory/processes,
+minimal capabilities, no new privileges, and the service account UID for writable
+workspace access. Timeout cleanup removes the container and returns an incomplete
+result rather than replaying a timed-out target on the host.
+
+Static call graphs are bounded and report coverage limits for oversized files,
+dynamic dispatch/reflection and external dependencies. Concurrency findings are
+conservative review signals. Passing the benchmark verifies those fixtures; it
+cannot prove every possible program or scheduling interleaving safe.
 
 ---
 
@@ -262,7 +337,7 @@ A full run tightens the loop: exploit confirmed → patch gated → mutation-pro
 - **Behaviour over assertions.** A patch is proven by what the kernel observed, not by a `0` exit code.
 - **Two models beat one.** Synthesis and review run on different providers.
 - **Everything is telemetry.** Every phase decision streams over WebSocket to the dashboard; nothing is silent.
-- **Fail closed.** A rejected patch never reaches disk.
+- **Fail closed.** Only a patch that passes independent gates and regression is published as verified.
 - **Assume the input is hostile.** The corpus can lie, and the agent reads it anyway.
 
 ---

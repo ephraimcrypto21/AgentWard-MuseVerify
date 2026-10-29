@@ -14,6 +14,7 @@ broadcast mutation-by-mutation results over the existing WebSocket channel.
 import asyncio
 import json
 import os
+import re
 
 import museverify_stage2 as stage2
 
@@ -64,7 +65,7 @@ async def generate_mutations(
         raw = await query_ai(
             prompt,
             system_prompt="You are a payload mutation engine. Output only JSON.",
-            provider=os.environ.get("AUDITOR_PROVIDER", "meta"),
+            provider=os.environ.get("AUDITOR_PROVIDER", "meta"), task="selfplay",
         )
         if "```" in raw:
             raw = raw.split("```")[1].replace("json", "", 1).strip()
@@ -74,10 +75,15 @@ async def generate_mutations(
         cmd = [str(p) for p in parsed.get("cmd", []) if str(p).strip()]
         if not sqli and not cmd:
             raise ValueError("empty mutation set")
-        return {"sqli": sqli[:MAX_MUTATIONS], "cmd": cmd[:MAX_MUTATIONS], "source": "ai"}
+        return {"sqli": sqli[:MAX_MUTATIONS], "cmd": cmd[:MAX_MUTATIONS], "source": "ai",
+                "crypto": ["7", "451", "65537"] if "random" in vulnerable_code and any(x in vulnerable_code for x in ("token", "otp", "nonce")) else []}
     except Exception as exc:
         print(f"[!] Stage 4.5 mutation model unavailable ({exc}); using deterministic mutators.")
-        return {**_fallback_mutations(cmd_payload), "source": "fallback"}
+        fallback = _fallback_mutations(cmd_payload)
+        fallback['sqli'] = [p.replace(' UNION SELECT ', '/**/UNION/**/SELECT/**/').replace(' -- ', '/**/--')
+                            for p in sqli_payloads][:MAX_MUTATIONS]
+        return {**fallback, "source": "fallback", "crypto": ["7", "451", "65537"]
+                if "random" in vulnerable_code and any(x in vulnerable_code for x in ("token", "otp", "nonce")) else []}
 
 
 async def run_selfplay(
@@ -107,13 +113,28 @@ async def run_selfplay(
     results = []
     survived = []
 
-    for kind in ("sqli", "cmd"):
+    for kind in ("sqli", "cmd", "crypto"):
         for index, payload in enumerate(mutated[kind], 1):
             harness = stage2.synthesize_verification_harness(
                 target_file, patched_code,
                 sqli_payloads=[payload] if kind == "sqli" else sqli_payloads,
                 cmd_payload=payload if kind == "cmd" else cmd_payload,
             )
+            if kind == 'crypto':
+                harness['verification_test_code'] = harness['verification_test_code'].replace('random.seed(451)', f'random.seed({int(payload)})')
+            # Limit model-generated payloads before any local fallback execution.
+            if kind == 'cmd' and (len(payload) > 2048 or 'AGENTWARD_CMD' not in payload or '__MARKER__' not in payload
+                                  or re.search(r'\b(?:curl|wget|rm|chmod|mkfs|dd|nc|python|bash)\b|https?://', payload, re.I)):
+                results.append({'kind': kind, 'payload': payload, 'verdict': 'INCONCLUSIVE', 'penetrated': False,
+                                'viable': False, 'neutralized': False, 'inconclusive': True, 'signals': ['Unsafe mutation rejected']})
+                continue
+            baseline = await asyncio.to_thread(
+                stage2.run_sandboxed, f"selfplay-baseline-{kind}-{index}", target_file,
+                vulnerable_code, harness["verification_test_code"])
+            baseline_triage = stage2.triage_sandbox_result(baseline, target_file)
+            prefix = {"sqli": "sqli_union", "cmd": "cmd:", "crypto": "weak_prng:"}[kind]
+            viable = any(p.get("ok") and str(p.get("probe", "")).startswith(prefix)
+                         for p in baseline_triage.get("probes", []))
             run = await asyncio.to_thread(
                 stage2.run_sandboxed,
                 f"selfplay-{kind}-{index}", target_file, patched_code,
@@ -127,6 +148,9 @@ async def run_selfplay(
                 "verdict": triage["verdict"],
                 "evasion_score": triage["evasion_score"],
                 "penetrated": penetrated,
+                "viable": viable,
+                "neutralized": viable and triage["safe"],
+                "inconclusive": not triage["execution_valid"] or not baseline_triage["execution_valid"],
                 "signals": triage["signals"],
             }
             results.append(record)
@@ -144,7 +168,8 @@ async def run_selfplay(
                     f"{kind} mutation {index}: {triage['verdict']}",
                 )
 
-    accepted = not survived
+    accepted = any(r["viable"] for r in results) and not survived and not any(r["inconclusive"] for r in results)
+    neutralized = [r for r in results if r["neutralized"]]
     if on_event:
         on_event(
             "selfplay_result",
@@ -154,4 +179,6 @@ async def run_selfplay(
             "All mutations neutralized" if accepted else f"{len(survived)} mutation(s) still exploit the patch",
         )
     return {"accepted": accepted, "mutations": results, "survived": survived,
-            "source": mutated["source"]}
+            "source": mutated["source"], "neutralized": neutralized,
+            "not_viable": sum(not r["viable"] for r in results),
+            "inconclusive": sum(r["inconclusive"] for r in results)}

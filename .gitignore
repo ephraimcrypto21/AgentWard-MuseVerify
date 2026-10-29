@@ -6,3 +6,6 @@ patches/
 *.pyc
 *.log
 .DS_Store
+
+reports/
+.pytest_cache/

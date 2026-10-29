@@ -17,14 +17,22 @@
       </div>
       <div class="flex gap-3">
         <span class="px-3 py-1 bg-green-950 border border-green-800 text-green-400 text-xs rounded-full flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Lightsail Node: Active
+          <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> <span id="nodeStatus">Sandbox: awaiting telemetry</span>
         </span>
         <span class="px-3 py-1 bg-purple-950 border border-purple-800 text-purple-300 text-xs rounded-full">
-          Meta Model API: Connected
+          <span id="providerStatus">Models: awaiting telemetry</span>
         </span>
       </div>
     </header>
 
+    <section aria-label="Executive metrics" class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-400">Total Alerts Triaged</div><strong id="kpiAlerts" class="text-3xl">0</strong></div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-400">False Positives Dropped</div><strong id="kpiFP" class="text-3xl">0%</strong></div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-400">Injections Blocked</div><strong id="kpiInjections" class="text-3xl">0</strong></div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-400">Self-Play Mutations Blocked</div><strong id="kpiMutations" class="text-3xl">0</strong></div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4"><div class="text-xs text-slate-400">Live MTTR (provisional)</div><strong id="kpiMTTR" class="text-3xl">—</strong></div>
+    </section>
+    <p id="providerMetrics" class="text-xs font-mono text-slate-400">Provider token usage, latency, cache hits and estimated cost appear as calls complete.</p>
     <!-- Controls -->
     <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap gap-4 items-center justify-between">
       <div class="flex items-center gap-4">
@@ -36,6 +44,7 @@
           <option value="benchmark_targets/cwe_338_crypto.py">cwe_338_crypto.py (CWE-338 Weak RNG)</option>
           <option value="benchmark_targets/poison_docstring.py">poison_docstring.py (Injection in docstring)</option>
           <option value="benchmark_targets/poison_variable.py">poison_variable.py (Injection in data)</option>
+          <option value="benchmark_targets/fp_01.py">fp_01.py (Benign mock credentials)</option>
           <option value="benchmark_targets/fp_03.py">fp_03.py (Benign — shell-free subprocess)</option>
           <option value="benchmark_targets/fp_02.py">fp_02.py (Benign — parameterized query)</option>
         </select>
@@ -53,7 +62,11 @@
       </div>
     </section>
 
-    <!-- 5-Stage Live Status Cards -->
+    <div class="flex flex-wrap gap-4 items-center justify-between">
+      <label class="text-sm">Inspect run: <select id="runSelect" class="bg-slate-900 border border-slate-700 rounded p-2" onchange="selectRun(this.value)"><option value="">Awaiting run</option></select></label>
+      <a id="sarifExport" href="/api/sarif" download class="bg-emerald-800 hover:bg-emerald-700 rounded-lg px-4 py-2">📥 Export SARIF v2.1.0 Report</a>
+    </div>
+    <!-- Seven phase cards; legacy phase IDs remain stable. -->
     <div class="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-7 gap-4">
       <div id="card-1" class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 transition-all">
         <div class="text-xs uppercase font-semibold text-slate-400">Phase 1</div>
@@ -110,6 +123,18 @@
       </section>
     </div>
 
+    <section aria-label="Verified Patch and Tripwire Diff Viewer" class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+      <div class="flex flex-wrap justify-between gap-3 items-center mb-3">
+        <h2 class="text-sm font-semibold">Verified Patch &amp; Tripwire Diff Viewer</h2>
+        <label class="text-xs">View: <select id="diffMode" class="bg-slate-950 rounded p-2" onchange="renderDiff()"><option value="unified">Unified diff</option><option value="split">Side by side</option></select></label>
+      </div>
+      <p id="diffFile" class="text-xs text-slate-400 mb-3">Available after Phase 5 verifies the patch and exercises its tripwire.</p>
+      <pre id="diffUnified" class="bg-slate-950 rounded p-3 text-xs overflow-auto max-h-96 font-mono"></pre>
+      <div id="diffSplit" style="display:none" class="grid grid-cols-2 gap-2 overflow-auto max-h-96">
+        <div><h3 class="text-xs text-red-300">Original</h3><pre id="diffOriginal" class="text-xs font-mono p-3 bg-slate-950 overflow-auto"></pre></div>
+        <div><h3 class="text-xs text-emerald-300">Verified patch + tripwire</h3><pre id="diffPatched" class="text-xs font-mono p-3 bg-slate-950 overflow-auto"></pre></div>
+      </div>
+    </section>
     <!-- Live Event Console & Telemetry Log -->
     <section class="bg-slate-900 border border-slate-800 rounded-xl p-5">
       <div class="flex justify-between items-center mb-3">
@@ -121,130 +146,134 @@
   </div>
 
   <script>
-    let ws;
+    let ws, selectedRun = "", currentDiff = null;
+    const runEvents = new Map();
+    const seenEvents = new Set();
+    const PHASES = [1, 2, 3, 4, 4.5, 5, 5.1];
+    const el = id => document.getElementById(id);
+    const parse = data => { if (typeof data === "object") return data || {}; try { return JSON.parse(data); } catch { return {}; } };
+    function busy(value) {
+      ["runBtn", "batchBtn", "cleanBtn"].forEach(id => el(id).disabled = value);
+      el("clock").textContent = value ? "RUNNING" : "READY";
+    }
+    function updateMetrics(m) {
+      el("kpiAlerts").textContent = m.total_alerts_triaged ?? 0;
+      el("kpiFP").textContent = (m.false_positive_reduction_rate_pct ?? 0) + "%";
+      el("kpiInjections").textContent = m.prompt_injections_sanitized ?? 0;
+      el("kpiMutations").textContent = m.selfplay_mutations_neutralized ?? 0;
+      el("kpiMTTR").textContent = m.live_mttr_seconds == null ? "—" : m.live_mttr_seconds.toFixed(1) + "s";
+      const t = m.provider_telemetry || {};
+      if (m.verification_mode === "dry_run") el("providerStatus").textContent = "Offline dry run: model fixtures";
+      const cost = t.estimated_cost_usd == null ? "unknown" : "$" + t.estimated_cost_usd.toFixed(5) + (t.cost_complete ? "" : " (partial)");
+      el("providerMetrics").textContent = `Tokens: ${t.input_tokens || 0} in / ${t.output_tokens || 0} out` +
+        `${t.usage_complete ? "" : " (reported usage only)"} · cached: ${t.cached_input_tokens || 0} · request latency: ${t.latency_ms || 0}ms · estimated cost: ${cost} · syscall flags: ${m.syscall_ebpf_anomalies_flagged || 0} · mutation survivors: ${m.selfplay_mutations_survived || 0}`;
+    }
+    function appendLine(id, text, color="") {
+      const line = document.createElement("div"); line.textContent = text; line.className = color;
+      el(id).appendChild(line); if (el(id).childElementCount > 800) el(id).firstChild.remove();
+      el(id).scrollTop = el(id).scrollHeight;
+    }
+    function applyEvent(msg) {
+      const rec = parse(msg.data);
+      if (msg.type === "log") appendLine("consoleOutput", msg.data);
+      if (msg.type === "phase_update") updateCard(msg.phase, msg.status, msg.color, msg.note);
+      if (msg.type === "syscall_trace") { el("syscallOutput").textContent = msg.data; el("nodeStatus").textContent = msg.note; }
+      if (msg.type === "analysis") el("analysisOutput").textContent = `verdict: ${rec.verdict} | score: ${rec.evasion_score} | ${(rec.signals || []).join("; ")}`;
+      if (msg.type === "tripwire") el("tripwireOutput").textContent = `${msg.note} [${msg.status}]`;
+      if (msg.type === "selfplay_mutation") appendLine("selfplayOutput", `[${rec.kind} ${rec.index}] ${rec.inconclusive ? "INCONCLUSIVE" : rec.neutralized ? "NEUTRALIZED" : !rec.viable ? "NOT VIABLE" : rec.verdict} — ${rec.payload}`, rec.penetrated ? "text-red-400" : "text-emerald-400");
+      if (msg.type === "selfplay_result") appendLine("selfplayOutput", `RESULT: ${rec.accepted ? "patch robust" : "patch rejected"}; ${rec.survived} survivors`);
+      if (msg.type === "hunter_match" || msg.type === "hunter_architecture") appendLine("hunterOutput", `${rec.severity}: ${rec.file} — ${rec.reason}`, "text-amber-400");
+      if (msg.type.startsWith("hunter_")) appendLine("consoleOutput", "[hunter] " + msg.note);
+      if (msg.type === "provider_usage") el("providerStatus").textContent = `${rec.provider} / ${rec.model}: ${rec.error || "responded"}`;
+      if (msg.type === "patch_diff") { currentDiff = rec; renderDiff(); }
+      if (msg.type === "run_complete") appendLine("consoleOutput", `[COMPLETE] ${rec.target_file}: ${rec.outcome}`);
+    }
+    function selectRun(id) {
+      selectedRun = id; currentDiff = null;
+      PHASES.forEach(p => updateCard(p, "Pending", "border-slate-800 bg-slate-900", ""));
+      ["consoleOutput", "syscallOutput", "selfplayOutput", "hunterOutput", "tripwireOutput"].forEach(id => el(id).textContent = "");
+      renderDiff(); (runEvents.get(id) || []).forEach(applyEvent);
+    }
+    function renderDiff() {
+      const split = el("diffMode").value === "split";
+      el("diffUnified").style.display = split ? "none" : "block";
+      el("diffSplit").style.display = split ? "grid" : "none";
+      el("diffUnified").replaceChildren(); el("diffOriginal").replaceChildren(); el("diffPatched").replaceChildren();
+      el("diffFile").textContent = currentDiff ? currentDiff.file + " · Phase 5 verified" : "Available after Phase 5 verifies the patch and exercises its tripwire.";
+      if (!currentDiff) return;
+      currentDiff.unified_diff.split("\n").forEach(line => appendLine("diffUnified", line,
+        line.startsWith("+") ? "text-emerald-300 bg-emerald-950/40" : line.startsWith("-") ? "text-red-300 bg-red-950/40" : line.startsWith("@@") ? "text-blue-300" : "text-slate-300"));
+      const removed = new Set(), added = new Set(); let left=0, right=0;
+      currentDiff.unified_diff.split("\n").forEach(line => {
+        const h = line.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+        if (h) { left=Number(h[1]); right=Number(h[2]); }
+        else if (left && line.startsWith("-") && !line.startsWith("---")) removed.add(left++);
+        else if (right && line.startsWith("+") && !line.startsWith("+++")) added.add(right++);
+        else if (line.startsWith(" ")) { left++; right++; }
+      });
+      currentDiff.original.split("\n").forEach((line,i) => appendLine("diffOriginal", `${i+1}  ${line}`, removed.has(i+1) ? "text-red-300 bg-red-950/40" : "text-slate-400"));
+      currentDiff.patched.split("\n").forEach((line,i) => appendLine("diffPatched", `${i+1}  ${line}`, added.has(i+1) ? "text-emerald-300 bg-emerald-950/40" : "text-slate-400"));
+      ["diffUnified", "diffOriginal", "diffPatched"].forEach(id => el(id).scrollTop=0);
+    }
     function connectWS() {
-      const wsProto = window.location.protocol === "https:" ? "wss://" : "ws://";
-      ws = new WebSocket(wsProto + window.location.host + "/ws/telemetry");
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        const logBox = document.getElementById("consoleOutput");
-        
-        if (msg.type === "log") {
-          logBox.textContent += "\n" + msg.data;
-          logBox.scrollTop = logBox.scrollHeight;
-        } else if (msg.type === "phase_update") {
-          updateCard(msg.phase, msg.status, msg.color, msg.note);
-        } else if (msg.type === "syscall_trace") {
-          const box = document.getElementById("syscallOutput");
-          box.textContent = msg.data;
-          box.scrollTop = box.scrollHeight;
-        } else if (msg.type === "analysis") {
-          let info = {};
-          try { info = JSON.parse(msg.data); } catch (e) { info = {}; }
-          document.getElementById("analysisOutput").textContent =
-            `verdict: ${info.verdict || msg.status || "—"} | score: ${info.evasion_score ?? "—"} ` +
-            `(decisive ${info.decisive_score ?? 0} / weak ${info.weak_score ?? 0}) — ` +
-            `${(info.signals || []).join("; ") || msg.note}`;
-        } else if (msg.type === "tripwire") {
-          let tw = {};
-          try { tw = JSON.parse(msg.data); } catch (e) { tw = {}; }
-          document.getElementById("tripwireOutput").textContent =
-            `${msg.note || (tw.present ? "tripwire armed" : "no tripwire")} ` +
-            `[logger: ${tw.has_logger ? "yes" : "no"} | markers: ${(tw.markers || []).join(", ") || "none"}]`;
-        } else if (msg.type === "selfplay_mutation" || msg.type === "selfplay_result") {
-          let rec = {};
-          try { rec = JSON.parse(msg.data); } catch (e) { rec = {}; }
-          const li = document.createElement("li");
-          const red = msg.status === "FAIL";
-          li.className = red ? "text-red-400" : "text-emerald-400";
-          li.textContent = msg.type === "selfplay_result"
-            ? `RESULT: ${rec.accepted ? "patch robust" : `${rec.survived} bypass(es)`}`
-            : `[${rec.kind} ${rec.index}] ${rec.verdict} — ${String(rec.payload || "").slice(0, 46)}`;
-          const list = document.getElementById("selfplayOutput");
-          list.appendChild(li);
-          list.scrollTop = list.scrollHeight;
-        } else if (msg.type === "hunter_match") {
-          let rec = {};
-          try { rec = JSON.parse(msg.data); } catch (e) { rec = {}; }
-          const li = document.createElement("li");
-          li.className = rec.severity === "EXPLOITABLE" ? "text-red-400" : "text-amber-400";
-          li.textContent = `${rec.severity}: ${rec.file} — ${rec.reason}`;
-          document.getElementById("hunterOutput").appendChild(li);
-        } else if (msg.type === "hunter_scan" || msg.type === "hunter_root_cause") {
-          logBox.textContent += "\n[hunter] " + msg.note;
-          logBox.scrollTop = logBox.scrollHeight;
+      ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws/telemetry");
+      ws.onopen = async () => { const state = await (await fetch('/api/health')).json(); busy(state.running); };
+      ws.onmessage = event => {
+        let msg; try { msg=JSON.parse(event.data); } catch { return; }
+        if (msg.sequence) { if (seenEvents.has(msg.sequence)) return; seenEvents.add(msg.sequence); if (seenEvents.size > 8000) seenEvents.delete(seenEvents.values().next().value); }
+        if (msg.type === "metrics") { updateMetrics(parse(msg.data)); return; }
+        if (msg.type === "job_complete") { busy(false); updateMetrics(parse(msg.data).metrics); return; }
+        if (msg.run_id) {
+          if (!runEvents.has(msg.run_id)) {
+            runEvents.set(msg.run_id, []);
+            const option=document.createElement("option"); option.value=msg.run_id; option.textContent=msg.target_file + " · " + msg.run_id;
+            el("runSelect").appendChild(option);
+            if (!selectedRun) { selectedRun=msg.run_id; el("runSelect").value=selectedRun; }
+          }
+          const events=runEvents.get(msg.run_id); events.push(msg);
+          if (events.length>600) events.shift();
+          if (msg.run_id!==selectedRun) return;
         }
+        applyEvent(msg);
       };
-      ws.onclose = () => setTimeout(connectWS, 2000);
+      ws.onclose = () => { el("clock").textContent="RECONNECTING"; setTimeout(connectWS, 2000); };
     }
     connectWS();
 
     function updateCard(phase, status, color, note) {
       const card = document.getElementById("card-" + phase);
       const text = document.getElementById("status-" + phase);
+      if (!card || !text) return;
       card.className = "p-4 rounded-xl border transition-all " + color;
-      text.innerHTML = `<strong>${status}</strong><br><span class="text-[10px] text-slate-300">${note}</span>`;
+      if (!card || !text) return;
+      text.replaceChildren();
+      const strong=document.createElement("strong"); strong.textContent=status;
+      const span=document.createElement("span"); span.textContent=note; span.className="text-[10px] text-slate-300";
+      text.append(strong, document.createElement("br"), span);
     }
-
-    const PHASES = [1, 2, 3, 4, 4.5, 5, 5.1];
-
+    function resetRuns() {
+      runEvents.clear(); selectedRun=""; currentDiff=null;
+      el("runSelect").replaceChildren(); selectRun("");
+    }
+    async function request(url, body) {
+      const response=await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body || {})});
+      const result=await response.json(); if (!response.ok) throw new Error(result.detail || "Request failed"); return result;
+    }
     async function triggerAudit() {
-      const target = document.getElementById("targetSelect").value;
-      document.getElementById("consoleOutput").textContent = `[*] Triggering pipeline for: ${target}...\n`;
-      PHASES.forEach(p => updateCard(p, "Pending", "bg-slate-900/60 border-slate-800", "Waiting"));
-      document.getElementById("syscallOutput").textContent = "sys_enter_execve / sys_enter_openat will stream here…";
-      document.getElementById("analysisOutput").textContent = "verdict: —";
-      document.getElementById("selfplayOutput").innerHTML = "awaiting mutations…";
-      document.getElementById("tripwireOutput").textContent = "no tripwire armed";
-      document.getElementById("hunterOutput").innerHTML = "";
-      await fetch("/api/run", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({target_file: target})
-      });
+      busy(true); resetRuns();
+      try { await request("/api/run", {target_file:el("targetSelect").value}); }
+      catch (error) { appendLine("consoleOutput", error.message, "text-red-400"); busy(false); }
     }
-
     async function triggerClean() {
-      const cleanBtn = document.getElementById("cleanBtn");
-      cleanBtn.disabled = true;
-      cleanBtn.innerHTML = "<span>⏳ Pruning...</span>";
-      try {
-        const resp = await fetch("/api/clean", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({remove_all: false})
-        });
-        const data = await resp.json();
-        const logBox = document.getElementById("consoleOutput");
-        logBox.textContent += `\n[UI] Workspace prune complete: ${data.result.cleaned_count} files removed (${data.result.bytes_freed} bytes freed).`;
-        logBox.scrollTop = logBox.scrollHeight;
-      } catch (e) {
-        console.error("Clean error:", e);
-      } finally {
-        cleanBtn.disabled = false;
-        cleanBtn.innerHTML = "<span>🧹 Prune Workspaces</span>";
-      }
+      busy(true);
+      try { const result=await request("/api/clean", {remove_all:false}); appendLine("consoleOutput", `Pruned ${result.result.cleaned_count} temporary files.`); }
+      catch (error) { appendLine("consoleOutput", error.message, "text-red-400"); }
+      finally { busy(false); }
     }
-
     async function triggerBatch() {
-      const batchBtn = document.getElementById("batchBtn");
-      batchBtn.disabled = true;
-      batchBtn.innerHTML = "<span>⏳ Batch Running...</span>";
-      document.getElementById("consoleOutput").textContent = "[*] Launching Concurrent Batch Stress Test (MAX_PARALLEL_SANDBOXES = 3)...\n";
-      PHASES.forEach(p => updateCard(p, "Batch Active", "bg-purple-950/40 border-purple-800", "Parallel Execution"));
-      try {
-        await fetch("/api/batch", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"}
-        });
-      } catch (e) {
-        console.error("Batch error:", e);
-      } finally {
-        setTimeout(() => {
-          batchBtn.disabled = false;
-          batchBtn.innerHTML = "<span>🚀 Run Batch Test (3x Concurrency)</span>";
-        }, 5000);
-      }
+      busy(true); resetRuns();
+      try { await request("/api/batch"); }
+      catch (error) { appendLine("consoleOutput", error.message, "text-red-400"); busy(false); }
     }
   </script>
 </body>
