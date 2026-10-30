@@ -68,8 +68,8 @@ When no requested secondary passes pre-flight, Meta's other native model supplie
 | `AGY_PREFLIGHT_TIMEOUT_S` | Per-model probe deadline, capped at 30 seconds |
 | `CUSTOM_API_URL` | Full Responses or Chat Completions endpoint, or `/v1` base |
 | `CUSTOM_API_KEY` | Optional BYOK credential; empty/placeholder values never receive pipeline tasks |
-| `CUSTOM_MODEL_NAME` | For example `openai/gpt-6-astra`, `gpt-6.1-sol`, or a compatible provider model |
-| `CUSTOM_REASONING_EFFORT` | `low`, `medium`, `high`, `xhigh`, or `max`; default `medium` |
+| `CUSTOM_MODEL_NAME` | Model identifier supported by your chosen BYOK endpoint |
+| `CUSTOM_REASONING_EFFORT` | Optional model-specific reasoning setting, where supported; default `medium` |
 | `CUSTOM_SERVICE_TIER` | Optional `fast` / `ultrafast`, only where the endpoint supports it |
 | `AI_TIMEOUT_S`, `AGY_TIMEOUT_S` | Bounded task deadlines |
 
@@ -77,25 +77,15 @@ Anti-Gravity tries the selected high-end model, then the deduplicated cascade `g
 
 Custom pre-flight has a five-second deadline and requires HTTP 200 with nonempty, complete content. Authentication failures, missing endpoints, timeouts and placeholder configuration exclude the provider without breaking discovery. Credentials are never returned by `/api/providers`.
 
-### Astra reasoning and cost accounting
-
-Both `/v1/responses` and Chat Completions/OpenRouter formats support Astra. Runtime policy checks use `medium`; patch verification, semantic hunting, misalignment review and executive assessment use `xhigh`. Per-call overrides support the allowed effort levels.
-
-The deterministic system/repository prefix remains byte-identical while task instructions, source evidence and live constraints follow it. Effort is sent as a separate API parameter. Cache keys exclude dynamic task data. Actual caching depends on the endpoint, model and prefix length; the harness records reported cached tokens and does not promise cache hits.
-
-Astra's configurable planning defaults are $10/M input tokens, $1/M cached input and $50/M output. Above 272,000 input tokens, input rates use a 2× multiplier and output uses 1.5×. Override provider tariffs with `AI_PRICING_JSON`, for example:
-
-```dotenv
-AI_PRICING_JSON={"custom:openai/gpt-6-astra":{"input":10,"cached_input":1,"output":50}}
-```
-
-These are estimates using configured tariffs, not billing receipts. Unknown prices and unreported usage remain explicitly incomplete. Metrics record exact model identities, individual votes, latency, input/output/cached/reasoning tokens where available, and estimated cost.
-
 ## Remote Prompt-Guard and sandbox node
 
 Use an Ubuntu host with Docker, a Python environment containing FastAPI/Uvicorn, PyTorch/Transformers, and a locally cached Prompt-Guard-86M model. The supplied classifier currently loads `Niansuh/Prompt-Guard-86M`; provision that artifact before starting the service. Unavailable weights fail closed.
 
 Copy `ingress_server.py`, `ingress_sanitizer.py`, `sandbox_server.py` and the deployment script to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. It builds a strace-capable image when needed and installs the two systemd services. Both bind to `127.0.0.1`.
+
+Choose SSH forwarding or private Tailscale endpoints to connect the workstation to the node.
+
+### Connect through SSH
 
 Forward the service ports from your workstation:
 
@@ -103,14 +93,43 @@ Forward the service ports from your workstation:
 ssh -N -L 18000:127.0.0.1:8000 -L 18001:127.0.0.1:8001 ubuntu@YOUR_HOST
 ```
 
-Set:
+Set these values in the workstation's `.env`:
 
 ```dotenv
 AGENTWARD_INGRESS_URL=http://127.0.0.1:18000/scan-ingress
 AGENTWARD_SANDBOX_URL=http://127.0.0.1:18001/execute
 ```
 
-Check `/health` on each forwarded service. Docker containers disable networking, limit memory/CPU/processes, drop capabilities except tracing support, and run without host credentials. Docker failure never triggers host execution on the remote server. Missing or truncated kernel-trace evidence cannot establish remediation or a benign finding. The client also checks source and harness SHA-256 hashes against the submitted artifacts.
+Check `/health` on each forwarded service.
+
+### Use Tailscale endpoints
+
+Install [Tailscale](https://tailscale.com/download) on the workstation and the remote node, and connect both to the same tailnet. Tailscale Serve can forward the node's private Tailscale ports to the existing loopback services. On the remote node, run:
+
+```bash
+tailscale ip -4
+sudo tailscale serve --bg --tcp=8000 tcp://127.0.0.1:8000
+sudo tailscale serve --bg --tcp=8001 tcp://127.0.0.1:8001
+tailscale serve status
+```
+
+Replace `<NODE_TAILSCALE_IP>` below with the address printed by `tailscale ip -4`. You can also use the node's MagicDNS name when MagicDNS is enabled. Set the workstation's `.env` to:
+
+```dotenv
+AGENTWARD_INGRESS_URL=http://<NODE_TAILSCALE_IP>:8000/scan-ingress
+AGENTWARD_SANDBOX_URL=http://<NODE_TAILSCALE_IP>:8001/execute
+```
+
+Verify connectivity from the workstation:
+
+```bash
+curl --fail "http://<NODE_TAILSCALE_IP>:8000/health"
+curl --fail "http://<NODE_TAILSCALE_IP>:8001/health"
+```
+
+The HTTP traffic travels inside Tailscale's encrypted network, and Serve exposes these ports only within the tailnet. Restrict access to authorized operators using tailnet grants or ACLs. This setup uses the Tailscale address directly and needs no SSH port forward. Restart the dashboard after changing these endpoint URLs so it loads the new configuration.
+
+Docker containers disable networking, limit memory/CPU/processes, drop capabilities except tracing support, and run without host credentials. Docker failure never triggers host execution on the remote server. Missing or truncated kernel-trace evidence cannot establish remediation or a benign finding. The client also checks source and harness SHA-256 hashes against the submitted artifacts.
 
 ## Steering and security boundaries
 
