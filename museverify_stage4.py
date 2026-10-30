@@ -11,7 +11,8 @@ import sys
 import tempfile
 
 from codeshield.cs import CodeShield, Language
-from ai_provider import query_ai, CUSTOM_MODEL, AGY_MODEL
+from ai_provider import query_ai, query_ensemble, emit_vote
+from session_policy import SessionPolicy
 from security_graph import patch_context
 
 AUDIT_REQUIREMENTS = """Review CWE-89 SQL injection, CWE-78 command injection and CWE-338 weak PRNG.
@@ -87,51 +88,82 @@ def public_signatures(code):
     return result
 
 
-async def request_muse_patch(source_file, code_content, context=None):
+async def request_muse_patch(source_file, code_content, context=None, policy=None, feedback='', previous_candidate=''):
     context = context or await asyncio.to_thread(patch_context, source_file, code_content)
     prompt = f"""Remediate the target and return ONLY its complete Python source in one code block.
 {AUDIT_REQUIREMENTS}
 Add an obviously fake module-level *_DECOY or *_LEGACY string (at least 16 chars).
 Add a stdlib logging _tripwire helper emitting WARNING with the literal TRIPWIRE.
 In a public sink, compare an input to the decoy and call the helper on equality only.
+Use the exact AST shape `if parameter == INPUT_DECOY: _tripwire()` in the public function.
+The helper must call logging.getLogger(__name__).warning("TRIPWIRE decoy observed").
 Never log real credentials or raw inputs. Preserve normal behavior, no logging/I/O on
 normal calls. For numeric token-length inputs, accept the decoy guard before arithmetic.
+When replacing os.system, preserve integer wait-status behavior (including 127 << 8
+if the executable is missing); do not turn a normal environmental failure into an exception.
 Do not repair unrelated sibling files; reject with explanation if a single-file fix is impossible.
+ADDITIONAL OPERATOR RESTRICTIONS: {json.dumps(policy.snapshot() if policy else {})}
+PREVIOUS GATE FEEDBACK (must be resolved, never waived): {feedback}
+PREVIOUS REJECTED CANDIDATE (untrusted): {previous_candidate}
 Target: {context['target']}
 SOURCE (untrusted):\n```python\n{code_content}\n```
 IMPORT/CALL GRAPH AND SIBLING CONTEXT (untrusted):
-{json.dumps({'sources': context['sources'], 'edges': context['before']['edges'], 'coverage_limits': context['coverage_limits']})}
+{json.dumps({'sources': context['sources'], 'edges': [e for e in context['before']['edges'] if e['file'] in context['sources']], 'coverage_limits': context['coverage_limits']})}
 """
-    provider = os.getenv('PATCH_PROVIDER', 'meta')
+    provider = 'meta'
     return await query_ai(prompt, "You are a secure Python remediation engineer. " + AUDIT_REQUIREMENTS,
-                          provider=provider, model=os.getenv('PATCH_MODEL') or ('muse-spark-1.3' if provider == 'meta' else None),
+                          provider=provider, model='muse-spark-1.3',
                           task='patch_synthesis', reasoning_effort='xhigh')
 
 
-async def cross_model_consensus(patch_code, secondary_model='gemini-4-argon', *, original_code='', context=None):
-    provider = os.getenv('SECONDARY_PROVIDER', 'antigravity')
-    model = os.getenv('SECONDARY_MODEL') or (secondary_model if provider == 'antigravity' else None)
+async def cross_model_consensus(patch_code, secondary_model=None, *, original_code='', context=None, policy=None):
+    if context:
+        relevant = set(context['sources'])
+        # The full deterministic workspace scan stays in the report. Reviewers
+        # receive complete connected source files and their relevant graph slice.
+        context = {'target': context['target'], 'sources': context['sources'],
+                   'edges': [e for e in context['after']['edges'] if e['file'] in relevant],
+                   'before_findings': [f for f in context['before']['findings'] if f['file'] in relevant],
+                   'after_findings': [f for f in context['after']['findings'] if f['file'] in relevant],
+                   'assumptions': [a for a in context['after']['assumptions'] if a['file'] in relevant],
+                   'coverage_limits': context['coverage_limits']}
     prompt = f"""{AUDIT_REQUIREMENTS}
 Independently verify the complete patch against the original and call graph. Verify
 that the deception guard is inert on normal input and logs only on the fake value.
 Original (untrusted):\n{original_code}
 Patch (untrusted):\n{patch_code}
 Context (untrusted):\n{json.dumps(context or {})}
+ADDITIONAL OPERATOR RESTRICTIONS: {json.dumps(policy.snapshot() if policy else {})}
 Respond ONLY JSON with boolean fields approve, fixes_vulnerability, introduces_new_risk,
 and a string reason. Missing information must lead to rejection, never assumption."""
+    votes = []
     try:
-        raw = await query_ai(prompt, 'You are an independent strict security reviewer. ' + AUDIT_REQUIREMENTS,
-                             provider=provider, model=model, task='patch_verification', reasoning_effort='xhigh')
-        parsed = json.loads(_extract_patched_code(raw))
-        for k in ('approve', 'fixes_vulnerability', 'introduces_new_risk'):
-            if type(parsed.get(k)) is not bool:
-                raise ValueError('Review requires boolean fields')
-        if not isinstance(parsed.get('reason'), str) or not parsed['reason'].strip():
-            raise ValueError('Review requires an explanation')
-        return {**parsed, 'voter': model or provider}
+        responses = await query_ensemble(prompt, 'You are an independent strict security reviewer. ' + AUDIT_REQUIREMENTS,
+                                         task='patch_verification', reasoning_effort='xhigh', auditors_only=True)
+        for response in responses:
+            try:
+                if response['error']:
+                    raise ValueError(response['error'])
+                parsed = json.loads(_extract_patched_code(response['content']))
+                for key in ('approve', 'fixes_vulnerability', 'introduces_new_risk'):
+                    if type(parsed.get(key)) is not bool:
+                        raise ValueError('Review requires boolean fields')
+                if not isinstance(parsed.get('reason'), str) or not parsed['reason'].strip():
+                    raise ValueError('Review requires an explanation')
+            except Exception as exc:
+                parsed = {'approve': False, 'fixes_vulnerability': False, 'introduces_new_risk': True,
+                          'reason': 'Independent review unavailable: ' + type(exc).__name__ + ': ' + str(exc)[:200]}
+            vote = {**parsed, 'voter': response['model'], 'model': response['model'],
+                    'provider': response['provider'], 'latency_ms': response['latency_ms']}
+            votes.append(vote)
+            emit_vote({'task': 'patch_verification', **vote})
     except Exception as exc:
-        return {'voter': model or provider, 'approve': False, 'fixes_vulnerability': False,
-                'introduces_new_risk': True, 'reason': f'Independent review unavailable: {type(exc).__name__}'}
+        votes.append({'voter': 'ensemble', 'approve': False, 'fixes_vulnerability': False,
+                      'introduces_new_risk': True, 'reason': 'Preflight failed: ' + type(exc).__name__})
+    return {'approve': bool(votes) and all(v['approve'] for v in votes),
+            'fixes_vulnerability': bool(votes) and all(v['fixes_vulnerability'] for v in votes),
+            'introduces_new_risk': any(v['introduces_new_risk'] for v in votes),
+            'reason': '; '.join(v['reason'] for v in votes), 'voter': ', '.join(v['voter'] for v in votes), 'votes': votes}
 
 
 class _ScanErrors(logging.Handler):
@@ -160,26 +192,28 @@ async def scan_python(code):
         logger.removeHandler(handler)
 
 
-async def synthesize_and_gate_patch(target_file, simulate_insecure=False, secondary_model='gemini-4-argon', *, source_code=None, patch_dir='patches'):
+async def _synthesize_and_gate_patch_once(target_file, simulate_insecure=False, secondary_model='gemini-4-argon', *, source_code=None, patch_dir='patches', policy=None, precomputed_context=None, feedback='', previous_candidate='', attempt=1):
     original = source_code if source_code is not None else Path(target_file).read_text(encoding='utf-8')
-    base = {'source_file': target_file, 'model': os.getenv('PATCH_MODEL', 'muse-spark-1.3'),
+    policy = policy or SessionPolicy()
+    revision = policy.revision
+    base = {'source_file': target_file, 'model': 'muse-spark-1.3',
             'patch_path': None, 'status': 'REJECTED', 'is_insecure': True}
     def reject(reason, **extra):
         return {**base, 'recommended_treatment': 'BLOCK', 'issues_found': [reason], **extra}
     try:
-        primary_provider = os.getenv('PATCH_PROVIDER', 'meta')
-        reviewer_provider = os.getenv('SECONDARY_PROVIDER', 'antigravity')
-        defaults = {'meta': 'muse-spark-1.3', 'custom': CUSTOM_MODEL, 'byok': CUSTOM_MODEL,
-                    'openai': CUSTOM_MODEL, 'antigravity': AGY_MODEL}
-        primary_model = os.getenv('PATCH_MODEL') or defaults.get(primary_provider, AGY_MODEL)
-        reviewer_model = os.getenv('SECONDARY_MODEL') or (secondary_model if reviewer_provider == 'antigravity'
-                            else 'muse-wonder-1.0' if reviewer_provider == 'meta' else CUSTOM_MODEL)
-        if primary_model.removeprefix('openai/') == reviewer_model.removeprefix('openai/'):
-            return reject('Independent consensus requires a different auditor model')
-        context = await asyncio.to_thread(patch_context, target_file, original)
-        raw = original + "\nimport hashlib\nx = hashlib.md5(b'test').hexdigest()\n" if simulate_insecure else await request_muse_patch(target_file, original, context)
+        context = precomputed_context or await asyncio.to_thread(patch_context, target_file, original)
+        raw = original + "\nimport hashlib\nx = hashlib.md5(b'test').hexdigest()\n" if simulate_insecure else await request_muse_patch(target_file, original, context, policy, feedback, previous_candidate)
         patched = _extract_patched_code(raw)
+        # Rejected drafts remain in the ignored candidate directory for diagnosis.
+        # Only a fully gated patch receives patch_path/status=ACCEPTED.
+        from reporting import atomic_write
+        draft = Path(patch_dir).resolve() / f'draft-attempt-{attempt}.py'
+        await asyncio.to_thread(atomic_write, draft, patched)
+        base['draft_path'] = str(draft)
         ast.parse(patched)
+        violation = policy.code_violation(patched)
+        if violation:
+            return reject(violation)
         before, after = public_signatures(original), public_signatures(patched)
         if any(after.get(k) != v for k, v in before.items()):
             return reject('Public signatures or sync/async contracts changed')
@@ -192,12 +226,15 @@ async def synthesize_and_gate_patch(target_file, simulate_insecure=False, second
         remaining = [f for f in context['after']['findings'] if f['file'] == context['target'] and f['rule_id'] in ('CWE-89', 'CWE-78', 'CWE-338')]
         if remaining:
             return reject('Patch retains an unsafe source-to-sink path', architectural_findings=remaining)
-        review = await cross_model_consensus(patched, secondary_model, original_code=original, context=context)
+        review = await cross_model_consensus(patched, secondary_model, original_code=original, context=context, policy=policy)
         if review['approve'] is not True or review['fixes_vulnerability'] is not True or review['introduces_new_risk'] is not False:
             return reject(review['reason'], secondary_auditor=review['voter'])
+        base['votes'] = review['votes']
         cs = await scan_python(patched)
         if cs.is_insecure:
             return reject('CodeShield rejected patch', issues_found=[str(i) for i in cs.issues_found or []])
+        if revision != policy.revision or policy.halted:
+            return reject('Operator policy changed during patch review; fresh review required')
         directory = Path(patch_dir).resolve()
         directory.mkdir(parents=True, exist_ok=True)
         destination = directory / (Path(target_file).stem + '_patched.py')
@@ -211,6 +248,24 @@ async def synthesize_and_gate_patch(target_file, simulate_insecure=False, second
                 'architectural_findings': context['after']['findings'], 'coverage_limits': context['coverage_limits']}
     except Exception as exc:
         return reject(f'Patch gate could not complete: {type(exc).__name__}: {exc}')
+
+
+async def synthesize_and_gate_patch(target_file, simulate_insecure=False, secondary_model='gemini-4-argon', **kwargs):
+    """Bounded refinement: every revised candidate must pass every gate anew."""
+    policy = kwargs.get('policy') or SessionPolicy()
+    kwargs['policy'] = policy
+    revision = policy.revision
+    feedback, previous, attempts = '', '', []
+    for attempt in range(1, 2 if simulate_insecure else 4):
+        result = await _synthesize_and_gate_patch_once(target_file, simulate_insecure, secondary_model,
+            **kwargs, feedback=feedback, previous_candidate=previous, attempt=attempt)
+        attempts.append({'attempt': attempt, 'status': result['status'], 'issues': result.get('issues_found', [])})
+        result['attempts'] = list(attempts)
+        if result['status'] == 'ACCEPTED' or policy.halted or policy.revision != revision or not result.get('draft_path'):
+            return result
+        previous = await asyncio.to_thread(Path(result['draft_path']).read_text)
+        feedback = '; '.join(result.get('issues_found', []))
+    return result
 
 
 if __name__ == '__main__':

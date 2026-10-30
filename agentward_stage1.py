@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from ingress_sanitizer import sanitize_source
 
 load_dotenv()
-PROMPT_GUARD_URL = os.getenv('AGENTWARD_INGRESS_URL', 'http://100.67.189.89:8000/scan-ingress')
-LIGHTSAIL_SANDBOX_URL = os.getenv('AGENTWARD_SANDBOX_URL', 'http://100.67.189.89:8001/execute')
+PROMPT_GUARD_URL = os.getenv('AGENTWARD_INGRESS_URL', 'http://127.0.0.1:18000/scan-ingress')
+LIGHTSAIL_SANDBOX_URL = os.getenv('AGENTWARD_SANDBOX_URL', 'http://127.0.0.1:18001/execute')
 
 
 def check_prompt_guard(file_path, content):
@@ -21,7 +21,7 @@ def check_prompt_guard(file_path, content):
             data=json.dumps({'file_path': file_path, 'content': content, 'text': content}).encode(),
             headers={'Content-Type': 'application/json'}, method='POST')
         try:
-            with urllib.request.urlopen(request, timeout=3) as response:
+            with urllib.request.urlopen(request, timeout=30) as response:
                 data = json.loads(response.read())
         except Exception:
             pass
@@ -30,7 +30,8 @@ def check_prompt_guard(file_path, content):
         label = 'injection'
     return {**data, 'label': label, 'scores': data.get('scores', {}),
             'sanitized_content': local['content'], 'sanitized_count': local['sanitized_count'],
-            'valid': local['valid'], 'backend': 'prompt_guard' if data else 'local_heuristic'}
+            'valid': local['valid'], 'backend': data.get('backend', 'local_heuristic'),
+            'evidence_verified': data.get('backend') == 'prompt_guard' and data.get('coverage_complete') is True and data.get('sanitized_verified') is True}
 
 
 def inspect_file_before_muse(file_path):
@@ -39,12 +40,15 @@ def inspect_file_before_muse(file_path):
     except (OSError, UnicodeError) as exc:
         return {'status': 'ERROR', 'reason': str(exc), 'content': '', 'sanitized_count': 0}
     result = check_prompt_guard(file_path, content)
+    if not result['evidence_verified']:
+        return {'status': 'UNVERIFIED', 'content': result['sanitized_content'], 'reason': 'Full Prompt-Guard verification unavailable',
+                'sanitized_count': result['sanitized_count'], 'backend': result['backend'], 'evidence_verified': False}
     blocked = result.get('blocked') or result['label'] in ('injection', 'jailbreak')
     if not result['valid'] or (blocked and not result['sanitized_count']):
         return {'status': 'BLOCKED', 'content': '', 'reason': 'Input could not be safely sanitized', 'sanitized_count': 0}
     return {'status': 'SANITIZED' if result['sanitized_count'] else 'ALLOW',
             'reason': 'Instruction payloads removed' if result['sanitized_count'] else 'No ingress instruction detected',
-            'content': result['sanitized_content'], 'sanitized_count': result['sanitized_count'], 'backend': result['backend']}
+            'content': result['sanitized_content'], 'sanitized_count': result['sanitized_count'], 'backend': result['backend'], 'evidence_verified': True}
 
 
 if __name__ == '__main__':

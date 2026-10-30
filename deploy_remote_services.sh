@@ -101,7 +101,7 @@ WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 Environment="AGENTWARD_SANDBOX_PROXY_URL=http://127.0.0.1:8001/run-sandbox-test"
-ExecStart=${UVICORN_BIN} ingress_server:app --host 0.0.0.0 --port 8000 --workers 1
+ExecStart=${UVICORN_BIN} ingress_server:app --host 127.0.0.1 --port 8000 --workers 1
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -130,7 +130,7 @@ WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 Environment="SANDBOX_IMAGE=${SANDBOX_IMAGE}"
-ExecStart=${UVICORN_BIN} sandbox_server:app --host 0.0.0.0 --port 8001 --workers 1
+ExecStart=${UVICORN_BIN} sandbox_server:app --host 127.0.0.1 --port 8001 --workers 1
 Restart=always
 RestartSec=5
 StandardOutput=journal

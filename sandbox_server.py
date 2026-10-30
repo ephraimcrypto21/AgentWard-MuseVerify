@@ -20,19 +20,21 @@ Exposed endpoints:
   POST /run-sandbox-test-> alias kept for older clients
 """
 import argparse
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import tempfile
 import uuid
-import re
+import threading
 
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI(title="MuseVerify Sandbox Node (Stage 2/5)")
+_sandbox_slots = threading.BoundedSemaphore(3)
 
 def _default_image() -> str:
     """Prefer the trace-capable derived image when it has been built locally."""
@@ -356,6 +358,11 @@ def health():
 @app.post("/run-sandbox-test")
 @app.post("/run-poc-sandbox")
 def execute(req: SandboxRequest):
+    with _sandbox_slots:
+        return _execute(req)
+
+
+def _execute(req: SandboxRequest):
     sandbox_dir = tempfile.mkdtemp(prefix="museverify_")
     engine = "docker"
     try:
@@ -369,12 +376,9 @@ def execute(req: SandboxRequest):
             ):
                 raise RuntimeError("docker unavailable")
         except (RuntimeError, FileNotFoundError):
-            if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
-                return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
-                        "stderr": "Docker isolation unavailable", "engine": "unavailable",
-                        "trace_backend": "none", "syscall_events": []}
-            engine = "local"
-            proc = _run_local(sandbox_dir)
+            return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
+                    "stderr": "Docker isolation unavailable", "engine": "unavailable",
+                    "trace_backend": "none", "syscall_events": []}
 
         stdout = proc.stdout.strip()
         stderr = proc.stderr.strip()
@@ -403,6 +407,12 @@ def execute(req: SandboxRequest):
             "engine": engine,
             "trace_backend": "strace" if any(e.get("source") == "strace" for e in uniq) else "audit_hook",
             "syscall_events": uniq[:MAX_EVENTS],
+            "trace_complete": len(uniq) <= MAX_EVENTS,
+            "source_sha256": hashlib.sha256((req.code_content or req.sanitized_target_code).encode()).hexdigest(),
+            "harness_sha256": hashlib.sha256((req.test_code or req.test_script or req.poc_script).encode()).hexdigest(),
+            "execution_contract": {"engine": "docker", "network": "none", "memory": "256m", "pids_limit": 64,
+                                   "cap_drop": "ALL", "cap_add": "SYS_PTRACE", "no_new_privileges": True,
+                                   "credentials_mounted": False, "workdir": "/workspace"},
         }
     except subprocess.TimeoutExpired:
         return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
@@ -414,7 +424,7 @@ def execute(req: SandboxRequest):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
     args = parser.parse_args()
     uvicorn.run(app, host=args.host, port=args.port, workers=1)

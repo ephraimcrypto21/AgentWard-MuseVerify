@@ -1,0 +1,7 @@
+-r requirements.txt
+coverage>=7,<8
+ruff>=0.9,<1
+jsonschema>=4,<5
+websockets>=13,<17
+
+playwright>=1.50,<2

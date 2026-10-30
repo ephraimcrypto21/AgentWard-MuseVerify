@@ -8,6 +8,7 @@ syscall trail is audited heuristically and by the AI auditor, so a polymorphic
 payload can no longer pass by returning exit code 0.
 """
 import os
+import hashlib
 import sys
 import json
 import shutil
@@ -21,10 +22,10 @@ import urllib.request
 import urllib.error
 
 PROMPT_GUARD_URL = os.environ.get(
-    "AGENTWARD_INGRESS_URL", "http://100.67.189.89:8000/scan-ingress"
+    "AGENTWARD_INGRESS_URL", "http://127.0.0.1:18000/scan-ingress"
 )
 LIGHTSAIL_SANDBOX_URL = os.environ.get(
-    "AGENTWARD_SANDBOX_URL", "http://100.67.189.89:8001/execute"
+    "AGENTWARD_SANDBOX_URL", "http://127.0.0.1:18001/execute"
 )
 
 HARNESS_FILES = {"test_harness.py", "verify_test.py", "run_test.py", "agentward_runner.py"}
@@ -369,7 +370,7 @@ def parse_probes(stdout: str) -> list:
             record = json.loads(line[6:])
         except json.JSONDecodeError:
             continue
-        if isinstance(record, dict) and "probe" in record:
+        if isinstance(record, dict) and isinstance(record.get('probe'), str) and type(record.get('ok')) is bool:
             probes.append(record)
     return probes
 
@@ -388,7 +389,8 @@ def analyze_syscall_sequence(events: list, stdout: str = "", target_file: str = 
     shell_escapes = [
         e for e in events
         if e.get("syscall") == "sys_enter_execve"
-        and (e.get("shell") or "-c" in str(e.get("args", "")))
+        and (e.get("shell") or os.path.basename(str(e.get("argv", "")).strip('"'))
+             in ("sh", "bash", "dash", "zsh", "ksh"))
     ]
     if shell_escapes:
         decisive += 4
@@ -423,18 +425,24 @@ def analyze_syscall_sequence(events: list, stdout: str = "", target_file: str = 
              or any(flag in str(e.get("flag", "")) for flag in ("O_WRONLY", "O_RDWR", "O_CREAT")))
         and not str(e.get("path", "")).startswith("/workspace")
         and "/worktrees/" not in str(e.get("path", ""))
+        # Redirecting output to the null device does not modify external state.
+        and e.get("path") != "/dev/null"
     ]
     if outside_writes:
         weak += 1
         reasons.append(f"{len(outside_writes)} write(s) outside the worktree")
 
-    connects = [e for e in events if e.get("syscall") == "sys_enter_connect"]
+    # `ls -l` consults libc's local name-service cache. Preserve that event in
+    # the trace, but distinguish its exact Unix socket from network egress.
+    connects = [e for e in events if e.get("syscall") == "sys_enter_connect"
+                and not re.fullmatch(r'\{sa_family=AF_UNIX, sun_path="/(?:var/)?run/nscd/socket"\}',
+                                     str(e.get("addr", "")))]
     if connects:
         weak += 1
         reasons.append(f"egress attempt x{len(connects)} (network is disabled)")
 
     probes = parse_probes(stdout)
-    exploit_probes = [p for p in probes if str(p.get("probe", "")).startswith(("sqli_union", "cmd:", "weak_prng:"))]
+    exploit_probes = [p for p in probes if str(p.get("probe", "")).startswith(("sqli_union", "cmd:", "weak_prng:", "chain:"))]
     probe_hit = [p for p in exploit_probes if p.get("ok")]
     if any(str(p.get("probe", "")).startswith("sqli_union") for p in probe_hit):
         reasons.append("UNION payload broke out of the query string")
@@ -623,10 +631,6 @@ def _remote_is_instrumented(data: dict) -> bool:
 
 
 def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
-    if REMOTE_CAPABILITY["stale"]:
-        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
-            raise RuntimeError("Remote sandbox is not instrumented")
-        return _local_execute(vuln_id, target_file, code_content, test_code)
     payload = json.dumps({
         "vuln_id": vuln_id,
         "target_file": os.path.basename(target_file),
@@ -645,39 +649,20 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
     try:
         with urllib.request.urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode())
-    except Exception as e:
-        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
-            raise RuntimeError("Remote Docker sandbox unavailable") from e
-        print(f"[!] Lightsail sandbox remote service unreachable ({e}). Falling back to local audit-hook execution.")
-        return _local_execute(vuln_id, target_file, code_content, test_code)
-
-    if _remote_is_instrumented(data):
-        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1" and data.get("engine", "docker") != "docker":
-            raise RuntimeError("Production policy requires Docker isolation")
-        data.setdefault("syscall_events", [])
-        data.setdefault("engine", "docker")
-        return data
-
-    # Node is still running a pre-telemetry build: its output is exit-code only,
-    # so re-run here rather than silently downgrading the verdict to trusted
-    # exit status. The remote stdout is kept for the record.
-    if not REMOTE_CAPABILITY["stale"]:
-        REMOTE_CAPABILITY["stale"] = True
-        print("[!] Remote sandbox returns no syscall telemetry (stale build). "
-              "Using local audit-hook execution; redeploy sandbox_server.py to the node.")
-    if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
-        raise RuntimeError("Remote sandbox telemetry unavailable")
-    local = _local_execute(vuln_id, target_file, code_content, test_code)
-    local["remote_stdout"] = data.get("stdout", "")
-    local["engine"] = "local (remote stale)"
-    return local
+    except Exception as exc:
+        raise RuntimeError('Remote Docker sandbox unavailable; verification denied') from exc
+    if data.get('engine') != 'docker' or data.get('trace_backend') != 'strace' or not data.get('syscall_events') or data.get('trace_complete') is not True:
+        raise RuntimeError('Docker and strace evidence required; verification denied')
+    if data.get('source_sha256') != hashlib.sha256(code_content.encode()).hexdigest() or data.get('harness_sha256') != hashlib.sha256(test_code.encode()).hexdigest():
+        raise RuntimeError('Sandbox evidence does not match the submitted source and harness')
+    return data
 
 
-def run_sandboxed(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
-    """Execute via the remote node, or locally when AGENTWARD_FORCE_LOCAL=1."""
+def run_sandboxed(vuln_id: str, target_file: str, code_content: str, test_code: str, *, allow_test_backend=False) -> dict:
+    """Production always requires Docker. Host execution is explicit test-only."""
     if os.environ.get("AGENTWARD_FORCE_LOCAL") == "1":
-        if os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
-            raise RuntimeError("Local fallback is disabled by production policy")
+        if not allow_test_backend or os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
+            raise RuntimeError("Local execution is disabled by production policy")
         return _local_execute(vuln_id, target_file, code_content, test_code)
     return execute_test_on_lightsail(vuln_id, target_file, code_content, test_code)
 
@@ -702,7 +687,8 @@ def triage_sandbox_result(result: dict, target_file: str = "") -> dict:
         analysis["verdict"] = "INCONCLUSIVE"
     return {**analysis, "confirmed": confirmed, "execution_valid": usable,
             "safe": usable and analysis["verdict"] == "BENIGN",
-            "exit_code": result.get("exit_code"), "probes": probes}
+            "exit_code": result.get("exit_code"), "probes": probes,
+            "evidence_verified": usable and result.get('engine') == 'docker' and result.get('trace_backend') == 'strace' and bool(result.get('syscall_events')) and result.get('trace_complete') is True}
 
 
 

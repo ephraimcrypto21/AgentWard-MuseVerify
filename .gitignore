@@ -9,3 +9,7 @@ patches/
 
 reports/
 .pytest_cache/
+
+.coverage
+htmlcov/
+.ruff_cache/

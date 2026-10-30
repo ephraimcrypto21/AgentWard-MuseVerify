@@ -8,9 +8,12 @@ import logging
 from pathlib import Path
 import os
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse, HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from ai_provider import discover_and_verify_providers, configuration_update, select_ensemble, ProviderUnavailable
+from session_policy import SessionPolicy
+from reporting import executive_brief
 
 from main_pipeline import run_unified_pipeline, run_batch_benchmark, MAX_PARALLEL_SANDBOXES
 from museverify_stage2 import clean_worktrees
@@ -25,6 +28,7 @@ _history = deque(maxlen=400)
 _adhoc_seq = itertools.count(1)
 _current_report = None
 _job = None
+session_policy = SessionPolicy()
 sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
 log = logging.getLogger(__name__)
 
@@ -57,6 +61,70 @@ async def lifespan(app):
 
 
 app = FastAPI(title='AgentWard + MuseVerify Cockpit', lifespan=lifespan)
+
+
+@app.middleware('http')
+async def same_origin_controls(request: Request, call_next):
+    # Local controls cannot be driven by an unrelated website in the browser.
+    origin = request.headers.get('origin')
+    if request.method == 'POST' and origin and origin.rstrip('/') != str(request.base_url).rstrip('/'):
+        from fastapi.responses import JSONResponse
+        return JSONResponse({'detail': 'Cross-origin control request rejected'}, status_code=403)
+    response = await call_next(request)
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    return response
+
+
+class ModeRequest(BaseModel):
+    mode: str
+
+
+class SteerRequest(BaseModel):
+    constraint: str = Field(min_length=1, max_length=2000)
+
+
+@app.get('/api/providers')
+async def providers(force_refresh: bool = False):
+    registry = await discover_and_verify_providers(force_refresh)
+    try:
+        topology = select_ensemble(registry)
+    except (ProviderUnavailable, ValueError) as exc:
+        topology = {'mode': registry['mode'], 'members': [], 'notices': [str(exc) + '; runs are blocked']}
+    return {**registry, 'topology': topology}
+
+
+@app.post('/api/providers/mode')
+async def provider_mode(req: ModeRequest):
+    try:
+        configuration_update(ensemble_mode=req.mode)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    result = await providers()
+    await broadcast('providers', result)
+    return result
+
+
+@app.post('/api/steer')
+async def steer(req: SteerRequest):
+    try:
+        snapshot = session_policy.tighten(req.constraint)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    # Pending approvals become stale immediately; the next boundary re-reviews.
+    await broadcast('operator_policy', snapshot)
+    return snapshot
+
+
+@app.get('/api/executive-brief')
+async def get_executive_brief():
+    if _current_report:
+        return await asyncio.to_thread(_current_report.brief)
+    try:
+        saved = json.loads(await asyncio.to_thread((REPORT_DIR / 'benchmark_metrics.json').read_text))
+    except (OSError, ValueError):
+        saved = {'records': []}
+    return executive_brief(saved.get('records', []), {k: v for k, v in saved.items() if k != 'records'})
 
 
 class AuditRequest(BaseModel):
@@ -205,12 +273,12 @@ async def clean_workspaces_api(req: CleanRequest = CleanRequest()):
 
 async def execute_harness(target_file, vuln_id='VULN-001', *, report=None):
     return await run_unified_pipeline(target_file, vuln_id, on_event=broadcast, report=report,
-                                      semaphore=sandbox_semaphore)
+                                      semaphore=sandbox_semaphore, policy=session_policy)
 
 
 async def run_batch_benchmark_dashboard(targets_dir='benchmark_targets', *, report=None):
     return await run_batch_benchmark(targets_dir, on_event=broadcast, report=report,
-                                     semaphore=sandbox_semaphore)
+                                     semaphore=sandbox_semaphore, policy=session_policy)
 
 
 if __name__ == '__main__':

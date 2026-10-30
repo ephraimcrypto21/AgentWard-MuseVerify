@@ -21,7 +21,7 @@ from ingress_sanitizer import sanitize_source
 
 import uvicorn
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 
 MODEL_ID = "Niansuh/Prompt-Guard-86M"
@@ -52,8 +52,8 @@ def load_classifier():
 
 class ScanRequest(BaseModel):
     file_path: str = "unknown"
-    content: str = ""
-    text: str = ""
+    content: str = Field(default="", max_length=200000)
+    text: str = Field(default="", max_length=200000)
 
 
 class SandboxTestRequest(BaseModel):
@@ -86,31 +86,30 @@ def scan_ingress(req: ScanRequest):
     cleaned = sanitize_source(raw_text)
     load_classifier()
     if model is None:
-        flagged = bool(cleaned['sanitized_count'])
-        return {'label': 'injection' if flagged else 'benign', 'blocked': flagged,
-                'backend': 'local_heuristic', 'sanitized_content': cleaned['content'],
-                'sanitized_count': cleaned['sanitized_count']}
+        return {'label': 'unverified', 'blocked': True, 'backend': 'unavailable',
+                'coverage_complete': False, 'sanitized_verified': False}
     import torch
-    inputs = tokenizer(raw_text, return_tensors="pt", truncation=True, max_length=512)
-    with torch.no_grad():
-        logits = model(**inputs).logits
-    probs = torch.softmax(logits, dim=-1).squeeze().tolist()
-    labels = ["BENIGN", "INJECTION", "JAILBREAK"]
-    top_idx = int(torch.argmax(logits, dim=-1))
-    return {
-        "file_path": req.file_path,
-        "backend": "prompt_guard",
-        "sanitized_content": cleaned["content"],
-        "sanitized_count": cleaned["sanitized_count"],
-        "verdict": labels[top_idx],
-        "label": labels[top_idx].lower(),
-        "scores": {
-            "benign": round(probs[0], 4),
-            "injection": round(probs[1], 4),
-            "jailbreak": round(probs[2], 4),
-        },
-        "blocked": top_idx != 0 or probs[1] > 0.40 or probs[2] > 0.40,
-    }
+    def classify(text):
+        # Cover the complete source with overlapping windows; no silent 512-token cutoff.
+        encoded = tokenizer(text, return_tensors='pt', truncation=True, max_length=512,
+                            stride=128, return_overflowing_tokens=True, padding=True)
+        encoded.pop('overflow_to_sample_mapping', None)
+        scores = torch.zeros(3)
+        with torch.no_grad():
+            for i in range(encoded['input_ids'].shape[0]):
+                logits = model(**{k: v[i:i+1] for k, v in encoded.items()}).logits
+                scores = torch.maximum(scores, torch.softmax(logits, dim=-1).squeeze().cpu())
+        return scores.tolist()
+    probs = classify(raw_text)
+    clean_probs = classify(cleaned['content']) if cleaned['sanitized_count'] else probs
+    top_idx = max(range(3), key=lambda i: probs[i])
+    labels = ['benign', 'injection', 'jailbreak']
+    verified = cleaned['valid'] and max(clean_probs[1:]) <= .40 and clean_probs[0] >= max(clean_probs[1:])
+    return {'file_path': req.file_path, 'backend': 'prompt_guard', 'coverage_complete': True,
+            'sanitized_verified': verified, 'sanitized_content': cleaned['content'],
+            'sanitized_count': cleaned['sanitized_count'], 'label': labels[top_idx],
+            'scores': dict(zip(labels, [round(p, 4) for p in probs])),
+            'blocked': not verified or top_idx != 0 or max(probs[1:]) > .40}
 
 
 @app.post("/run-sandbox-test")
