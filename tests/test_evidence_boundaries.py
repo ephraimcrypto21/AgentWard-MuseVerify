@@ -59,15 +59,15 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
     def test_remote_requires_complete_kernel_trace(self):
         import hashlib
         digest=hashlib.sha256(b'pass').hexdigest()
-        valid={'source_sha256':digest,'harness_sha256':digest,'engine':'docker','trace_backend':'strace','trace_complete':True,'syscall_events':[{'source':'strace'}]}
-        for changes in [{},{'engine':'local'},{'trace_backend':'no_strace'},{'trace_complete':False},{'syscall_events':[]},{'source_sha256':'wrong'}]:
+        valid={'evidence_version':2,'trace_protected':True,'source_sha256':digest,'harness_sha256':digest,'engine':'docker','trace_backend':'strace','trace_complete':True,'syscall_events':[{'source':'strace'}]}
+        for changes in [{},{'evidence_version':1},{'trace_protected':False},{'engine':'local'},{'trace_backend':'no_strace'},{'trace_complete':False},{'syscall_events':[]},{'source_sha256':'wrong'}]:
             data={**valid,**changes}
-            with patch.object(sandbox.urllib.request,'urlopen',return_value=BytesIO(json.dumps(data).encode())):
+            with patch.object(sandbox,'node_urlopen',return_value=BytesIO(json.dumps(data).encode())):
                 if changes:
                     with self.assertRaises(RuntimeError): sandbox.execute_test_on_lightsail('t','x.py','pass','pass')
                 else:
                     self.assertEqual(sandbox.execute_test_on_lightsail('t','x.py','pass','pass')['engine'],'docker')
-        with patch.object(sandbox.urllib.request,'urlopen',side_effect=TimeoutError):
+        with patch.object(sandbox,'node_urlopen',side_effect=TimeoutError):
             with self.assertRaises(RuntimeError): sandbox.execute_test_on_lightsail('t','x.py','pass','pass')
 
     async def test_hunt_model_failure_retains_static_paths(self):
@@ -84,7 +84,7 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(result['coverage_limits'])
 
     def test_dashboard_start_and_busy_boundaries(self):
-        with offline_models(), patch.object(dashboard,'_job',None), patch.object(dashboard,'_run_job',AsyncMock()), TestClient(dashboard.app) as client:
+        with offline_models(), patch.object(dashboard,'_job',None), patch.object(dashboard,'_run_job',AsyncMock()), TestClient(dashboard.app, base_url='http://localhost') as client:
             self.assertEqual(client.post('/api/run',json={'target_file':'poisoned_app.py'}).status_code,200)
             self.assertEqual(client.get('/api/metrics').status_code,200)
             self.assertEqual(client.post('/api/batch').status_code,200)

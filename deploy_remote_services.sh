@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Deploy Production Systemd Services for AgentWard & MuseVerify on Remote Node
-# Target Host: Lightsail Node (ubuntu@100.67.189.89 or ubuntu@68.210.201.104)
+# Target: an operator-controlled Ubuntu verification node
 # ==============================================================================
 set -euo pipefail
 
@@ -13,6 +13,14 @@ fi
 
 APP_DIR="/home/ubuntu/agentward-node"
 USER_NAME="ubuntu"
+
+# systemd reads this root-only file before switching to the service user.
+# Repeated deployments preserve the shared token; it never enters Git or logs.
+install -d -m 0700 /etc/agentward
+if [[ ! -f /etc/agentward/node.env ]]; then
+    (umask 077; python3 -c 'import secrets; print("AGENTWARD_NODE_TOKEN=" + secrets.token_urlsafe(48))' > /etc/agentward/node.env)
+fi
+chmod 0600 /etc/agentward/node.env
 
 echo "======================================================================"
 echo "[*] Setting up Persistent Systemd Daemons in: ${APP_DIR}"
@@ -100,6 +108,7 @@ Group=${USER_NAME}
 WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=/etc/agentward/node.env
 Environment="AGENTWARD_SANDBOX_PROXY_URL=http://127.0.0.1:8001/run-sandbox-test"
 ExecStart=${UVICORN_BIN} ingress_server:app --host 127.0.0.1 --port 8000 --workers 1
 Restart=always
@@ -129,6 +138,7 @@ Group=${USER_NAME}
 WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=/etc/agentward/node.env
 Environment="SANDBOX_IMAGE=${SANDBOX_IMAGE}"
 ExecStart=${UVICORN_BIN} sandbox_server:app --host 127.0.0.1 --port 8001 --workers 1
 Restart=always

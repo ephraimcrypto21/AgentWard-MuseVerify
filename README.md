@@ -1,8 +1,15 @@
 # AgentWard + MuseVerify
 
-A Meta-primary security harness that inspects poisoned source, reproduces benchmark vulnerabilities in a Docker/strace sandbox, generates candidate repairs, and verifies them through independent model review, CodeShield, adversarial replay and regression tests.
+A Meta-primary security harness for evidence-driven Python repair. It inspects poisoned source, reproduces benchmark vulnerabilities in an authenticated Docker/strace sandbox, generates candidate repairs, and verifies them through independent model review, CodeShield, adversarial replay and regression tests.
 
 **Meta remains mandatory on every live run.** `muse-spark-1.3` leads runtime policy checks and patch synthesis; `muse-wonder-1.0` leads deep semantic analysis. Verified Anti-Gravity and custom BYOK models can join as independent reviewers. Missing security evidence produces a blocked, rejected or inconclusive result.
+
+The architecture now separates operator controls, model advice, untrusted payloads,
+and protected verification evidence. The [threat model](docs/THREAT_MODEL.md)
+defines those boundaries and their limits. All **818 cybersecurity skills** from
+the requested community collection are installed locally and pinned with full-tree
+hashes; see [skill provenance and usage](docs/SKILLS.md). The skills guide engineering
+reviews while the application enforces its own mandatory runtime gates.
 
 ## Seven phases
 
@@ -28,12 +35,12 @@ python3 -m venv venv
 python -m pip install -r requirements-dev.txt
 cp .env.example .env
 # Populate Meta credentials and any optional providers in .env.
-python -m uvicorn dashboard:app --host 127.0.0.1 --port 8080
+python -m uvicorn dashboard:app --host 127.0.0.1 --port 8080 --ws-max-size 1024 --ws-max-queue 4
 ```
 
 Open [the dashboard](http://127.0.0.1:8080). The header shows the real provider pre-flight matrix. Select an ensemble, retest credentials, launch an audit, or add an operator restriction while a run is in progress.
 
-The dashboard includes all seven phase cards, replayable WebSocket telemetry, a unified/side-by-side verified diff viewer, the executive brief, a cross-file call/taint map and SARIF export. Run controls reject cross-origin browser requests. Keep the dashboard and verification services on loopback or behind authenticated access controls.
+The dashboard includes all seven phase cards, replayable WebSocket telemetry, a unified/side-by-side verified diff viewer, the executive brief, a cross-file call/taint map and SARIF export. HTTP and WebSocket routes validate exact allowed hosts and browser origins before serving data or replaying telemetry. Defaults accept `localhost`, `127.0.0.1`, and `::1`; set `DASHBOARD_ALLOWED_HOSTS` to a comma-separated list of exact names for an authenticated reverse proxy. Keep the dashboard on loopback or behind authenticated access controls. Native clients may omit Origin; these browser controls do not replace network access restrictions.
 
 CLI entry points use the same orchestrator:
 
@@ -81,7 +88,19 @@ Custom pre-flight has a five-second deadline and requires HTTP 200 with nonempty
 
 Use an Ubuntu host with Docker, a Python environment containing FastAPI/Uvicorn, PyTorch/Transformers, and a locally cached Prompt-Guard-86M model. The supplied classifier currently loads `Niansuh/Prompt-Guard-86M`; provision that artifact before starting the service. Unavailable weights fail closed.
 
-Copy `ingress_server.py`, `ingress_sanitizer.py`, `sandbox_server.py` and the deployment script to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. It builds a strace-capable image when needed and installs the two systemd services. Both bind to `127.0.0.1`.
+Copy `ingress_server.py`, `ingress_sanitizer.py`, `sandbox_server.py`, `sandbox_protocol.py`, `service_security.py` and the deployment script to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. It builds a strace-capable image when needed and installs the two systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
+
+The deployment script creates `/etc/agentward/node.env` with a random token and
+root-only permissions on first installation; subsequent deployments preserve it.
+Securely copy the same `AGENTWARD_NODE_TOKEN` value into the workstation `.env`,
+then restart the dashboard. A missing/short node token returns HTTP 503; an absent
+or incorrect bearer token returns 401. All classifier and execution aliases
+require authentication. Health routes remain available for connectivity checks.
+
+**Upgrade the workstation and both node services together.** Protocol v2 rejects
+older sandbox responses without protected traces, and ingress results must carry
+original/sanitized source hashes. A stale node blocks live verification. See the
+[31 October verification record](docs/SECURITY_HARDENING.md) for what was tested locally.
 
 Choose SSH forwarding or private Tailscale endpoints to connect the workstation to the node.
 
@@ -129,7 +148,22 @@ curl --fail "http://<NODE_TAILSCALE_IP>:8001/health"
 
 The HTTP traffic travels inside Tailscale's encrypted network, and Serve exposes these ports only within the tailnet. Restrict access to authorized operators using tailnet grants or ACLs. This setup uses the Tailscale address directly and needs no SSH port forward. Restart the dashboard after changing these endpoint URLs so it loads the new configuration.
 
-Docker containers disable networking, limit memory/CPU/processes, drop capabilities except tracing support, and run without host credentials. Docker failure never triggers host execution on the remote server. Missing or truncated kernel-trace evidence cannot establish remediation or a benign finding. The client also checks source and harness SHA-256 hashes against the submitted artifacts.
+Docker containers disable networking and use a read-only root filesystem and
+inputs, 256 MiB memory/swap ceilings, CPU/PID limits, and bounded writable tmpfs.
+A trusted root tracer writes evidence into a separate ACL-protected directory;
+the immutable bootstrap drops to UID/GID 65534 with no effective/permitted
+capabilities before loading source. Payloads cannot alter evidence or write
+host-backed files. Output, trace, event-count and execution-time limits fail
+closed, and containers are reaped on failure. Docker failure never triggers host
+execution on the remote server. The client requires protected protocol-v2 traces
+and source/harness SHA-256 matches. Node requests disable redirects and ambient
+HTTP proxies so bearer credentials cannot be forwarded unexpectedly.
+
+Bodies are limited to 2 MB at the nodes and 32 KiB at the dashboard before JSON
+parsing. Source/harness fields are capped at 200,000 characters. The nodes reject
+new work when their two classifier or three sandbox slots are occupied, with
+HTTP 429 and `Retry-After`. WebSocket telemetry has a 32-connection cap and bounded
+replay writes. Additional transport-level protection belongs at the network edge.
 
 ## Steering and security boundaries
 
@@ -165,7 +199,9 @@ Self-play uses a bounded scenario language, not model-generated executable harne
 
 ## Evidence and verification
 
-See the [verification record](docs/VERIFICATION.md) for the executed checks, deployment evidence and live provider limitations.
+See the [current hardening verification](docs/SECURITY_HARDENING.md) and the
+[historical 30 October record](docs/VERIFICATION.md). Earlier remote acceptance
+does not certify a newly deployed node or the current protocol.
 
 Reports are written atomically under `reports/`, with separate per-run archives:
 
@@ -181,6 +217,15 @@ Model executive commentary is labeled advisory and cannot change verified outcom
 python -m unittest discover -v
 ruff check --select E9,F63,F7,F82,F401 . --exclude venv,worktrees,patches,reports
 python -m tests.run_e2e --live --base http://127.0.0.1:8080
+```
+
+Run the real Docker security checks separately (also enforced in CI):
+
+```bash
+docker build -t agentward-sandbox:security-v2 -f security/Dockerfile.sandbox .
+AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:security-v2 \
+  python -m unittest tests.test_docker_security -v
+python3 tools/manage_cybersecurity_skills.py verify
 ```
 
 The test suite covers all ensemble modes, quota cascade, invalid credentials, Responses/Chat Completions payloads, reasoning/cache stability, usage costs, steering, misalignment denial and rewind, cross-module taint, CodeShield failures, multi-step controls and simulation/production evidence separation.

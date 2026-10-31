@@ -20,6 +20,8 @@ load_dotenv()
 import subprocess
 import urllib.request
 import urllib.error
+from sandbox_protocol import EVIDENCE_VERSION
+from service_security import node_headers, node_urlopen
 
 PROMPT_GUARD_URL = os.environ.get(
     "AGENTWARD_INGRESS_URL", "http://127.0.0.1:18000/scan-ingress"
@@ -642,17 +644,19 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
     req = urllib.request.Request(
         LIGHTSAIL_SANDBOX_URL,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=node_headers(),
         method="POST"
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=25) as resp:
+        with node_urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode())
     except Exception as exc:
         raise RuntimeError('Remote Docker sandbox unavailable; verification denied') from exc
     if data.get('engine') != 'docker' or data.get('trace_backend') != 'strace' or not data.get('syscall_events') or data.get('trace_complete') is not True:
         raise RuntimeError('Docker and strace evidence required; verification denied')
+    if data.get('evidence_version') != EVIDENCE_VERSION or data.get('trace_protected') is not True:
+        raise RuntimeError('Protected trace evidence required; upgrade the sandbox node')
     if data.get('source_sha256') != hashlib.sha256(code_content.encode()).hexdigest() or data.get('harness_sha256') != hashlib.sha256(test_code.encode()).hexdigest():
         raise RuntimeError('Sandbox evidence does not match the submitted source and harness')
     return data

@@ -1,5 +1,9 @@
 # Verification record — 30 October 2026
 
+Historical record for the earlier release. The [31 October hardening record](SECURITY_HARDENING.md)
+documents the current changes. This older remote acceptance predates node
+authentication and protected-trace protocol v2; it does not validate their deployment.
+
 This record distinguishes automated checks from acceptance against the authorized Ubuntu verification node. It does not claim that static assumptions are proven or that every compatible provider was tested live.
 
 ## Local checks

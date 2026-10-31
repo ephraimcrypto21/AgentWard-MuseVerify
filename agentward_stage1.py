@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Prompt-Guard ingress with syntax-preserving local fallback."""
 import json
+import hashlib
 import os
 from pathlib import Path
 import sys
 import urllib.request
 from dotenv import load_dotenv
 from ingress_sanitizer import sanitize_source
+from service_security import node_headers, node_urlopen
 
 load_dotenv()
 PROMPT_GUARD_URL = os.getenv('AGENTWARD_INGRESS_URL', 'http://127.0.0.1:18000/scan-ingress')
@@ -19,9 +21,9 @@ def check_prompt_guard(file_path, content):
     if os.getenv('AGENTWARD_FORCE_LOCAL') != '1':
         request = urllib.request.Request(PROMPT_GUARD_URL,
             data=json.dumps({'file_path': file_path, 'content': content, 'text': content}).encode(),
-            headers={'Content-Type': 'application/json'}, method='POST')
+            headers=node_headers(), method='POST')
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with node_urlopen(request, timeout=30) as response:
                 data = json.loads(response.read())
         except Exception:
             pass
@@ -31,7 +33,10 @@ def check_prompt_guard(file_path, content):
     return {**data, 'label': label, 'scores': data.get('scores', {}),
             'sanitized_content': local['content'], 'sanitized_count': local['sanitized_count'],
             'valid': local['valid'], 'backend': data.get('backend', 'local_heuristic'),
-            'evidence_verified': data.get('backend') == 'prompt_guard' and data.get('coverage_complete') is True and data.get('sanitized_verified') is True}
+            'evidence_verified': data.get('backend') == 'prompt_guard'
+                and data.get('coverage_complete') is True and data.get('sanitized_verified') is True
+                and data.get('source_sha256') == hashlib.sha256(content.encode()).hexdigest()
+                and data.get('sanitized_sha256') == hashlib.sha256(local['content'].encode()).hexdigest()}
 
 
 def inspect_file_before_muse(file_path):

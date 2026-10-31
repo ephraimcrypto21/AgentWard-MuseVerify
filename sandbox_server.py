@@ -7,12 +7,9 @@ returns BOTH the process output and a structured syscall audit trail, so the
 AI auditor can reason about *behaviour* (execve/openat/connect) instead of
 trusting an exit code that a polymorphic payload can trivially forge.
 
-Telemetry backends, in preference order:
-  1. `strace -f` from inside the container (needs SYS_PTRACE, traced with
-     --cap-add; auto-skipped when the image has no strace binary).
-  2. A `sys.addaudithook` shim injected next to the harness. It always runs and
-     emits the same normalized event schema, so a missing strace never leaves
-     the auditor blind.
+A root tracer writes protected evidence outside the payload's bounded workspace.
+The immutable bootstrap drops to nobody before loading any submitted source.
+Missing, truncated, or unprotected kernel evidence fails closed.
 
 Exposed endpoints:
   GET  /                -> health
@@ -21,19 +18,25 @@ Exposed endpoints:
 """
 import argparse
 import hashlib
-import json
 import os
 import shutil
 import subprocess
 import tempfile
 import uuid
 import threading
+import selectors
+import time
+import stat
+import struct
+from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Depends, HTTPException
+from sandbox_protocol import SandboxRequest, EVIDENCE_VERSION
+from service_security import BodyLimitMiddleware, require_node_token
 
 app = FastAPI(title="MuseVerify Sandbox Node (Stage 2/5)")
+app.add_middleware(BodyLimitMiddleware)
 _sandbox_slots = threading.BoundedSemaphore(3)
 
 def _default_image() -> str:
@@ -53,19 +56,6 @@ SANDBOX_TIMEOUT_S = int(os.environ.get("SANDBOX_TIMEOUT_S", "15"))
 MAX_EVENTS = 500
 TRACE_SYSCALLS = "execve,execveat,openat,open,connect,unlinkat"
 
-# Audit events we translate into syscall-shaped records.
-_TRACED_AUDIT_EVENTS = {
-    "subprocess.Popen",
-    "os.system",
-    "os.exec",
-    "os.posix_spawn",
-    "open",
-    "os.remove",
-    "os.unlink",
-    "socket.connect",
-    "socket.getaddrinfo",
-}
-
 # Paths that produce noise on every single Python start.
 _NOISE_FRAGMENTS = (
     "site-packages",
@@ -76,91 +66,24 @@ _NOISE_FRAGMENTS = (
     ".pyc",
 )
 
-RUNNER_SHIM = r'''
-import json, os, sys, runpy
+MAX_OUTPUT_BYTES = 1_000_000
+MAX_TRACE_BYTES = 8_000_000
 
-LOG_PATH = os.environ.get("AGENTWARD_AUDIT_LOG", "syscall_audit.jsonl")
-TRACED = %(traced)s
-NOISE = %(noise)s
-MAX = %(max_events)d
-_state = {"n": 0, "depth": 0}
-_handle = open(LOG_PATH, "w", encoding="utf-8")
-
-
-def _emit(kind, detail):
-    if _state["n"] >= MAX:
-        return
-    _state["n"] += 1
-    _handle.write(json.dumps({"syscall": kind, **detail}) + "\n")
-    _handle.flush()
-
-
-def _noisy(path):
-    return any(frag in path for frag in NOISE)
-
-
-def _hook(event, args):
-    if event not in TRACED:
-        return
-    if event in ("subprocess.Popen", "os.exec", "os.posix_spawn"):
-        exe = args[0] if args else "?"
-        argv = args[1] if len(args) > 1 else []
-        if isinstance(argv, (list, tuple)):
-            argv = [str(a) for a in argv]
-        _emit("sys_enter_execve", {"argv": str(exe), "args": str(argv)[:400], "source": event})
-    elif event == "os.system":
-        _emit("sys_enter_execve", {"argv": "/bin/sh", "args": str(args[0])[:400], "source": event})
-    elif event == "open":
-        raw_path = args[0] if args else "?"
-        # The audit event reports an int when an existing fd is re-opened.
-        path = f"fd:{raw_path}" if isinstance(raw_path, int) else str(raw_path)
-        if _noisy(path):
-            return
-        mode = args[1] if len(args) > 1 else "r"
-        _emit("sys_enter_openat", {"path": path, "flag": str(mode), "source": event})
-    elif event in ("os.remove", "os.unlink"):
-        _emit("sys_enter_unlinkat", {"path": str(args[0]) if args else "?", "source": event})
-    elif event == "socket.connect":
-        _emit("sys_enter_connect", {"addr": str(args[1]) if len(args) > 1 else "?", "source": event})
-    elif event == "socket.getaddrinfo":
-        _emit("sys_enter_connect", {"addr": f"dns:{args[0]}" if args else "?", "source": event})
-
-
-sys.addaudithook(_hook)
-script = sys.argv[1] if len(sys.argv) > 1 else "verify_test.py"
-sys.argv = [script]
-try:
-    runpy.run_path(script, run_name="__main__")
-finally:
-    _handle.close()
+# strace owns /evidence/kernel.strace as root. The payload runs as nobody,
+# with no capabilities, after this immutable bootstrap drops every group/UID.
+# -I keeps source-controlled Python startup hooks away from the privileged step.
+BOOTSTRAP = r'''
+import os, runpy, shutil, sys
+os.setgroups([])
+os.setgid(65534)
+os.setuid(65534)
+for name in os.listdir('/inputs'):
+    shutil.copyfile('/inputs/' + name, '/workspace/' + name)
+sys.path.insert(0, '/workspace')
+os.chdir('/workspace')
+sys.argv = ['/workspace/verify_test.py']
+runpy.run_path(sys.argv[0], run_name='__main__')
 '''
-
-WRAPPER_SH = """#!/bin/sh
-# Prefer kernel-level tracing; fall back to the in-process audit hook shim.
-if command -v strace >/dev/null 2>&1; then
-  exec strace -f -qq -e trace=%(syscalls)s \\
-       -o /workspace/syscall_audit.strace \\
-       python3 /workspace/agentward_runner.py /workspace/verify_test.py
-fi
-exec python3 /workspace/agentward_runner.py /workspace/verify_test.py
-"""
-
-
-class SandboxRequest(BaseModel):
-    vuln_id: str = "VULN-001"
-    target_file: str = ""
-    target_filename: str = ""
-    code_content: str = ""
-    sanitized_target_code: str = ""
-    test_code: str = ""
-    test_script: str = ""
-    poc_script: str = ""
-    capture_mode: str = "auto"
-
-
-def _flag_set(raw):
-    parts = [p.strip() for p in str(raw or "").replace(",", " ").split() if p.strip()]
-    return set(parts)
 
 
 def _split_args(raw: str) -> list:
@@ -236,7 +159,7 @@ def normalize_strace(text: str) -> list:
             path = _unquote(args[1]) if name == "unlinkat" and len(args) > 1 else (
                 _unquote(args[0]) if args else "")
             events.append({"syscall": "sys_enter_unlinkat", "path": path[:300], "source": "strace"})
-        if len(events) >= MAX_EVENTS:
+        if len(events) > MAX_EVENTS:
             break
     return events
 
@@ -245,79 +168,99 @@ def _is_noisy(path: str) -> bool:
     return any(frag in path for frag in _NOISE_FRAGMENTS)
 
 
-def _audit_events(path: str) -> list:
-    events = []
-    if not os.path.exists(path):
-        return events
-    with open(path, "r", encoding="utf-8", errors="replace") as handle:
-        for line in handle:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if isinstance(record, dict) and "syscall" in record:
-                events.append(record)
-            if len(events) >= MAX_EVENTS:
-                break
-    return events
-
-
 def _write_harness_files(sandbox_dir: str, req: SandboxRequest) -> str:
-    target_name = os.path.basename(req.target_file or req.target_filename or "target.py")
-    with open(os.path.join(sandbox_dir, target_name), "w") as handle:
-        handle.write(req.code_content or req.sanitized_target_code)
-    with open(os.path.join(sandbox_dir, "verify_test.py"), "w") as handle:
-        handle.write(req.test_code or req.test_script or req.poc_script)
-    with open(os.path.join(sandbox_dir, "agentward_runner.py"), "w") as handle:
-        handle.write(RUNNER_SHIM % {
-            "traced": json.dumps(sorted(_TRACED_AUDIT_EVENTS)),
-            "noise": json.dumps(list(_NOISE_FRAGMENTS)),
-            "max_events": MAX_EVENTS,
-        })
-    wrapper = os.path.join(sandbox_dir, "run.sh")
-    with open(wrapper, "w") as handle:
-        handle.write(WRAPPER_SH % {"syscalls": TRACE_SYSCALLS})
-    os.chmod(wrapper, 0o755)
+    target_name = req.target_file or req.target_filename or 'target.py'
+    root = Path(sandbox_dir)
+    root.chmod(0o755)
+    inputs = root / 'inputs'
+    inputs.mkdir(mode=0o755)
+    (inputs / target_name).write_text(req.code_content or req.sanitized_target_code)
+    (inputs / 'verify_test.py').write_text(req.test_code or req.test_script or req.poc_script)
+    for path in inputs.iterdir():
+        path.chmod(0o644)
+    (root / 'bootstrap.py').write_text(BOOTSTRAP)
+    (root / 'bootstrap.py').chmod(0o644)
+    evidence = root / 'evidence'
+    evidence.mkdir()
+    # POSIX ACL grants only the service owner and container root access. The
+    # payload cannot create files here (which would bypass its tmpfs quota).
+    # Root creates a 0644 trace; the service can read and remove it afterwards.
+    entries = [(0x01, 7, 0xffffffff), (0x02, 7, 0), (0x04, 0, 0xffffffff),
+               (0x10, 7, 0xffffffff), (0x20, 0, 0xffffffff)]
+    acl = struct.pack('<I', 2) + b''.join(struct.pack('<HHI', *entry) for entry in entries)
+    os.setxattr(evidence, 'system.posix_acl_access', acl)
     return target_name
 
 
 def _run_container(sandbox_dir: str):
-    use_trace = os.environ.get("SANDBOX_STRACE", "1") != "0"
-    name = "agentward-" + uuid.uuid4().hex
-    base = [
-        "docker", "run", "--rm", "--name", name,
-        "--network", "none",
-        "--memory", "256m",
-        "--pids-limit", "64",
-        "--user", f"{os.getuid()}:{os.getgid()}",
-        "--cap-drop", "ALL",
-        "--security-opt", "no-new-privileges",
-        "--cpus", "0.5",
-        "-v", f"{sandbox_dir}:/workspace:rw",
-        "-w", "/workspace",
-        "--env", "AGENTWARD_AUDIT_LOG=/workspace/syscall_audit.jsonl",
-        "--env", "PYTHONUNBUFFERED=1",
+    name = 'agentward-' + uuid.uuid4().hex
+    root = Path(sandbox_dir)
+    command = [
+        'docker', 'run', '--rm', '--name', name, '--pull', 'never',
+        '--network', 'none', '--read-only', '--memory', '256m', '--memory-swap', '256m',
+        '--pids-limit', '64', '--user', '0:0', '--cap-drop', 'ALL',
+        '--cap-add', 'SYS_PTRACE', '--cap-add', 'SETUID', '--cap-add', 'SETGID',
+        '--security-opt', 'no-new-privileges', '--cpus', '0.5',
+        '--ulimit', 'fsize=8000000:8000000', '--ulimit', 'nofile=256:256',
+        '--log-driver', 'none',
+        '--tmpfs', '/workspace:rw,nosuid,nodev,noexec,size=64m,mode=1777',
+        '--tmpfs', '/tmp:rw,nosuid,nodev,noexec,size=16m,mode=1777',
+        '--mount', f'type=bind,src={root / "inputs"},dst=/inputs,readonly',
+        '--mount', f'type=bind,src={root / "bootstrap.py"},dst=/opt/bootstrap.py,readonly',
+        '--mount', f'type=bind,src={root / "evidence"},dst=/evidence',
+        '-w', '/', '--env', 'PYTHONUNBUFFERED=1', '--env', 'PYTHONDONTWRITEBYTECODE=1',
+        '--entrypoint', '/bin/sh', SANDBOX_IMAGE, '-c',
+        'umask 022; exec strace -f -qq -e trace=' + TRACE_SYSCALLS
+        + ' -o /evidence/kernel.strace python3 -I /opt/bootstrap.py',
     ]
-    if use_trace:
-        base += ["--cap-add", "SYS_PTRACE"]
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    captured = {'stdout': bytearray(), 'stderr': bytearray()}
+    deadline = time.monotonic() + SANDBOX_TIMEOUT_S
     try:
-        return subprocess.run(
-            base + [SANDBOX_IMAGE, "/bin/sh", "/workspace/run.sh"],
-            capture_output=True, text=True, timeout=SANDBOX_TIMEOUT_S)
-    except subprocess.TimeoutExpired:
-        # Killing the Docker client alone leaves the timed-out container running.
-        subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=10)
-        raise
+        with selectors.DefaultSelector() as selector:
+            for stream, key in [(proc.stdout, 'stdout'), (proc.stderr, 'stderr')]:
+                selector.register(stream, selectors.EVENT_READ, key)
+            while selector.get_map():
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(command, SANDBOX_TIMEOUT_S)
+                for key, _ in selector.select(min(remaining, .2)):
+                    chunk = os.read(key.fileobj.fileno(), 65536)
+                    if not chunk:
+                        selector.unregister(key.fileobj)
+                        continue
+                    if len(captured[key.data]) + len(chunk) > MAX_OUTPUT_BYTES:
+                        raise RuntimeError('Sandbox output limit exceeded')
+                    captured[key.data].extend(chunk)
+        proc.wait(timeout=max(.01, deadline - time.monotonic()))
+        return subprocess.CompletedProcess(command, proc.returncode,
+            captured['stdout'].decode('utf-8', errors='replace'),
+            captured['stderr'].decode('utf-8', errors='replace'))
+    finally:
+        # Always reap the container, including output overflow, timeout and errors.
+        try:
+            subprocess.run(['docker', 'rm', '-f', name], capture_output=True, timeout=10)
+        finally:
+            if proc.poll() is None:
+                proc.kill()
+            proc.wait(timeout=5)
+            proc.stdout.close()
+            proc.stderr.close()
 
 
+def _read_trace(path):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as handle:
+        info = os.fstat(handle.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_mode & 0o022:
+            raise RuntimeError('Trace is not a protected regular file')
+        if info.st_uid != 0:
+            raise RuntimeError('Trace must be owned by the rootful Docker tracer')
+        raw = handle.read(MAX_TRACE_BYTES + 1)
+    if len(raw) >= MAX_TRACE_BYTES:
+        raise RuntimeError('Kernel trace limit reached')
+    return raw.decode('utf-8', errors='replace')
 
-def _run_local(sandbox_dir: str):
-    env = {k: v for k, v in os.environ.items() if k in ("PATH", "LANG", "LC_ALL")}
-    env.update(AGENTWARD_AUDIT_LOG=os.path.join(sandbox_dir, "syscall_audit.jsonl"), HOME=sandbox_dir)
-    return subprocess.run(
-        ["python3", "agentward_runner.py", "verify_test.py"],
-        cwd=sandbox_dir, capture_output=True, text=True, timeout=10, env=env,
-    )
 
 
 _TRACE_CAPABLE_CACHE = {}
@@ -349,75 +292,53 @@ def health():
         "docker": have_docker,
         "sandbox_image": SANDBOX_IMAGE,
         "trace_capable": trace_capable,
-        "syscall_telemetry": "strace+audit-hook (auto fallback)" if trace_capable
-                             else "audit-hook only (image lacks strace)",
+        "syscall_telemetry": "protected-strace-v2" if trace_capable else "unavailable (image lacks strace)",
+        "evidence_version": EVIDENCE_VERSION,
     }
 
 
-@app.post("/execute")
-@app.post("/run-sandbox-test")
-@app.post("/run-poc-sandbox")
+@app.post('/execute', dependencies=[Depends(require_node_token)])
+@app.post('/run-sandbox-test', dependencies=[Depends(require_node_token)])
+@app.post('/run-poc-sandbox', dependencies=[Depends(require_node_token)])
 def execute(req: SandboxRequest):
-    with _sandbox_slots:
+    if not _sandbox_slots.acquire(blocking=False):
+        raise HTTPException(429, 'All sandbox slots are busy', headers={'Retry-After': '1'})
+    try:
         return _execute(req)
+    finally:
+        _sandbox_slots.release()
 
 
 def _execute(req: SandboxRequest):
-    sandbox_dir = tempfile.mkdtemp(prefix="museverify_")
-    engine = "docker"
+    sandbox_dir = tempfile.mkdtemp(prefix='museverify_')
+    failure = {'vuln_id': req.vuln_id, 'verified': False, 'exit_code': -1,
+               'stdout': '', 'engine': 'docker', 'trace_backend': 'none',
+               'trace_complete': False, 'trace_protected': False,
+               'evidence_version': EVIDENCE_VERSION, 'syscall_events': []}
     try:
         _write_harness_files(sandbox_dir, req)
-        try:
-            proc = _run_container(sandbox_dir)
-            if proc.returncode != 0 and (
-                "permission denied" in proc.stderr.lower()
-                or "cannot connect" in proc.stderr.lower()
-                or "cannot connect to the docker daemon" in proc.stderr.lower()
-            ):
-                raise RuntimeError("docker unavailable")
-        except (RuntimeError, FileNotFoundError):
-            return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
-                    "stderr": "Docker isolation unavailable", "engine": "unavailable",
-                    "trace_backend": "none", "syscall_events": []}
-
-        stdout = proc.stdout.strip()
-        stderr = proc.stderr.strip()
-        verified = proc.returncode == 0 and ("VULN_CONFIRMED" in stdout or "EXPLOIT_VERIFIED" in stdout)
-
-        strace_path = os.path.join(sandbox_dir, "syscall_audit.strace")
-        events = normalize_strace(open(strace_path, encoding="utf-8", errors="replace").read()) \
-            if os.path.exists(strace_path) else []
-        events += _audit_events(os.path.join(sandbox_dir, "syscall_audit.jsonl"))
-
-        # Deduplicate but preserve ordering of first observation.
-        seen, uniq = set(), []
-        for event in events:
-            key = (event.get("syscall"), event.get("argv") or event.get("path") or event.get("addr"), event.get("args"), event.get("flag"))
-            if key in seen:
-                continue
-            seen.add(key)
-            uniq.append(event)
-
+        proc = _run_container(sandbox_dir)
+        trace = _read_trace(Path(sandbox_dir) / 'evidence' / 'kernel.strace')
+        events = normalize_strace(trace)
+        complete = bool(events) and len(events) <= MAX_EVENTS and proc.returncode == 0
         return {
-            "vuln_id": req.vuln_id,
-            "verified": verified,
-            "exit_code": proc.returncode,
-            "stdout": stdout,
-            "stderr": stderr,
-            "engine": engine,
-            "trace_backend": "strace" if any(e.get("source") == "strace" for e in uniq) else "audit_hook",
-            "syscall_events": uniq[:MAX_EVENTS],
-            "trace_complete": len(uniq) <= MAX_EVENTS,
-            "source_sha256": hashlib.sha256((req.code_content or req.sanitized_target_code).encode()).hexdigest(),
-            "harness_sha256": hashlib.sha256((req.test_code or req.test_script or req.poc_script).encode()).hexdigest(),
-            "execution_contract": {"engine": "docker", "network": "none", "memory": "256m", "pids_limit": 64,
-                                   "cap_drop": "ALL", "cap_add": "SYS_PTRACE", "no_new_privileges": True,
-                                   "credentials_mounted": False, "workdir": "/workspace"},
+            **failure, 'verified': complete and ('VULN_CONFIRMED' in proc.stdout or 'EXPLOIT_VERIFIED' in proc.stdout),
+            'exit_code': proc.returncode, 'stdout': proc.stdout.strip(), 'stderr': proc.stderr.strip(),
+            'trace_backend': 'strace', 'syscall_events': events[:MAX_EVENTS],
+            'trace_complete': complete, 'trace_protected': True,
+            'source_sha256': hashlib.sha256((req.code_content or req.sanitized_target_code).encode()).hexdigest(),
+            'harness_sha256': hashlib.sha256((req.test_code or req.test_script or req.poc_script).encode()).hexdigest(),
+            'execution_contract': {'engine': 'docker', 'network': 'none', 'memory': '256m',
+                'pids_limit': 64, 'read_only_root': True, 'payload_uid': 65534,
+                'payload_capabilities': [], 'tracer_capabilities': ['SYS_PTRACE', 'SETUID', 'SETGID'],
+                'no_new_privileges': True, 'credentials_mounted': False,
+                'workdir': '/workspace', 'workspace_limit_bytes': 64 * 1024 * 1024,
+                'output_limit_bytes': MAX_OUTPUT_BYTES, 'trace_limit_bytes': MAX_TRACE_BYTES},
         }
     except subprocess.TimeoutExpired:
-        return {"vuln_id": req.vuln_id, "verified": False, "exit_code": -1, "stdout": "",
-                "stderr": "Sandbox timed out", "engine": engine,
-                "trace_backend": "none", "syscall_events": []}
+        return {**failure, 'stderr': 'Sandbox timed out'}
+    except (OSError, RuntimeError) as exc:
+        return {**failure, 'stderr': 'Sandbox evidence unavailable: ' + type(exc).__name__}
     finally:
         shutil.rmtree(sandbox_dir, ignore_errors=True)
 

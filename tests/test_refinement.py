@@ -138,11 +138,11 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
 
 class DashboardTests(unittest.TestCase):
     def test_startup_routes_and_websocket(self):
-        with TestClient(dashboard.app) as client:
+        with TestClient(dashboard.app, base_url='http://localhost') as client:
             self.assertEqual(client.get('/api/health').status_code, 200)
             self.assertIn('Verified Patch &amp; Tripwire Diff Viewer', client.get('/').text)
             self.assertEqual(client.post('/api/run',json={'target_file':'/etc/passwd'}).status_code, 400)
-            with client.websocket_connect('/ws/telemetry') as ws:
+            with client.websocket_connect('ws://localhost/ws/telemetry') as ws:
                 message=ws.receive_json()
                 self.assertIn('type',message)
             self.assertIn(client.get('/api/sarif').status_code, (200,404))

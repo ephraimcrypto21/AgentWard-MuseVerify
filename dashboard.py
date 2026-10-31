@@ -7,6 +7,7 @@ import json
 import logging
 from pathlib import Path
 import os
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse, HTMLResponse
@@ -14,6 +15,7 @@ from pydantic import BaseModel, Field
 from ai_provider import discover_and_verify_providers, configuration_update, select_ensemble, ProviderUnavailable
 from session_policy import SessionPolicy
 from reporting import executive_brief
+from service_security import BodyLimitMiddleware
 
 from main_pipeline import run_unified_pipeline, run_batch_benchmark, MAX_PARALLEL_SANDBOXES
 from museverify_stage2 import clean_worktrees
@@ -28,6 +30,7 @@ _history = deque(maxlen=400)
 _adhoc_seq = itertools.count(1)
 _current_report = None
 _job = None
+_websocket_count = 0
 session_policy = SessionPolicy()
 sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
 log = logging.getLogger(__name__)
@@ -61,18 +64,44 @@ async def lifespan(app):
 
 
 app = FastAPI(title='AgentWard + MuseVerify Cockpit', lifespan=lifespan)
+app.add_middleware(BodyLimitMiddleware, max_bytes=32_768)
+
+
+def trusted_browser_request(connection):
+    """Validate the host independently before comparing browser origins."""
+    if len(connection.headers.getlist('host')) != 1 or len(connection.headers.getlist('origin')) > 1:
+        return False
+    allowed = {h.strip().lower() for h in os.getenv(
+        'DASHBOARD_ALLOWED_HOSTS', '127.0.0.1,localhost,::1').split(',')}
+    try:
+        host = urlsplit('http://' + connection.headers['host'])
+        if host.hostname not in allowed or host.username or host.password or host.path or host.query or host.fragment:
+            return False
+        port = host.port
+        origin = connection.headers.get('origin')
+        if origin is None:
+            return True  # Native local clients; network access remains operator-scoped.
+        parsed = urlsplit(origin)
+        scheme = {'ws': 'http', 'wss': 'https'}.get(connection.url.scheme, connection.url.scheme)
+        default_port = 443 if scheme == 'https' else 80
+        return (parsed.scheme == scheme and parsed.hostname == host.hostname
+                and (parsed.port or default_port) == (port or default_port)
+                and not (parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment))
+    except ValueError:
+        return False
 
 
 @app.middleware('http')
 async def same_origin_controls(request: Request, call_next):
     # Local controls cannot be driven by an unrelated website in the browser.
-    origin = request.headers.get('origin')
-    if request.method == 'POST' and origin and origin.rstrip('/') != str(request.base_url).rstrip('/'):
+    if not trusted_browser_request(request):
         from fastapi.responses import JSONResponse
-        return JSONResponse({'detail': 'Cross-origin control request rejected'}, status_code=403)
+        return JSONResponse({'detail': 'Untrusted host or browser origin'}, status_code=403)
     response = await call_next(request)
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Referrer-Policy'] = 'no-referrer'
     return response
 
 
@@ -193,18 +222,27 @@ async def export_sarif():
 
 @app.websocket('/ws/telemetry')
 async def websocket_telemetry(websocket: WebSocket):
-    await websocket.accept()
-    # Replay before registering, so a concurrent send cannot interleave writes.
-    for event in list(_history):
-        await websocket.send_json(event)
-    await websocket.send_json({'type': 'metrics', 'data': json.dumps(await metrics())})
-    active_connections.append(websocket)
+    global _websocket_count
+    if not trusted_browser_request(websocket) or _websocket_count >= 32:
+        await websocket.close(code=1008)
+        return
+    _websocket_count += 1
     try:
+        await websocket.accept()
+        # Replay before registering; bound writes even for a stalled receiver.
+        for event in list(_history):
+            await asyncio.wait_for(websocket.send_json(event), timeout=2)
+        await asyncio.wait_for(websocket.send_json({'type': 'metrics', 'data': json.dumps(await metrics())}), timeout=2)
+        active_connections.append(websocket)
         while True:
-            await websocket.receive_text()
-    except WebSocketDisconnect:
+            message = await websocket.receive_text()
+            if len(message.encode()) > 1024:
+                await websocket.close(code=1009)
+                break
+    except (WebSocketDisconnect, TimeoutError):
         pass
     finally:
+        _websocket_count -= 1
         if websocket in active_connections:
             active_connections.remove(websocket)
         _connection_locks.pop(websocket, None)
@@ -283,4 +321,5 @@ async def run_batch_benchmark_dashboard(targets_dir='benchmark_targets', *, repo
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host=os.getenv('DASHBOARD_HOST', '127.0.0.1'), port=int(os.getenv('DASHBOARD_PORT', '8080')))
+    uvicorn.run(app, host=os.getenv('DASHBOARD_HOST', '127.0.0.1'), port=int(os.getenv('DASHBOARD_PORT', '8080')),
+                ws_max_size=1024, ws_max_queue=4)

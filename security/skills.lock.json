@@ -1,0 +1,4100 @@
+{
+  "schema_version": 1,
+  "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+  "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+  "license": "Apache-2.0",
+  "skill_count": 818,
+  "digest_format": "sha256(sorted(relative_posix_path + NUL + raw_sha256(file_bytes)))",
+  "skills": [
+    {
+      "name": "abusing-dpapi-for-credential-access",
+      "path": "skills/abusing-dpapi-for-credential-access",
+      "tree_sha256": "30cafa2dc577813a1db6f9382f96d38a3bcee10b253e6607d89a3d2784f06613"
+    },
+    {
+      "name": "abusing-shadow-credentials-for-privesc",
+      "path": "skills/abusing-shadow-credentials-for-privesc",
+      "tree_sha256": "2953deb71255516b27c2c1119fba9179f6934133cdae9196aa04cde54584f78f"
+    },
+    {
+      "name": "achieving-cmmc-level-2-compliance",
+      "path": "skills/achieving-cmmc-level-2-compliance",
+      "tree_sha256": "62cac957302b674d6e61040170de558e5feb736257768ac74850512f44da4d64"
+    },
+    {
+      "name": "acquiring-disk-image-with-dd-and-dcfldd",
+      "path": "skills/acquiring-disk-image-with-dd-and-dcfldd",
+      "tree_sha256": "35076c3d86120f0de0a6a27884989e9b04293467b4914a10f4eccffa555ae9b4"
+    },
+    {
+      "name": "analyzing-active-directory-acl-abuse",
+      "path": "skills/analyzing-active-directory-acl-abuse",
+      "tree_sha256": "75f7891f570b18685ff11553dbf43226540cfdf379e9d2ec995a1c33d6229069"
+    },
+    {
+      "name": "analyzing-android-malware-with-apktool",
+      "path": "skills/analyzing-android-malware-with-apktool",
+      "tree_sha256": "cb57005f0608b4cf2514a3b993f78e4fa439c36e1c906f6cf15be6a614e11606"
+    },
+    {
+      "name": "analyzing-api-gateway-access-logs",
+      "path": "skills/analyzing-api-gateway-access-logs",
+      "tree_sha256": "9df79738af4b3f06ffb1d5f4eb5f023a9622b330bd6e571b36cf658c0f34a70a"
+    },
+    {
+      "name": "analyzing-apt-group-with-mitre-navigator",
+      "path": "skills/analyzing-apt-group-with-mitre-navigator",
+      "tree_sha256": "837047867dff9025e4dccb6081e4d52323cd5de079697dcdb0e549b8b369cfc5"
+    },
+    {
+      "name": "analyzing-azure-activity-logs-for-threats",
+      "path": "skills/analyzing-azure-activity-logs-for-threats",
+      "tree_sha256": "58772537151b5ae36793efe983021d418c1f65e3321efc2cd396df18f79b6b2c"
+    },
+    {
+      "name": "analyzing-bootkit-and-rootkit-samples",
+      "path": "skills/analyzing-bootkit-and-rootkit-samples",
+      "tree_sha256": "b396c83e18e5c09a93f684b2f4c8990300376f76d98ec5fc9ef5770aefad3290"
+    },
+    {
+      "name": "analyzing-browser-forensics-with-hindsight",
+      "path": "skills/analyzing-browser-forensics-with-hindsight",
+      "tree_sha256": "ccf54027010bc1b0464789c44221494eb35aec34b326ff0243b11f4ffa93657e"
+    },
+    {
+      "name": "analyzing-campaign-attribution-evidence",
+      "path": "skills/analyzing-campaign-attribution-evidence",
+      "tree_sha256": "dddf3b0060f7f0c91239658ca77ad6f2900d438576859096d5d4a6eab998e23a"
+    },
+    {
+      "name": "analyzing-certificate-transparency-for-phishing",
+      "path": "skills/analyzing-certificate-transparency-for-phishing",
+      "tree_sha256": "c09d88e65043b69abbecda27ae3fd7aafdc91fc843a3cbc000c5808ef7ffee17"
+    },
+    {
+      "name": "analyzing-cloud-storage-access-patterns",
+      "path": "skills/analyzing-cloud-storage-access-patterns",
+      "tree_sha256": "97e57f7fc8091bc8cf8f0316226a8da6db94364e29bc8212e4b39293f38b78f6"
+    },
+    {
+      "name": "analyzing-cobalt-strike-beacon-configuration",
+      "path": "skills/analyzing-cobalt-strike-beacon-configuration",
+      "tree_sha256": "37eeb94a03733b1ef0f877d46534e14752c4130880f0dd99458ee7a350971ef3"
+    },
+    {
+      "name": "analyzing-cobaltstrike-malleable-c2-profiles",
+      "path": "skills/analyzing-cobaltstrike-malleable-c2-profiles",
+      "tree_sha256": "d05553835a9d084ddc32f7c5c888575b8ca612b77000107f04ca3897add419a0"
+    },
+    {
+      "name": "analyzing-command-and-control-communication",
+      "path": "skills/analyzing-command-and-control-communication",
+      "tree_sha256": "3aeca5e29260c61d264a8667d913dabb75f1398fe65f407960234a5a3c7e0e1d"
+    },
+    {
+      "name": "analyzing-cyber-kill-chain",
+      "path": "skills/analyzing-cyber-kill-chain",
+      "tree_sha256": "a3fc15152a28b6dfb908ce747c47054934c20514cd0b524f7c432f0e7ecc503a"
+    },
+    {
+      "name": "analyzing-disk-image-with-autopsy",
+      "path": "skills/analyzing-disk-image-with-autopsy",
+      "tree_sha256": "233b9167ce376347fd505db1441232902749bc2336732bfaf37620a10b01f070"
+    },
+    {
+      "name": "analyzing-dns-logs-for-exfiltration",
+      "path": "skills/analyzing-dns-logs-for-exfiltration",
+      "tree_sha256": "f416c8fab3ae0ed217d87d8a820760cbf4579463d7bb754c047fc780b75ddff4"
+    },
+    {
+      "name": "analyzing-docker-container-forensics",
+      "path": "skills/analyzing-docker-container-forensics",
+      "tree_sha256": "114f4c15657f2efecb8ee6cb633723170d79739ced5ab6581f4b75c2c5051b11"
+    },
+    {
+      "name": "analyzing-email-headers-for-phishing-investigation",
+      "path": "skills/analyzing-email-headers-for-phishing-investigation",
+      "tree_sha256": "b036b20045dcada0ebf3943f98535e0ec1316899bcb6ae9b8f3fadb57d2cdc71"
+    },
+    {
+      "name": "analyzing-ethereum-smart-contract-vulnerabilities",
+      "path": "skills/analyzing-ethereum-smart-contract-vulnerabilities",
+      "tree_sha256": "42fb8b90c1b412539ca5f7686293ac43367fc912ee5051a3b6a95b0175ebdd32"
+    },
+    {
+      "name": "analyzing-golang-malware-with-ghidra",
+      "path": "skills/analyzing-golang-malware-with-ghidra",
+      "tree_sha256": "d2d4880b510e88a0a3c9251d81520d33c7c18b7c4bb58a0ad4eae7260df9bfc3"
+    },
+    {
+      "name": "analyzing-heap-spray-exploitation",
+      "path": "skills/analyzing-heap-spray-exploitation",
+      "tree_sha256": "c5331eacab2b005faff689e7ff1160d54d44dfe06375ea6b908d3a8bcd71e1a6"
+    },
+    {
+      "name": "analyzing-indicators-of-compromise",
+      "path": "skills/analyzing-indicators-of-compromise",
+      "tree_sha256": "7cc0fb2f3fe06d89ad3ad7997834bfc811e0a519229b28146694695ab2d89b30"
+    },
+    {
+      "name": "analyzing-ios-app-security-with-objection",
+      "path": "skills/analyzing-ios-app-security-with-objection",
+      "tree_sha256": "ec1f01a5bcc0fa57a874390cd2e64a6171b1f2bd14e6e891817ff564eb707101"
+    },
+    {
+      "name": "analyzing-kubernetes-audit-logs",
+      "path": "skills/analyzing-kubernetes-audit-logs",
+      "tree_sha256": "febb55e676b43ca0fc9969079465ce408b7aea3627365816219b85f01d2f4c5c"
+    },
+    {
+      "name": "analyzing-linux-audit-logs-for-intrusion",
+      "path": "skills/analyzing-linux-audit-logs-for-intrusion",
+      "tree_sha256": "65cc7dbbd9ab53ca99a27bba75727674bc0c594743bf794d4af11d3c6e5d2791"
+    },
+    {
+      "name": "analyzing-linux-elf-malware",
+      "path": "skills/analyzing-linux-elf-malware",
+      "tree_sha256": "12b33bea127d9247be46f19ade4957c072f55ee565dcfbe11945cb2053b24add"
+    },
+    {
+      "name": "analyzing-linux-kernel-rootkits",
+      "path": "skills/analyzing-linux-kernel-rootkits",
+      "tree_sha256": "fbd876534b786ae0e0c646cc54352a0034a06029591beb7413170a9a74216e13"
+    },
+    {
+      "name": "analyzing-linux-system-artifacts",
+      "path": "skills/analyzing-linux-system-artifacts",
+      "tree_sha256": "2acfa1527af6ae8dc214aea0531db30c9a485cb33abe661a8efb7bbcf84dc8b4"
+    },
+    {
+      "name": "analyzing-lnk-file-and-jump-list-artifacts",
+      "path": "skills/analyzing-lnk-file-and-jump-list-artifacts",
+      "tree_sha256": "97dcf58358000961d6404ebb6719423b1f66ea609d171395501eaed67e9b59a7"
+    },
+    {
+      "name": "analyzing-macro-malware-in-office-documents",
+      "path": "skills/analyzing-macro-malware-in-office-documents",
+      "tree_sha256": "2e9bd294fe6f742b6ca9f1b5d99f29233bbcdee1dce84891296ce9b1d35802a9"
+    },
+    {
+      "name": "analyzing-malicious-pdf-with-peepdf",
+      "path": "skills/analyzing-malicious-pdf-with-peepdf",
+      "tree_sha256": "f8f457cd0ac1abe3e6c3dfb3fa4f08ff9a8f7dfea31fca3e0decc3b4b0deb590"
+    },
+    {
+      "name": "analyzing-malicious-url-with-urlscan",
+      "path": "skills/analyzing-malicious-url-with-urlscan",
+      "tree_sha256": "d33c8ccfe5b34328ee1723708138cf5903c61444e98a7c0cc318b0961efeda96"
+    },
+    {
+      "name": "analyzing-malware-behavior-with-cuckoo-sandbox",
+      "path": "skills/analyzing-malware-behavior-with-cuckoo-sandbox",
+      "tree_sha256": "d495c7132dabba673d1727840db3449245d76f370b4e67be6c4e65f6813d5351"
+    },
+    {
+      "name": "analyzing-malware-family-relationships-with-malpedia",
+      "path": "skills/analyzing-malware-family-relationships-with-malpedia",
+      "tree_sha256": "4fe45c44382b7e68926a92ef7d4e6ab4f8abd4f52a9e17ce7fa72c8b61fb68c7"
+    },
+    {
+      "name": "analyzing-malware-persistence-with-autoruns",
+      "path": "skills/analyzing-malware-persistence-with-autoruns",
+      "tree_sha256": "420e3b866bc4eb8633dd15fcb2afc268a59188c5003f45ee31ca8916d7adb96d"
+    },
+    {
+      "name": "analyzing-malware-sandbox-evasion-techniques",
+      "path": "skills/analyzing-malware-sandbox-evasion-techniques",
+      "tree_sha256": "c44a127e4a77eb32f1078050ee232b69ebb8675c03f96f5ea591ccdbe4f0a160"
+    },
+    {
+      "name": "analyzing-memory-dumps-with-volatility",
+      "path": "skills/analyzing-memory-dumps-with-volatility",
+      "tree_sha256": "b49a0ffd905301b4ce1601f5700c515923a39b9980dd75c2378aef05a727142c"
+    },
+    {
+      "name": "analyzing-memory-forensics-with-lime-and-volatility",
+      "path": "skills/analyzing-memory-forensics-with-lime-and-volatility",
+      "tree_sha256": "7d3311941825045d30fa422ec009856586b475b6bd8895557f958b367c670577"
+    },
+    {
+      "name": "analyzing-mft-for-deleted-file-recovery",
+      "path": "skills/analyzing-mft-for-deleted-file-recovery",
+      "tree_sha256": "92bf0539991e2bbe607e52683c0fa4e3556ba41f48bd31cfea112e52956c1736"
+    },
+    {
+      "name": "analyzing-network-covert-channels-in-malware",
+      "path": "skills/analyzing-network-covert-channels-in-malware",
+      "tree_sha256": "3a278cee5e36899ba3ae1f0ae2007430d500edbac348ec5e03b503320ba155ac"
+    },
+    {
+      "name": "analyzing-network-flow-data-with-netflow",
+      "path": "skills/analyzing-network-flow-data-with-netflow",
+      "tree_sha256": "e85157bcf8ce36710fde9520f861316416744a13409b48c69f6978531a8bf92b"
+    },
+    {
+      "name": "analyzing-network-packets-with-scapy",
+      "path": "skills/analyzing-network-packets-with-scapy",
+      "tree_sha256": "71282a06ad2b5f6ccdf31f76fce51fb924c7eb9cfb19012924b8df4101477656"
+    },
+    {
+      "name": "analyzing-network-traffic-for-incidents",
+      "path": "skills/analyzing-network-traffic-for-incidents",
+      "tree_sha256": "6a5dd6f8b7906e359d0dc3aca6f2d80c58d07238e48da7621c0f7c508e01f5a6"
+    },
+    {
+      "name": "analyzing-network-traffic-of-malware",
+      "path": "skills/analyzing-network-traffic-of-malware",
+      "tree_sha256": "48511ddcb26c160a97dd6f420469f55cd971d94583949020ea4d3f4d30063f8d"
+    },
+    {
+      "name": "analyzing-network-traffic-with-wireshark",
+      "path": "skills/analyzing-network-traffic-with-wireshark",
+      "tree_sha256": "227f0516102c8d56facad6faea4f9f951ba90ccab47033377d1c3e12d15b02ba"
+    },
+    {
+      "name": "analyzing-office365-audit-logs-for-compromise",
+      "path": "skills/analyzing-office365-audit-logs-for-compromise",
+      "tree_sha256": "d8ae9579b0c798a06c56a1160dd3a429c0bda57657927f61b2fde9a9d580336b"
+    },
+    {
+      "name": "analyzing-outlook-pst-for-email-forensics",
+      "path": "skills/analyzing-outlook-pst-for-email-forensics",
+      "tree_sha256": "5eae28b1587a2c1f78a03987cb4a22564e7246c62ce70bbd754d4458eebd1e13"
+    },
+    {
+      "name": "analyzing-packed-malware-with-upx-unpacker",
+      "path": "skills/analyzing-packed-malware-with-upx-unpacker",
+      "tree_sha256": "805b11da07a1339f3f7ba301e44c44897ee6dee6ba8ca204104d35758647c3aa"
+    },
+    {
+      "name": "analyzing-pdf-malware-with-pdfid",
+      "path": "skills/analyzing-pdf-malware-with-pdfid",
+      "tree_sha256": "a6c87857d4bf651e617c001a76324362c151631a36c4f54b63dcb90ed5122cf6"
+    },
+    {
+      "name": "analyzing-persistence-mechanisms-in-linux",
+      "path": "skills/analyzing-persistence-mechanisms-in-linux",
+      "tree_sha256": "e3ca522ee8e47dc616be20d078760c22509a897b189ec4cdec98eee00585f915"
+    },
+    {
+      "name": "analyzing-powershell-empire-artifacts",
+      "path": "skills/analyzing-powershell-empire-artifacts",
+      "tree_sha256": "5c4c3b98735e19a06356aa8d0f64d01cc0ccaca416eec114e83eef32f854481a"
+    },
+    {
+      "name": "analyzing-powershell-script-block-logging",
+      "path": "skills/analyzing-powershell-script-block-logging",
+      "tree_sha256": "2604ce731c0be9aba60b97e189a3503a00d95be685cdbde5dfd5b5433851653e"
+    },
+    {
+      "name": "analyzing-prefetch-files-for-execution-history",
+      "path": "skills/analyzing-prefetch-files-for-execution-history",
+      "tree_sha256": "d7ba4d6e26dc097a59303589a4324bc7e75daddd926bceaaeb8682683135be13"
+    },
+    {
+      "name": "analyzing-ransomware-encryption-mechanisms",
+      "path": "skills/analyzing-ransomware-encryption-mechanisms",
+      "tree_sha256": "f088b9b5b01f1aff3baec3ad219f67efa6cd3acd6e586dce06c246de5b049f6f"
+    },
+    {
+      "name": "analyzing-ransomware-leak-site-intelligence",
+      "path": "skills/analyzing-ransomware-leak-site-intelligence",
+      "tree_sha256": "7362f5ae43dce3e304fcc7844673c6d2e3a8eb8c4889514509930d721840df58"
+    },
+    {
+      "name": "analyzing-ransomware-network-indicators",
+      "path": "skills/analyzing-ransomware-network-indicators",
+      "tree_sha256": "1207aaf1c6dad5071c1080fab6cfdd6c3931b6c3534ba81a2fcb7a708569e382"
+    },
+    {
+      "name": "analyzing-ransomware-payment-wallets",
+      "path": "skills/analyzing-ransomware-payment-wallets",
+      "tree_sha256": "be00fc9fb5bd7a4421aedde4e565c0e82252fab0ebfb2887fd53cef399250d95"
+    },
+    {
+      "name": "analyzing-sbom-for-supply-chain-vulnerabilities",
+      "path": "skills/analyzing-sbom-for-supply-chain-vulnerabilities",
+      "tree_sha256": "c61562ef3a538c7ba3c4fec4c975d2a83f5ddc446bc4646e10a9022688e1d9bd"
+    },
+    {
+      "name": "analyzing-security-logs-with-splunk",
+      "path": "skills/analyzing-security-logs-with-splunk",
+      "tree_sha256": "32fc2d47ef6e800b22d3abea769ca0f2f0e6f9d9f3f966f9a8711cc8ec75bf03"
+    },
+    {
+      "name": "analyzing-slack-space-and-file-system-artifacts",
+      "path": "skills/analyzing-slack-space-and-file-system-artifacts",
+      "tree_sha256": "b982e3d66ac49c3d708525e81e5b3d28b94df0b4d62da9175175fc2d9c913c47"
+    },
+    {
+      "name": "analyzing-supply-chain-malware-artifacts",
+      "path": "skills/analyzing-supply-chain-malware-artifacts",
+      "tree_sha256": "4f6b8a743c46dd8bef71ddd10fac5a1919a5b7a76b89fa5b2782c7fec3751b82"
+    },
+    {
+      "name": "analyzing-threat-actor-ttps-with-mitre-attack",
+      "path": "skills/analyzing-threat-actor-ttps-with-mitre-attack",
+      "tree_sha256": "2c8f979731b51a7698385470cdd625a1ff467c1ae621e8b9b149bbd781844c5e"
+    },
+    {
+      "name": "analyzing-threat-actor-ttps-with-mitre-navigator",
+      "path": "skills/analyzing-threat-actor-ttps-with-mitre-navigator",
+      "tree_sha256": "ee71da89c0c90202992efc6ecaadb4d8742632e33ad95beeb8a869e898472825"
+    },
+    {
+      "name": "analyzing-threat-intelligence-feeds",
+      "path": "skills/analyzing-threat-intelligence-feeds",
+      "tree_sha256": "8bfce10f165918cf32671e6e705c17a127c4a1f6527d168d1f3bbd5cd5f227f9"
+    },
+    {
+      "name": "analyzing-threat-landscape-with-misp",
+      "path": "skills/analyzing-threat-landscape-with-misp",
+      "tree_sha256": "38b58df286b1c97cc5c7bd9e6a1d3fc1822a3212db9463b455e7183cfaa9e202"
+    },
+    {
+      "name": "analyzing-tls-certificate-transparency-logs",
+      "path": "skills/analyzing-tls-certificate-transparency-logs",
+      "tree_sha256": "5ea3f29f5b320d80af17044e910579d2a303f5991eb21fd13a84840d1a316fa4"
+    },
+    {
+      "name": "analyzing-typosquatting-domains-with-dnstwist",
+      "path": "skills/analyzing-typosquatting-domains-with-dnstwist",
+      "tree_sha256": "f0309f73ee06f0f46d4e62699e72f0913035b053cb84d2cbed30a99ed38f0bbc"
+    },
+    {
+      "name": "analyzing-uefi-bootkit-persistence",
+      "path": "skills/analyzing-uefi-bootkit-persistence",
+      "tree_sha256": "665bf52124078f6e173cffe11357b1c7c5218effaf42ce0660c74c25c6f885f5"
+    },
+    {
+      "name": "analyzing-usb-device-connection-history",
+      "path": "skills/analyzing-usb-device-connection-history",
+      "tree_sha256": "322fec62f89403c66b8ec1600959c01027e56123d1b6fcc8daa11a0c1f46410c"
+    },
+    {
+      "name": "analyzing-web-server-logs-for-intrusion",
+      "path": "skills/analyzing-web-server-logs-for-intrusion",
+      "tree_sha256": "9540ac555124767c3d6ccb7001b52cf0f201e540c6765706511e32bcfd7c2655"
+    },
+    {
+      "name": "analyzing-windows-amcache-artifacts",
+      "path": "skills/analyzing-windows-amcache-artifacts",
+      "tree_sha256": "e6598b153bd78846171d83f982d3eb338ba2fa1745d7816ac135c4bc164e0360"
+    },
+    {
+      "name": "analyzing-windows-event-logs-in-splunk",
+      "path": "skills/analyzing-windows-event-logs-in-splunk",
+      "tree_sha256": "cf35f21eed56d419bc9e1bd08b8ccdb54354649b984ebf85cd768eae4ddb7fcb"
+    },
+    {
+      "name": "analyzing-windows-lnk-files-for-artifacts",
+      "path": "skills/analyzing-windows-lnk-files-for-artifacts",
+      "tree_sha256": "33722f71baaafb7b3d1c30ccf985f142afcfa70a7b477fbf867e357b6453efb7"
+    },
+    {
+      "name": "analyzing-windows-prefetch-with-python",
+      "path": "skills/analyzing-windows-prefetch-with-python",
+      "tree_sha256": "bfc6f3a019ac30a7d61a96d0a9230ac08ac09bbee2e456a43c07511a2b740725"
+    },
+    {
+      "name": "analyzing-windows-registry-for-artifacts",
+      "path": "skills/analyzing-windows-registry-for-artifacts",
+      "tree_sha256": "48ae1a9b2f5f78fda45336c5ace011cb90e4259693cc3e4d84d50722469ad7ad"
+    },
+    {
+      "name": "analyzing-windows-shellbag-artifacts",
+      "path": "skills/analyzing-windows-shellbag-artifacts",
+      "tree_sha256": "e9567973788575d6b8ae96ea75e0f1689b1e9af45367259565f5c5c5a7d13ee2"
+    },
+    {
+      "name": "assessing-vector-and-embedding-weaknesses",
+      "path": "skills/assessing-vector-and-embedding-weaknesses",
+      "tree_sha256": "448ed0cef370ac8bff1f1db406d13eb540aae4959de72ac7e7a999a7ef62143c"
+    },
+    {
+      "name": "attacking-entra-id-with-roadtools",
+      "path": "skills/attacking-entra-id-with-roadtools",
+      "tree_sha256": "f10e45a5232615096ea2d3bdec979b24dedfc7e7daf98cd19a5f14f2f839ebee"
+    },
+    {
+      "name": "attacking-oauth-with-device-code-phishing",
+      "path": "skills/attacking-oauth-with-device-code-phishing",
+      "tree_sha256": "60cb717f4cde719aace0de3e3b2e6844a2e94873e167c7727f68b557ecbfb285"
+    },
+    {
+      "name": "auditing-aws-s3-bucket-permissions",
+      "path": "skills/auditing-aws-s3-bucket-permissions",
+      "tree_sha256": "d8442532edd3990916f0da43f5278c0b05064c36227a350be687b4515c4bab0a"
+    },
+    {
+      "name": "auditing-azure-active-directory-configuration",
+      "path": "skills/auditing-azure-active-directory-configuration",
+      "tree_sha256": "8463e399491c679acc7e1f83244d05bea070a502a15f84afd09aa93af0b8df21"
+    },
+    {
+      "name": "auditing-cloud-with-cis-benchmarks",
+      "path": "skills/auditing-cloud-with-cis-benchmarks",
+      "tree_sha256": "f953481b24059d0585cb2f650f8e8cc3cf188aa2a68b9039255965c8430a266e"
+    },
+    {
+      "name": "auditing-entra-id-with-aadinternals",
+      "path": "skills/auditing-entra-id-with-aadinternals",
+      "tree_sha256": "e18e499ece7e127332b6a2038730e7108347eebc9d432dd3a4290c2c2cec1540"
+    },
+    {
+      "name": "auditing-foundry-smart-contract-security",
+      "path": "skills/auditing-foundry-smart-contract-security",
+      "tree_sha256": "13d7dd5635d877b599204cb332cc8728091e55e3581e9c477373c91df238d27b"
+    },
+    {
+      "name": "auditing-gcp-iam-permissions",
+      "path": "skills/auditing-gcp-iam-permissions",
+      "tree_sha256": "bee465fde73f1ec1f903602291858a7ee9affb299428006181474fe44cf844a9"
+    },
+    {
+      "name": "auditing-kubernetes-cluster-rbac",
+      "path": "skills/auditing-kubernetes-cluster-rbac",
+      "tree_sha256": "62f0ec00bb9fb33d62be34ddbdcd4b0667314e09f5f7523f5dd2dff205b66b03"
+    },
+    {
+      "name": "auditing-kubernetes-rbac-privilege-escalation",
+      "path": "skills/auditing-kubernetes-rbac-privilege-escalation",
+      "tree_sha256": "a92da30692ad7c5dd18a7de78369c711e33f745dda46bebf4541387cb90299aa"
+    },
+    {
+      "name": "auditing-mcp-servers-for-tool-poisoning",
+      "path": "skills/auditing-mcp-servers-for-tool-poisoning",
+      "tree_sha256": "01bbddb489a4d8e4cd70315b1d7540d9a4e1fdbed7f9d94a16476ed2c44eca4a"
+    },
+    {
+      "name": "auditing-terraform-infrastructure-for-security",
+      "path": "skills/auditing-terraform-infrastructure-for-security",
+      "tree_sha256": "f4a7851e5829882138641e58b5dba17112eae11918a551620fdd9ad5425b1cd3"
+    },
+    {
+      "name": "auditing-tls-certificate-transparency-logs",
+      "path": "skills/auditing-tls-certificate-transparency-logs",
+      "tree_sha256": "34f907228b3338c3c00ad335e657852940e801a89ce6c3b57a903925ba7997b8"
+    },
+    {
+      "name": "auditing-uefi-firmware-with-chipsec",
+      "path": "skills/auditing-uefi-firmware-with-chipsec",
+      "tree_sha256": "f69420f6fc87f566cab367506ee629154bb30cef80bc67056cc6cd2bd3d9a3ce"
+    },
+    {
+      "name": "automating-ioc-enrichment",
+      "path": "skills/automating-ioc-enrichment",
+      "tree_sha256": "a05606b6fe0b57ae68b1ad4e7b6b586dda93be81c3f21fca92b00176e5f99714"
+    },
+    {
+      "name": "benchmarking-kubernetes-with-kube-bench",
+      "path": "skills/benchmarking-kubernetes-with-kube-bench",
+      "tree_sha256": "81a32413e481e54e92ab6a2ed6748e40b383bdb099a7379d1cfc6efb9d04752b"
+    },
+    {
+      "name": "building-adversary-infrastructure-tracking-system",
+      "path": "skills/building-adversary-infrastructure-tracking-system",
+      "tree_sha256": "04407b72423551b3d7e9e5118ffc8b830afc21fa1f1decce78dbe413a8770c59"
+    },
+    {
+      "name": "building-attack-pattern-library-from-cti-reports",
+      "path": "skills/building-attack-pattern-library-from-cti-reports",
+      "tree_sha256": "e499b6d467dd2f07f7b895524a7639e5e8bd027c3e293bfb45cbc786665e69a4"
+    },
+    {
+      "name": "building-automated-malware-submission-pipeline",
+      "path": "skills/building-automated-malware-submission-pipeline",
+      "tree_sha256": "14b27e50fec3c2d4799b1c54eb1841c73adb36d7fcdb2b88f2aae8dd7aa1b4cb"
+    },
+    {
+      "name": "building-c2-infrastructure-with-sliver-framework",
+      "path": "skills/building-c2-infrastructure-with-sliver-framework",
+      "tree_sha256": "e26f1d48ec06b754c6a4f857b9819b7a5df3f6c7e748ecb8263c7f61a1ef9f93"
+    },
+    {
+      "name": "building-c2-redirector-infrastructure",
+      "path": "skills/building-c2-redirector-infrastructure",
+      "tree_sha256": "401f16b660fdd0e251cc2f919c3be55bd322ef4d5900cfa16e2262b9aed3d2c6"
+    },
+    {
+      "name": "building-cloud-siem-with-sentinel",
+      "path": "skills/building-cloud-siem-with-sentinel",
+      "tree_sha256": "02cb4814ebda84aa7bd5b2d95661460afdda989e04fc9685ea4bffc79fdbe053"
+    },
+    {
+      "name": "building-detection-rule-with-splunk-spl",
+      "path": "skills/building-detection-rule-with-splunk-spl",
+      "tree_sha256": "0acb0b4faff7680bffa638021d8b689b223977a2e6a9e971f2eab3109facde7f"
+    },
+    {
+      "name": "building-detection-rules-with-sigma",
+      "path": "skills/building-detection-rules-with-sigma",
+      "tree_sha256": "4c5294395b0eed7cb4e5f01eb59b2d628011fac0598a9d2b8b23eb9811a1c754"
+    },
+    {
+      "name": "building-devsecops-pipeline-with-gitlab-ci",
+      "path": "skills/building-devsecops-pipeline-with-gitlab-ci",
+      "tree_sha256": "6d4be49e77d03094aba3d2640d5642bc7587537886279a0f64f97c9095a6a9ea"
+    },
+    {
+      "name": "building-identity-federation-with-saml-azure-ad",
+      "path": "skills/building-identity-federation-with-saml-azure-ad",
+      "tree_sha256": "53eca1e27048f269c1c9648e0e9b56593e861baa539a19c6f21250fd59f58b4a"
+    },
+    {
+      "name": "building-identity-governance-lifecycle-process",
+      "path": "skills/building-identity-governance-lifecycle-process",
+      "tree_sha256": "2c9f15b867d30721cfbea9d848c619f911f60bb92ae18e742d99981eb1bd30f1"
+    },
+    {
+      "name": "building-incident-response-dashboard",
+      "path": "skills/building-incident-response-dashboard",
+      "tree_sha256": "ad2d2f3daa59db4085eccfa2d67657b8cbc688cc77ca44a6da4292ea2bc579cb"
+    },
+    {
+      "name": "building-incident-response-playbook",
+      "path": "skills/building-incident-response-playbook",
+      "tree_sha256": "ea6a946d1ba6fa82b95506ae0b5d14d7672c86b4a12ccfaf4e413636486846e0"
+    },
+    {
+      "name": "building-incident-timeline-with-timesketch",
+      "path": "skills/building-incident-timeline-with-timesketch",
+      "tree_sha256": "cbcdc4689a0b47edcdb87c197399728e9977d25fd35c38d704a5a889a8816684"
+    },
+    {
+      "name": "building-ioc-defanging-and-sharing-pipeline",
+      "path": "skills/building-ioc-defanging-and-sharing-pipeline",
+      "tree_sha256": "508035e969d819d135231fadd8d566e38007f40dc5e21c405bd264c9f0df2204"
+    },
+    {
+      "name": "building-ioc-enrichment-pipeline-with-opencti",
+      "path": "skills/building-ioc-enrichment-pipeline-with-opencti",
+      "tree_sha256": "a9e910d1625a40200427d0fbf048eb3101741b1169b2833749197e8e11666cfb"
+    },
+    {
+      "name": "building-malware-incident-communication-template",
+      "path": "skills/building-malware-incident-communication-template",
+      "tree_sha256": "d629bbed465ffe8a722db23dad0a36e5fcdc2bcdc6ffa2bb982fab2441c01f8f"
+    },
+    {
+      "name": "building-patch-tuesday-response-process",
+      "path": "skills/building-patch-tuesday-response-process",
+      "tree_sha256": "4fb0dd9e0d8fd1c88e1f23d8890d7f9011512384870bf5e89713e792e08d1a18"
+    },
+    {
+      "name": "building-phishing-reporting-button-workflow",
+      "path": "skills/building-phishing-reporting-button-workflow",
+      "tree_sha256": "9383ca4de00362d0b969f821fc9331542fa75d9ecf3cdf43ed65d22c4967e7dc"
+    },
+    {
+      "name": "building-ransomware-playbook-with-cisa-framework",
+      "path": "skills/building-ransomware-playbook-with-cisa-framework",
+      "tree_sha256": "fc5af7f3af6feea35272011dfeeee70cc31fdff340abee092c6ab1751e7657fb"
+    },
+    {
+      "name": "building-red-team-c2-infrastructure-with-havoc",
+      "path": "skills/building-red-team-c2-infrastructure-with-havoc",
+      "tree_sha256": "bfa0d6817626d9c18b4d42ee1d499e5318c56d4820aa816be506a7bdb5b770dd"
+    },
+    {
+      "name": "building-role-mining-for-rbac-optimization",
+      "path": "skills/building-role-mining-for-rbac-optimization",
+      "tree_sha256": "de29a710c6ca814d41e55a620578fa5e56d4806ea2d78c4f521ba1b6e6835249"
+    },
+    {
+      "name": "building-soc-escalation-matrix",
+      "path": "skills/building-soc-escalation-matrix",
+      "tree_sha256": "29e969617810d16c9ddb0d774cffe88c139df2ca70b65d05e1dd24f58bad8b40"
+    },
+    {
+      "name": "building-soc-metrics-and-kpi-tracking",
+      "path": "skills/building-soc-metrics-and-kpi-tracking",
+      "tree_sha256": "caf4c27e139fa1dd467ff47d69fdfc60676974fa72a9c4f23842b36becec6c64"
+    },
+    {
+      "name": "building-soc-playbook-for-ransomware",
+      "path": "skills/building-soc-playbook-for-ransomware",
+      "tree_sha256": "8a0f4556ff63976366e1683b78fb8046b370aa8595898ac203b0a5930d3f6f18"
+    },
+    {
+      "name": "building-super-timelines-with-plaso",
+      "path": "skills/building-super-timelines-with-plaso",
+      "tree_sha256": "2263b74d9a047f066ec8b202a84e720dd30139e5e73f87ba8b88335f48da3e3f"
+    },
+    {
+      "name": "building-threat-actor-profile-from-osint",
+      "path": "skills/building-threat-actor-profile-from-osint",
+      "tree_sha256": "22254016450c411c7c8640c338a8cc931218fe95416d80bdc4c1bc33d92bc4f3"
+    },
+    {
+      "name": "building-threat-feed-aggregation-with-misp",
+      "path": "skills/building-threat-feed-aggregation-with-misp",
+      "tree_sha256": "f3d3ceffddd1ac25cfc359d20ec11f3c13632fd24936fef3b556a26b3988bf3a"
+    },
+    {
+      "name": "building-threat-hunt-hypothesis-framework",
+      "path": "skills/building-threat-hunt-hypothesis-framework",
+      "tree_sha256": "0d04c6666509fe649d41fd132fcdf9657e50f9d5c159c1d04ccd06d409d426d4"
+    },
+    {
+      "name": "building-threat-intelligence-enrichment-in-splunk",
+      "path": "skills/building-threat-intelligence-enrichment-in-splunk",
+      "tree_sha256": "af350df0fa056dd89842b0feb0aea7e24ba162f6444e51083b9baaeefafe171a"
+    },
+    {
+      "name": "building-threat-intelligence-feed-integration",
+      "path": "skills/building-threat-intelligence-feed-integration",
+      "tree_sha256": "e8bc8a4b0ab406b45047c4f34ab5437541e29e7e5fd535920cab4c8907d2f09c"
+    },
+    {
+      "name": "building-threat-intelligence-platform",
+      "path": "skills/building-threat-intelligence-platform",
+      "tree_sha256": "0055a64a893e33a3e72a7ba3b12440b9bd701c2487e02c35b23fed91842dd126"
+    },
+    {
+      "name": "building-vulnerability-aging-and-sla-tracking",
+      "path": "skills/building-vulnerability-aging-and-sla-tracking",
+      "tree_sha256": "b7866ac1425fe639060f06c16be07d0c1347ad4748ff70fddb40fa355da87c45"
+    },
+    {
+      "name": "building-vulnerability-dashboard-with-defectdojo",
+      "path": "skills/building-vulnerability-dashboard-with-defectdojo",
+      "tree_sha256": "83462b525737646a0640dc4fe475c6b3956fd56df9309c72fea8f1b8b4f2dbfd"
+    },
+    {
+      "name": "building-vulnerability-exception-tracking-system",
+      "path": "skills/building-vulnerability-exception-tracking-system",
+      "tree_sha256": "7a251b3cf2b1d2bbb394da29394f6e01fe032d7ef6a88db6762644b1dacb5f87"
+    },
+    {
+      "name": "building-vulnerability-scanning-workflow",
+      "path": "skills/building-vulnerability-scanning-workflow",
+      "tree_sha256": "9fdb50a9583c5c50fd692a5198afb614484a3fb73bff5af809c20c21f3c50756"
+    },
+    {
+      "name": "bypassing-authentication-with-forced-browsing",
+      "path": "skills/bypassing-authentication-with-forced-browsing",
+      "tree_sha256": "fefe4d4482082a156113549c804d4d43d287d530320c39805af9d1065c4a43ab"
+    },
+    {
+      "name": "coercing-authentication-with-coercer-petitpotam",
+      "path": "skills/coercing-authentication-with-coercer-petitpotam",
+      "tree_sha256": "d83900a349e1fc76afb7d96d458873ac1acb12220736203872a5b428b85a2d55"
+    },
+    {
+      "name": "collecting-indicators-of-compromise",
+      "path": "skills/collecting-indicators-of-compromise",
+      "tree_sha256": "27c4498d9a3d5dfe0e58de09ec23ed99786e99cc1b22c21c35624188f71347a4"
+    },
+    {
+      "name": "collecting-open-source-intelligence",
+      "path": "skills/collecting-open-source-intelligence",
+      "tree_sha256": "663df613456dcbf366f177b1bd1dbbcdda6ff33e858e62136f34847eb1a96fc3"
+    },
+    {
+      "name": "collecting-threat-intelligence-with-misp",
+      "path": "skills/collecting-threat-intelligence-with-misp",
+      "tree_sha256": "a543e7d5b44d28a5eda68d1d47cc87b0d087cffdadee645e8b7d222da7c4cde6"
+    },
+    {
+      "name": "collecting-volatile-evidence-from-compromised-host",
+      "path": "skills/collecting-volatile-evidence-from-compromised-host",
+      "tree_sha256": "088bbbbe308c16194e27bb6b26cc05006324cc3f5a4047f8eddfa34def840862"
+    },
+    {
+      "name": "conducting-api-security-testing",
+      "path": "skills/conducting-api-security-testing",
+      "tree_sha256": "33e77c4b0a58cad056bfc0be5a0e953969831cd2e59029a7be7040998b8cd1e4"
+    },
+    {
+      "name": "conducting-cloud-incident-response",
+      "path": "skills/conducting-cloud-incident-response",
+      "tree_sha256": "bccddf261ea935f999035fa76ed4ad9bb0585f5f414d014a639134c73ad030be"
+    },
+    {
+      "name": "conducting-cloud-penetration-testing",
+      "path": "skills/conducting-cloud-penetration-testing",
+      "tree_sha256": "4e292488df52e251ca00086b13416e059cdd62452fe382c3ead5c4444538e7fa"
+    },
+    {
+      "name": "conducting-cyber-risk-assessment-with-nist-800-30",
+      "path": "skills/conducting-cyber-risk-assessment-with-nist-800-30",
+      "tree_sha256": "7a400f45d43157e455dd5ffd73fdd7d33d3423c50890824aa6ff717bc1c56115"
+    },
+    {
+      "name": "conducting-domain-persistence-with-dcsync",
+      "path": "skills/conducting-domain-persistence-with-dcsync",
+      "tree_sha256": "5d62fa82514a8713c936c5efba136a5a0734da9d7ad5e1bc36f7043212bf7b95"
+    },
+    {
+      "name": "conducting-external-reconnaissance-with-osint",
+      "path": "skills/conducting-external-reconnaissance-with-osint",
+      "tree_sha256": "08066e69c67a38ad06e1b4287c3d634b1dca79535b8e708867308b7322316087"
+    },
+    {
+      "name": "conducting-full-scope-red-team-engagement",
+      "path": "skills/conducting-full-scope-red-team-engagement",
+      "tree_sha256": "ce2fe6d735a51869f604070990f4d6ec0be1bc354a24106ce877fe5a7d7a2c07"
+    },
+    {
+      "name": "conducting-gdpr-compliance-assessment",
+      "path": "skills/conducting-gdpr-compliance-assessment",
+      "tree_sha256": "21d49bd82eb87704a8f81ab7c052e441e6624aa9c6364caf83ea1036985dcbbd"
+    },
+    {
+      "name": "conducting-internal-network-penetration-test",
+      "path": "skills/conducting-internal-network-penetration-test",
+      "tree_sha256": "9cfbe7b4a3948d2de0e047458048d37d6603ea1af80d14189b815c95afabcebf"
+    },
+    {
+      "name": "conducting-internal-reconnaissance-with-bloodhound-ce",
+      "path": "skills/conducting-internal-reconnaissance-with-bloodhound-ce",
+      "tree_sha256": "667ea99bed8b9c84f61b0ee804f75784098fb59ab3b99964c9b96dd15cbe8dc3"
+    },
+    {
+      "name": "conducting-malware-incident-response",
+      "path": "skills/conducting-malware-incident-response",
+      "tree_sha256": "804da04e4f5bf82aec4ceb70b6a5226c94865874f8c8f682869539c7070ad201"
+    },
+    {
+      "name": "conducting-man-in-the-middle-attack-simulation",
+      "path": "skills/conducting-man-in-the-middle-attack-simulation",
+      "tree_sha256": "5cf0c41011378a38b3f213f46a8b60c9afbeb2375635cf84e47ece05b6b71b68"
+    },
+    {
+      "name": "conducting-memory-forensics-with-volatility",
+      "path": "skills/conducting-memory-forensics-with-volatility",
+      "tree_sha256": "77e2a09c68e1ccd6b42d2f3ed1514afc2749d61c3d856464810590ce22298688"
+    },
+    {
+      "name": "conducting-mobile-app-penetration-test",
+      "path": "skills/conducting-mobile-app-penetration-test",
+      "tree_sha256": "179f9734e1f7bfef9832b553f2862908e63cb25ec45534baf0b39414ef5a179d"
+    },
+    {
+      "name": "conducting-network-penetration-test",
+      "path": "skills/conducting-network-penetration-test",
+      "tree_sha256": "ff33aecdcb557b48484721334ce99e1b8d8ec0bd460a6f7ca3f65dd4aa8d3f89"
+    },
+    {
+      "name": "conducting-pass-the-ticket-attack",
+      "path": "skills/conducting-pass-the-ticket-attack",
+      "tree_sha256": "a5da4c463db8813d7d3ea3f74f597ef8f1677fbec52a0844e489d0da1ac8aaed"
+    },
+    {
+      "name": "conducting-phishing-incident-response",
+      "path": "skills/conducting-phishing-incident-response",
+      "tree_sha256": "1b6139ec8cec346e6fd288de60d34ea5cee227d47a4726a2ee6195be00c126fd"
+    },
+    {
+      "name": "conducting-post-incident-lessons-learned",
+      "path": "skills/conducting-post-incident-lessons-learned",
+      "tree_sha256": "f1b21e0b5312529faeb98fcba8dafb09aaa1ed4274989149860bdd2f35241637"
+    },
+    {
+      "name": "conducting-social-engineering-penetration-test",
+      "path": "skills/conducting-social-engineering-penetration-test",
+      "tree_sha256": "58d639598703a94b383871924b78e3718deba884c75d9c5471c04fc7ab50c87e"
+    },
+    {
+      "name": "conducting-social-engineering-pretext-call",
+      "path": "skills/conducting-social-engineering-pretext-call",
+      "tree_sha256": "3be35b0bf4bfdf9b83ec9ee8b68b7b2123ff2a4bf1d7d1eaa0b79ed12e50a1bb"
+    },
+    {
+      "name": "conducting-spearphishing-simulation-campaign",
+      "path": "skills/conducting-spearphishing-simulation-campaign",
+      "tree_sha256": "100a20e2eaab37512c5a5f2998a4e8429339694678640c28201920d6275d2ede"
+    },
+    {
+      "name": "conducting-wireless-network-penetration-test",
+      "path": "skills/conducting-wireless-network-penetration-test",
+      "tree_sha256": "ac2597691bf8382b1cf0e98cab3e66ba2a5c61432c13a5259b3b50fcd3f71f09"
+    },
+    {
+      "name": "configuring-active-directory-tiered-model",
+      "path": "skills/configuring-active-directory-tiered-model",
+      "tree_sha256": "6dc5d1e1baa49efdc61925cc39d569185b0dd083c916e8a60dfffcd254313772"
+    },
+    {
+      "name": "configuring-aws-verified-access-for-ztna",
+      "path": "skills/configuring-aws-verified-access-for-ztna",
+      "tree_sha256": "aa0b07242c9990c2078617595570b6c11439ce7f033c30e230956a7cbdac9ef9"
+    },
+    {
+      "name": "configuring-certificate-authority-with-openssl",
+      "path": "skills/configuring-certificate-authority-with-openssl",
+      "tree_sha256": "ff266aab67fd287b1a8a4b8f44557cd44fdc70c4105ed05751c6cd872659190e"
+    },
+    {
+      "name": "configuring-host-based-intrusion-detection",
+      "path": "skills/configuring-host-based-intrusion-detection",
+      "tree_sha256": "c4b1d33328574f27627f53cef13aedcf1deb9b65dd63b00616997f8357ffb07f"
+    },
+    {
+      "name": "configuring-hsm-for-key-storage",
+      "path": "skills/configuring-hsm-for-key-storage",
+      "tree_sha256": "6b21bcac958d15034d9c478dc6013c31b342ce79ffa859af9021f166a978102b"
+    },
+    {
+      "name": "configuring-identity-aware-proxy-with-google-iap",
+      "path": "skills/configuring-identity-aware-proxy-with-google-iap",
+      "tree_sha256": "767c4cb4bed5d9d3689b3690ae2f05cb7ca749ee000ad8d3bc075007fa51f559"
+    },
+    {
+      "name": "configuring-ldap-security-hardening",
+      "path": "skills/configuring-ldap-security-hardening",
+      "tree_sha256": "91e105110436499e3c4ed7ef7fdb8003698a39893a0030766ff4dd040ba9ee10"
+    },
+    {
+      "name": "configuring-microsegmentation-for-zero-trust",
+      "path": "skills/configuring-microsegmentation-for-zero-trust",
+      "tree_sha256": "07a2ce2ee04deeb9d9e2af9985fa2133640d3e262b6f56f35a63d9cca21c2d40"
+    },
+    {
+      "name": "configuring-multi-factor-authentication-with-duo",
+      "path": "skills/configuring-multi-factor-authentication-with-duo",
+      "tree_sha256": "d5b00bc88422e647abe3aa8da649d64508299a9618c5d33479b4a84409286bc3"
+    },
+    {
+      "name": "configuring-network-segmentation-with-vlans",
+      "path": "skills/configuring-network-segmentation-with-vlans",
+      "tree_sha256": "f11739267c54603a578737f05c888bd26dc6710eed195e892cc4130c3118245c"
+    },
+    {
+      "name": "configuring-oauth2-authorization-flow",
+      "path": "skills/configuring-oauth2-authorization-flow",
+      "tree_sha256": "e8abcf691990fbd1c0815b77535ec5529c762366d732542bea972ebf9a0d678c"
+    },
+    {
+      "name": "configuring-pfsense-firewall-rules",
+      "path": "skills/configuring-pfsense-firewall-rules",
+      "tree_sha256": "2bc476333e20a2bae4b78311d80c27ce8571c62d08350f2f5dd89de58a11cd7e"
+    },
+    {
+      "name": "configuring-snort-ids-for-intrusion-detection",
+      "path": "skills/configuring-snort-ids-for-intrusion-detection",
+      "tree_sha256": "7a663e868519da24cf903b480779f29c61018f85068f58761cd4b94be788ac7a"
+    },
+    {
+      "name": "configuring-suricata-for-network-monitoring",
+      "path": "skills/configuring-suricata-for-network-monitoring",
+      "tree_sha256": "80883f80151fa48defd2ee45343028477e6314c26b44f4588c491fdb5924dda2"
+    },
+    {
+      "name": "configuring-tls-1-3-for-secure-communications",
+      "path": "skills/configuring-tls-1-3-for-secure-communications",
+      "tree_sha256": "16e8e40fe978b7883705609372730d6d49b0af773881bfe8b1abba6acdc24800"
+    },
+    {
+      "name": "configuring-windows-defender-advanced-settings",
+      "path": "skills/configuring-windows-defender-advanced-settings",
+      "tree_sha256": "ec73b4fdeae83ca50e329ba146a452f4d754f3d2d21c16ac23c6e9df0fcaff53"
+    },
+    {
+      "name": "configuring-windows-event-logging-for-detection",
+      "path": "skills/configuring-windows-event-logging-for-detection",
+      "tree_sha256": "29773f6a4eed764dbbd482a9bd49bb9dc9482d4b1dfa7e9d059205b37982c4ea"
+    },
+    {
+      "name": "configuring-zscaler-private-access-for-ztna",
+      "path": "skills/configuring-zscaler-private-access-for-ztna",
+      "tree_sha256": "ed98c4912d73319e1d61dd7923225467c0192c7da3971e827b208bc282987a65"
+    },
+    {
+      "name": "containing-active-breach",
+      "path": "skills/containing-active-breach",
+      "tree_sha256": "ad24b1c7708fae8a766214432a3c0e59235821b5da47a596554443fabcc601bc"
+    },
+    {
+      "name": "continuous-llm-red-teaming-with-promptfoo",
+      "path": "skills/continuous-llm-red-teaming-with-promptfoo",
+      "tree_sha256": "8002eea68fcf257ba17b8282ab8f8b2d52340507b4628ae6c083de21f41bf663"
+    },
+    {
+      "name": "correlating-security-events-in-qradar",
+      "path": "skills/correlating-security-events-in-qradar",
+      "tree_sha256": "7c5ac0b359509c60626b3c88e27685ccd8cf37bb336540f29b6da0c51539d615"
+    },
+    {
+      "name": "correlating-threat-campaigns",
+      "path": "skills/correlating-threat-campaigns",
+      "tree_sha256": "5614cd4b9f9c434c8b98592fcef01c95ce1d7662503885ed47e57463c2b51376"
+    },
+    {
+      "name": "defending-llms-with-guardrails",
+      "path": "skills/defending-llms-with-guardrails",
+      "tree_sha256": "a5f022ab9cba9233f7f1bc3def09bc95118d02069fdcaadd16d5c49707f3b0d8"
+    },
+    {
+      "name": "deobfuscating-javascript-malware",
+      "path": "skills/deobfuscating-javascript-malware",
+      "tree_sha256": "a2002611a7a76ab0473487ce3ae7b583e962966e656e79ef62faf893057da8c3"
+    },
+    {
+      "name": "deobfuscating-powershell-obfuscated-malware",
+      "path": "skills/deobfuscating-powershell-obfuscated-malware",
+      "tree_sha256": "239964690b79fa0d3c628fe23fd7b82df0cb19dd5fcd178341147e2f60ef30be"
+    },
+    {
+      "name": "deploying-active-directory-honeytokens",
+      "path": "skills/deploying-active-directory-honeytokens",
+      "tree_sha256": "4e2e2925277054d3e7ce616deab1259411613a15c3da9c33ed99f04f760a0c36"
+    },
+    {
+      "name": "deploying-cloud-deception-with-decoy-resources",
+      "path": "skills/deploying-cloud-deception-with-decoy-resources",
+      "tree_sha256": "99e4a579a0d01014805158dd92d537e9ebeb5adb0dfa31b141ed1c5a617675e8"
+    },
+    {
+      "name": "deploying-cloudflare-access-for-zero-trust",
+      "path": "skills/deploying-cloudflare-access-for-zero-trust",
+      "tree_sha256": "d628cb87d227e252312a232960801275c9df727dcaf15146853de02956b88ee8"
+    },
+    {
+      "name": "deploying-decoy-files-for-ransomware-detection",
+      "path": "skills/deploying-decoy-files-for-ransomware-detection",
+      "tree_sha256": "febabcef7df15d66260e81fdbbd7d26dab3a5c041524b6f4f6111498872d2923"
+    },
+    {
+      "name": "deploying-edr-agent-with-crowdstrike",
+      "path": "skills/deploying-edr-agent-with-crowdstrike",
+      "tree_sha256": "9cebfa244f07dcf8145c7c84cb05a92773615bb53f72bd93556a705d892d25b6"
+    },
+    {
+      "name": "deploying-honeytokens-and-canarytokens",
+      "path": "skills/deploying-honeytokens-and-canarytokens",
+      "tree_sha256": "4293b5035816a3dfbae3a1bb59c6899b08b000e1a34781a9780206e4eab80d94"
+    },
+    {
+      "name": "deploying-osquery-for-endpoint-monitoring",
+      "path": "skills/deploying-osquery-for-endpoint-monitoring",
+      "tree_sha256": "e8cfdfea8ceff48710cf2f5ab5cd4d693470893f489ed4577285cff53b69cd41"
+    },
+    {
+      "name": "deploying-palo-alto-prisma-access-zero-trust",
+      "path": "skills/deploying-palo-alto-prisma-access-zero-trust",
+      "tree_sha256": "23527030d135014bbde0c41f7a0a22d901f63cfadd713e24147cf1323c87ed45"
+    },
+    {
+      "name": "deploying-ransomware-canary-files",
+      "path": "skills/deploying-ransomware-canary-files",
+      "tree_sha256": "7f60217caab85c4d539d5cfe9f1605d84dc857d67828ef0dbc5c21f9cd2894df"
+    },
+    {
+      "name": "deploying-software-defined-perimeter",
+      "path": "skills/deploying-software-defined-perimeter",
+      "tree_sha256": "7cb62b1816a8b9f1401d48e675f78c045c61294778aaba38d4671af9c327c4fa"
+    },
+    {
+      "name": "deploying-tailscale-for-zero-trust-vpn",
+      "path": "skills/deploying-tailscale-for-zero-trust-vpn",
+      "tree_sha256": "8cf55b28d1d6b159bee3bfb85239e949542e730cde9d4506ddbef0b345e07112"
+    },
+    {
+      "name": "designing-adversary-engagement-with-mitre-engage",
+      "path": "skills/designing-adversary-engagement-with-mitre-engage",
+      "tree_sha256": "8363bc6a6a6bce01c314c5296276064d4b7e7e0e4d9d57f7a42ce892f29a2b78"
+    },
+    {
+      "name": "detecting-ai-model-prompt-injection-attacks",
+      "path": "skills/detecting-ai-model-prompt-injection-attacks",
+      "tree_sha256": "d4aa8562338d1a9e361ed8c143d4e95075d5ef3ab8e12f216a2049fd25bbc996"
+    },
+    {
+      "name": "detecting-anomalies-in-industrial-control-systems",
+      "path": "skills/detecting-anomalies-in-industrial-control-systems",
+      "tree_sha256": "890260c1902816a8edf55f4a198d3bed933b30832ef28ee18345295f082a5fcd"
+    },
+    {
+      "name": "detecting-anomalous-authentication-patterns",
+      "path": "skills/detecting-anomalous-authentication-patterns",
+      "tree_sha256": "569fabb64ff8d27ca007d1a5d25c302513ce2ae40533e6f4eefc550080210dc3"
+    },
+    {
+      "name": "detecting-api-enumeration-attacks",
+      "path": "skills/detecting-api-enumeration-attacks",
+      "tree_sha256": "21e730e3658089e4fed6bc9ec99d3a26ce5f631da12c59e08d7556dd82408f52"
+    },
+    {
+      "name": "detecting-arp-poisoning-in-network-traffic",
+      "path": "skills/detecting-arp-poisoning-in-network-traffic",
+      "tree_sha256": "95c717b5200ad6fa69ca697fcc47c96fad5f9440bad28ce21ce257d855fc1765"
+    },
+    {
+      "name": "detecting-attacks-on-historian-servers",
+      "path": "skills/detecting-attacks-on-historian-servers",
+      "tree_sha256": "847dbe5f7c7e00ce047960753dd667a4659b42254867faaf975ae0a38f6e03be"
+    },
+    {
+      "name": "detecting-attacks-on-scada-systems",
+      "path": "skills/detecting-attacks-on-scada-systems",
+      "tree_sha256": "8201fe696c5b0a7ef2f1e1599f094e252b3e6f6f8677c8a94d54ddc6642709b0"
+    },
+    {
+      "name": "detecting-aws-cloudtrail-anomalies",
+      "path": "skills/detecting-aws-cloudtrail-anomalies",
+      "tree_sha256": "69ffd7d2db2ad9ed52271e27e363fa39421b66131de1f7c5bee51140d014a54e"
+    },
+    {
+      "name": "detecting-aws-credential-exposure-with-trufflehog",
+      "path": "skills/detecting-aws-credential-exposure-with-trufflehog",
+      "tree_sha256": "d1b6428e689d6d43e90ac1e97d609c95053f7e99eb1028159495dc4535c832ef"
+    },
+    {
+      "name": "detecting-aws-guardduty-findings-automation",
+      "path": "skills/detecting-aws-guardduty-findings-automation",
+      "tree_sha256": "efb05af2461531156e31f10822009831a3aa25f9d9157ea9159f4c8a3fb9cb41"
+    },
+    {
+      "name": "detecting-aws-iam-privilege-escalation",
+      "path": "skills/detecting-aws-iam-privilege-escalation",
+      "tree_sha256": "122d8f37289613fa5c61319c11f8db55a2011772ad8fa036e93d17264c3c11df"
+    },
+    {
+      "name": "detecting-azure-lateral-movement",
+      "path": "skills/detecting-azure-lateral-movement",
+      "tree_sha256": "8c9d7ca591bf513488551b61b9b75b768943efbc1f02e3e98fced1d139b73d80"
+    },
+    {
+      "name": "detecting-azure-service-principal-abuse",
+      "path": "skills/detecting-azure-service-principal-abuse",
+      "tree_sha256": "de6f7a06149a600e0a77d9f49a37c5af2ed488b13ded46eb662ec42792c3019a"
+    },
+    {
+      "name": "detecting-azure-storage-account-misconfigurations",
+      "path": "skills/detecting-azure-storage-account-misconfigurations",
+      "tree_sha256": "2cbdbd682ebdb9fce0d5a68a91cd2645d49984fcb4c0afaa913e8a8615a27df3"
+    },
+    {
+      "name": "detecting-beaconing-patterns-with-zeek",
+      "path": "skills/detecting-beaconing-patterns-with-zeek",
+      "tree_sha256": "7239498f5fb70f3b3c61afdb210f6b800f4cbac936b4789e3c89382330191938"
+    },
+    {
+      "name": "detecting-bluetooth-low-energy-attacks",
+      "path": "skills/detecting-bluetooth-low-energy-attacks",
+      "tree_sha256": "6b29b175d9621006d0c32b54d959dec98bf9689eb9e1e08a42da05b4722d3e2b"
+    },
+    {
+      "name": "detecting-broken-object-property-level-authorization",
+      "path": "skills/detecting-broken-object-property-level-authorization",
+      "tree_sha256": "68f8a5574f9cfe9d213ec1be92061577adbf1decc54c81490156d9670a17cfd9"
+    },
+    {
+      "name": "detecting-business-email-compromise",
+      "path": "skills/detecting-business-email-compromise",
+      "tree_sha256": "e04d8138e4ee3da5a423d5d0ce7e0cc23d0435dd755b5bd9b81857efc7c1bf91"
+    },
+    {
+      "name": "detecting-business-email-compromise-with-ai",
+      "path": "skills/detecting-business-email-compromise-with-ai",
+      "tree_sha256": "4d42e75caa5716f214211c382d09197cb822ab03f6f341005c24cc0eae0a55bb"
+    },
+    {
+      "name": "detecting-cloud-threats-with-guardduty",
+      "path": "skills/detecting-cloud-threats-with-guardduty",
+      "tree_sha256": "5e58f8a6cb9daec25967f80ac1e27b057545524eaa33c0bb077eed65a8a4b0c6"
+    },
+    {
+      "name": "detecting-command-and-control-over-dns",
+      "path": "skills/detecting-command-and-control-over-dns",
+      "tree_sha256": "1116343c36187c4e98332006dd9ab41891199db53efb04022c02f8ad6638920b"
+    },
+    {
+      "name": "detecting-compromised-cloud-credentials",
+      "path": "skills/detecting-compromised-cloud-credentials",
+      "tree_sha256": "1cd53d6d0e5127cb1551cd97fd60554a1d78d0d611068f6cce7941b9a52f355f"
+    },
+    {
+      "name": "detecting-container-drift-at-runtime",
+      "path": "skills/detecting-container-drift-at-runtime",
+      "tree_sha256": "056d44b6541d6dc6ffedf2739a5412c00b5c7423f6b5c0ac7ffb3aaa97c1aad5"
+    },
+    {
+      "name": "detecting-container-escape-attempts",
+      "path": "skills/detecting-container-escape-attempts",
+      "tree_sha256": "e2d7be0d2a07e81924829c3391887c0f700bf4c0d9541ae6fb03ced5c2626eb6"
+    },
+    {
+      "name": "detecting-container-escape-with-falco-rules",
+      "path": "skills/detecting-container-escape-with-falco-rules",
+      "tree_sha256": "dd3e8a90eb6042147f185cdf3b244bac45d32a5f33567a8aa4c83d47fcc83626"
+    },
+    {
+      "name": "detecting-container-runtime-threats-with-falco",
+      "path": "skills/detecting-container-runtime-threats-with-falco",
+      "tree_sha256": "ca5b5ffac28c28cca18087b87d2a75eec066a9c30e05b1316d15d351c6de393f"
+    },
+    {
+      "name": "detecting-credential-dumping-techniques",
+      "path": "skills/detecting-credential-dumping-techniques",
+      "tree_sha256": "2270f3bb193cb21e1d1f096574cf949b45a90c985350afbd98b76b9550816f79"
+    },
+    {
+      "name": "detecting-cryptomining-in-cloud",
+      "path": "skills/detecting-cryptomining-in-cloud",
+      "tree_sha256": "99ea02b794fbf34f0d06924a7f1a69bc08889eb2be5059760a7c3741d5f063be"
+    },
+    {
+      "name": "detecting-data-and-model-poisoning",
+      "path": "skills/detecting-data-and-model-poisoning",
+      "tree_sha256": "610bf9772a82a12a051c9031d4f9e783fa10a554fbf139dbc7cf4677c9a24cbf"
+    },
+    {
+      "name": "detecting-dcsync-attack-in-active-directory",
+      "path": "skills/detecting-dcsync-attack-in-active-directory",
+      "tree_sha256": "9090d2973ccf65b949e4dcfc359c3fb989ec56637a3c5c1d0612fff394c84c96"
+    },
+    {
+      "name": "detecting-deepfake-audio-in-vishing-attacks",
+      "path": "skills/detecting-deepfake-audio-in-vishing-attacks",
+      "tree_sha256": "12b7b3d0aca695fc3e5020ed8ca0557d6e19257b314612aedd6b6129e478f8ea"
+    },
+    {
+      "name": "detecting-dependency-confusion",
+      "path": "skills/detecting-dependency-confusion",
+      "tree_sha256": "52ce1616de174ef05a6f35a5825f6feffaeb3330f0be0426f7e3ee80d7daa02f"
+    },
+    {
+      "name": "detecting-dll-sideloading-attacks",
+      "path": "skills/detecting-dll-sideloading-attacks",
+      "tree_sha256": "dc0890f05d97d6c14cd57cd44196814ed22a790c13c7dca6ae1f59f3ef81ef06"
+    },
+    {
+      "name": "detecting-dnp3-protocol-anomalies",
+      "path": "skills/detecting-dnp3-protocol-anomalies",
+      "tree_sha256": "2b0c94c6bc37d3e32a8fb948c1da565e540a7354c5333f652688a6060a007984"
+    },
+    {
+      "name": "detecting-dns-exfiltration-with-dns-query-analysis",
+      "path": "skills/detecting-dns-exfiltration-with-dns-query-analysis",
+      "tree_sha256": "32577aa9ef0dd66411247e08098ce32a50b060c49cffb9fe9caaf0fb59a7a76c"
+    },
+    {
+      "name": "detecting-email-account-compromise",
+      "path": "skills/detecting-email-account-compromise",
+      "tree_sha256": "460bab74dcad6204ebeba39e7ff31da7d3cb45b1a8c533a82587a451032bb2d2"
+    },
+    {
+      "name": "detecting-email-forwarding-rules-attack",
+      "path": "skills/detecting-email-forwarding-rules-attack",
+      "tree_sha256": "789ea4d1d4c845584f12fae840d69ff11c1fa79848ff541f7ab30e68a61d0877"
+    },
+    {
+      "name": "detecting-entra-offensive-tools-in-graph-logs",
+      "path": "skills/detecting-entra-offensive-tools-in-graph-logs",
+      "tree_sha256": "1fed4cd1ce02234981d93edcd2ab899f387acfcb74678a4f835de43d2a9ca6bf"
+    },
+    {
+      "name": "detecting-evasion-techniques-in-endpoint-logs",
+      "path": "skills/detecting-evasion-techniques-in-endpoint-logs",
+      "tree_sha256": "9790e734618084e552bd409f641bc305003e480ed4eac6a8a56d3688df0b34ba"
+    },
+    {
+      "name": "detecting-exfiltration-over-dns-with-zeek",
+      "path": "skills/detecting-exfiltration-over-dns-with-zeek",
+      "tree_sha256": "dba1d7099b3139b947b4250754478c56a18303eb0fe61ffa5f89dd46f6f4c5b8"
+    },
+    {
+      "name": "detecting-fileless-attacks-on-endpoints",
+      "path": "skills/detecting-fileless-attacks-on-endpoints",
+      "tree_sha256": "5175bbfaaec88d6244f6906cfb8b02bf7fbdea18ac35590abb1c5258360ed28b"
+    },
+    {
+      "name": "detecting-fileless-malware-techniques",
+      "path": "skills/detecting-fileless-malware-techniques",
+      "tree_sha256": "00bc55f689058ba3affa4d088d84228e71c9e23cfbec3d0e9cf005db4d4099ea"
+    },
+    {
+      "name": "detecting-golden-ticket-attacks-in-kerberos-logs",
+      "path": "skills/detecting-golden-ticket-attacks-in-kerberos-logs",
+      "tree_sha256": "854d0af812186941aa87087d57ecc5f1e5970059343a6c0bb0a8068dbb8bb7d6"
+    },
+    {
+      "name": "detecting-golden-ticket-forgery",
+      "path": "skills/detecting-golden-ticket-forgery",
+      "tree_sha256": "609bfeff960b2c443cccbf621527753cd2d60a51abeb5452abf112cfcbfb08b9"
+    },
+    {
+      "name": "detecting-indirect-prompt-injection",
+      "path": "skills/detecting-indirect-prompt-injection",
+      "tree_sha256": "c0f4cad6f02ce8fe64df9ad86e26a7849e7adf287b9d31c363d32f89870faed3"
+    },
+    {
+      "name": "detecting-insider-data-exfiltration-via-dlp",
+      "path": "skills/detecting-insider-data-exfiltration-via-dlp",
+      "tree_sha256": "44c64a73008b7cdee7ee659af9d6006b9f50826e8410ef972d181f5ad6615b92"
+    },
+    {
+      "name": "detecting-insider-threat-behaviors",
+      "path": "skills/detecting-insider-threat-behaviors",
+      "tree_sha256": "afb9f4cdb69616ba6b8c876bb70262adc9ef7d10bd0a2fbe987a4e93c3c1ded5"
+    },
+    {
+      "name": "detecting-insider-threat-with-ueba",
+      "path": "skills/detecting-insider-threat-with-ueba",
+      "tree_sha256": "9bc3d5602a7696b6bc45544551069de8114ecebf2d7b2bf27937924629a1037a"
+    },
+    {
+      "name": "detecting-kerberoasting-attacks",
+      "path": "skills/detecting-kerberoasting-attacks",
+      "tree_sha256": "a03be8db5b4f5a8b60a571b860954fbd0e25775549c35fac1827ac9d9259c470"
+    },
+    {
+      "name": "detecting-lateral-movement-in-network",
+      "path": "skills/detecting-lateral-movement-in-network",
+      "tree_sha256": "3c70b2747d077f67f4fd84de7f5e9e72ee52631a5a8f3efa327e6a5fee02157b"
+    },
+    {
+      "name": "detecting-lateral-movement-with-splunk",
+      "path": "skills/detecting-lateral-movement-with-splunk",
+      "tree_sha256": "8a6ee614d6f18d17b2eb7ca03f5b696c58c68c215922dba32b19b350db163753"
+    },
+    {
+      "name": "detecting-lateral-movement-with-zeek",
+      "path": "skills/detecting-lateral-movement-with-zeek",
+      "tree_sha256": "e94c63944d5d631eee67e44bc98db5426f150d6e88ea18ff5f0088f85cfe35d7"
+    },
+    {
+      "name": "detecting-living-off-the-land-attacks",
+      "path": "skills/detecting-living-off-the-land-attacks",
+      "tree_sha256": "d32bc8e60b0656a4334e920b41c77839768d93f2e2473acb0922e656f70c6d08"
+    },
+    {
+      "name": "detecting-living-off-the-land-with-lolbas",
+      "path": "skills/detecting-living-off-the-land-with-lolbas",
+      "tree_sha256": "c458956cdb2e0526b538e4786692879b0973f70f82aa36a452f1b99b72b33a59"
+    },
+    {
+      "name": "detecting-malicious-npm-packages",
+      "path": "skills/detecting-malicious-npm-packages",
+      "tree_sha256": "19636e2f1ab5d850f2d53ddb81875db636852876ac7887143a2d93b7f2f31018"
+    },
+    {
+      "name": "detecting-malicious-scheduled-tasks-with-sysmon",
+      "path": "skills/detecting-malicious-scheduled-tasks-with-sysmon",
+      "tree_sha256": "4627ef900bd44fd3a45149df1a7707de27e30b9415b9d4925c0643aefb72604a"
+    },
+    {
+      "name": "detecting-mimikatz-execution-patterns",
+      "path": "skills/detecting-mimikatz-execution-patterns",
+      "tree_sha256": "d48a581f322d47d819696a52e52bf86d68e7c7edf6d4948617fd029bf2a4865f"
+    },
+    {
+      "name": "detecting-misconfigured-azure-storage",
+      "path": "skills/detecting-misconfigured-azure-storage",
+      "tree_sha256": "b0b18afddb0849fbd479cc80113fb93a991e289277e33eec6a7810153545b39d"
+    },
+    {
+      "name": "detecting-mobile-malware-behavior",
+      "path": "skills/detecting-mobile-malware-behavior",
+      "tree_sha256": "be7ce8369339e1db3dbd1ebbf78a5f54af6ec367195f207bdb999a9e718aeb87"
+    },
+    {
+      "name": "detecting-modbus-command-injection-attacks",
+      "path": "skills/detecting-modbus-command-injection-attacks",
+      "tree_sha256": "2664a6519ddbe296bda524940c3034a5ba27b9768036d93389d40379eed22f0a"
+    },
+    {
+      "name": "detecting-modbus-protocol-anomalies",
+      "path": "skills/detecting-modbus-protocol-anomalies",
+      "tree_sha256": "5998c6230c1ddab85a8056d2724bbcd728c2db42af64bad9ac7d3246c19986b2"
+    },
+    {
+      "name": "detecting-model-extraction-attacks",
+      "path": "skills/detecting-model-extraction-attacks",
+      "tree_sha256": "98536557373b0b301835772ecb47311d7bfcd18d872eaacf2a9cfe51f316768d"
+    },
+    {
+      "name": "detecting-network-anomalies-with-zeek",
+      "path": "skills/detecting-network-anomalies-with-zeek",
+      "tree_sha256": "94c536f1dc45a64c98e5afd5155b255e94a266137687211a2fc7063bfb33e6da"
+    },
+    {
+      "name": "detecting-network-scanning-with-ids-signatures",
+      "path": "skills/detecting-network-scanning-with-ids-signatures",
+      "tree_sha256": "b0bb99fc093888531c134011fd3cec58adfef300f01dfa853498775819125ede"
+    },
+    {
+      "name": "detecting-ntlm-relay-with-event-correlation",
+      "path": "skills/detecting-ntlm-relay-with-event-correlation",
+      "tree_sha256": "6608945ba5852b84d4917030d1237ec8d956007cc5d18165482a88424bdcd554"
+    },
+    {
+      "name": "detecting-oauth-token-theft",
+      "path": "skills/detecting-oauth-token-theft",
+      "tree_sha256": "dd59d18baae155187567ec8fcf61b082766be968727158469bdc6250585d15ae"
+    },
+    {
+      "name": "detecting-pass-the-hash-attacks",
+      "path": "skills/detecting-pass-the-hash-attacks",
+      "tree_sha256": "602c07b2c1d4b8bef086b06dfe6c026a460dee53188abb83db5829d75a1da849"
+    },
+    {
+      "name": "detecting-pass-the-ticket-attacks",
+      "path": "skills/detecting-pass-the-ticket-attacks",
+      "tree_sha256": "09ed8ba3d5e506a18d724442db04a8c5089839a89037edf667b785a8038c95c4"
+    },
+    {
+      "name": "detecting-port-scanning-with-fail2ban",
+      "path": "skills/detecting-port-scanning-with-fail2ban",
+      "tree_sha256": "8ad9b40a51aa7c8555e57a5d49134abddeeb32cee01efc1e955f869183c3aa1b"
+    },
+    {
+      "name": "detecting-privilege-escalation-attempts",
+      "path": "skills/detecting-privilege-escalation-attempts",
+      "tree_sha256": "cc4843949ed3e6a4addd1217fc7a353672b253d52c764aa953cec50d9371b252"
+    },
+    {
+      "name": "detecting-privilege-escalation-in-kubernetes-pods",
+      "path": "skills/detecting-privilege-escalation-in-kubernetes-pods",
+      "tree_sha256": "2ecfb12f7a9058bd90859e3fa02db959edbd02ddc34d101a0c30a87670963903"
+    },
+    {
+      "name": "detecting-process-hollowing-technique",
+      "path": "skills/detecting-process-hollowing-technique",
+      "tree_sha256": "315d05bf3d76f9997362262994802de677a7b2e786bf63e90e52102a41423aa3"
+    },
+    {
+      "name": "detecting-process-injection-techniques",
+      "path": "skills/detecting-process-injection-techniques",
+      "tree_sha256": "d06bf35c9c51fdec36055a553cf98647336a7b6d362ff8c4fd4236458885bad8"
+    },
+    {
+      "name": "detecting-qr-code-phishing-with-email-security",
+      "path": "skills/detecting-qr-code-phishing-with-email-security",
+      "tree_sha256": "ceaffc418b039ad69e9a14e171b46be643608ba1c4760c2841e670e6741322dd"
+    },
+    {
+      "name": "detecting-ransomware-encryption-behavior",
+      "path": "skills/detecting-ransomware-encryption-behavior",
+      "tree_sha256": "e85fb871241834fcdff37662672daf44e88deea45aaa616b49f6113b090c836f"
+    },
+    {
+      "name": "detecting-ransomware-precursors-in-network",
+      "path": "skills/detecting-ransomware-precursors-in-network",
+      "tree_sha256": "9d03e47f6e150cf3e66fdae697894b3eee3a276a5d6d1c9d2f37974014343d69"
+    },
+    {
+      "name": "detecting-rdp-brute-force-attacks",
+      "path": "skills/detecting-rdp-brute-force-attacks",
+      "tree_sha256": "0edacc39bc8ca9a29a600aebb6c2b27bab073fe4d6fdb8a4bb27cc1f95149110"
+    },
+    {
+      "name": "detecting-rootkit-activity",
+      "path": "skills/detecting-rootkit-activity",
+      "tree_sha256": "a7dc1474bd7bc8d73f2ff3e848382de983f9f4a293490c36074efbb1debc95c5"
+    },
+    {
+      "name": "detecting-s3-data-exfiltration-attempts",
+      "path": "skills/detecting-s3-data-exfiltration-attempts",
+      "tree_sha256": "ba73841c6acfd38c50a818e358b510a5e729645b7a5353ada8d87f31d3d867e3"
+    },
+    {
+      "name": "detecting-secure-boot-bypass",
+      "path": "skills/detecting-secure-boot-bypass",
+      "tree_sha256": "d07e2c93327d28a9f15754d04fcd159a570e54cc6491c193ddab0265c9a97eac"
+    },
+    {
+      "name": "detecting-serverless-function-injection",
+      "path": "skills/detecting-serverless-function-injection",
+      "tree_sha256": "c7e6a1cc7840d309f1f41d978b8d076e622a2f59d3e187dba7c42888f63815a3"
+    },
+    {
+      "name": "detecting-service-account-abuse",
+      "path": "skills/detecting-service-account-abuse",
+      "tree_sha256": "85ef0866b89257a2f8c30094826d26c110880f2b374f65128d88cd59c1100395"
+    },
+    {
+      "name": "detecting-shadow-api-endpoints",
+      "path": "skills/detecting-shadow-api-endpoints",
+      "tree_sha256": "b734db10ae577d47a8acc4a779363f96a9d147db29e7f7d797f17f2b4de4e8a9"
+    },
+    {
+      "name": "detecting-shadow-it-cloud-usage",
+      "path": "skills/detecting-shadow-it-cloud-usage",
+      "tree_sha256": "78a6426c141d56d009c83c5b33c2e692634cc21d69da8a1a2eba2c8cf5c4d671"
+    },
+    {
+      "name": "detecting-spearphishing-with-email-gateway",
+      "path": "skills/detecting-spearphishing-with-email-gateway",
+      "tree_sha256": "2c3ebb391ff0218dc58e38858ff04473452470d8715525974ffb1a9cf8fcfd73"
+    },
+    {
+      "name": "detecting-sql-injection-via-waf-logs",
+      "path": "skills/detecting-sql-injection-via-waf-logs",
+      "tree_sha256": "59036815f9039333b31f862860363fe447f5678bf7ca5f8e307a76296d2ea841"
+    },
+    {
+      "name": "detecting-stuxnet-style-attacks",
+      "path": "skills/detecting-stuxnet-style-attacks",
+      "tree_sha256": "aa23daa8911a96d0e370c1fd13b46c0e8472304121042a512e0e34dff1f7048c"
+    },
+    {
+      "name": "detecting-supply-chain-attacks-in-ci-cd",
+      "path": "skills/detecting-supply-chain-attacks-in-ci-cd",
+      "tree_sha256": "4a632525cd74b9f9f2e4c9dbc475b369f2271afa96b7b6c0c867829e3986c888"
+    },
+    {
+      "name": "detecting-suspicious-oauth-application-consent",
+      "path": "skills/detecting-suspicious-oauth-application-consent",
+      "tree_sha256": "8706640bffefaf6888f25a0b577d7d888a1c14234b4db2052081b62eefeeaf9f"
+    },
+    {
+      "name": "detecting-suspicious-powershell-execution",
+      "path": "skills/detecting-suspicious-powershell-execution",
+      "tree_sha256": "0e6b91f3d5eb192c766bb1507cdb6784788f4ee33b498a0b45be8d62ded4fe22"
+    },
+    {
+      "name": "detecting-t1003-credential-dumping-with-edr",
+      "path": "skills/detecting-t1003-credential-dumping-with-edr",
+      "tree_sha256": "33884385fe52ec32de90745ab4f1f0a0281d3a8c65d1b2b48e80c9e90ea6ee90"
+    },
+    {
+      "name": "detecting-t1055-process-injection-with-sysmon",
+      "path": "skills/detecting-t1055-process-injection-with-sysmon",
+      "tree_sha256": "6ebb78a6d4388e4f896b36c7d5fe9f2ee80976bb026d61c4e61f6e465ff29303"
+    },
+    {
+      "name": "detecting-t1548-abuse-elevation-control-mechanism",
+      "path": "skills/detecting-t1548-abuse-elevation-control-mechanism",
+      "tree_sha256": "0c7bbbc18ead26b3a73ab08d572ebca451ab0b68a1f897daf57c5c40611c4c9b"
+    },
+    {
+      "name": "detecting-typosquatting-packages",
+      "path": "skills/detecting-typosquatting-packages",
+      "tree_sha256": "2cde6b188215522fe9883277c5c7ec5d7b781487a55ef2e0318b48969b25cd16"
+    },
+    {
+      "name": "detecting-typosquatting-packages-in-npm-pypi",
+      "path": "skills/detecting-typosquatting-packages-in-npm-pypi",
+      "tree_sha256": "1a007efae21b60f60113b3b37d6f25989003dc6bedc75e2373dd1ffbdcc32d70"
+    },
+    {
+      "name": "detecting-wmi-persistence",
+      "path": "skills/detecting-wmi-persistence",
+      "tree_sha256": "2c8a7000e4940b61997ce603f2accab92473c18a25595591737155c8597bc546"
+    },
+    {
+      "name": "emulating-cloud-attacks-with-stratus-red-team",
+      "path": "skills/emulating-cloud-attacks-with-stratus-red-team",
+      "tree_sha256": "bd00464af51cc6bf58fcd8944b01fd0b3b0264193ef180929be4112def02d235"
+    },
+    {
+      "name": "enumerating-cloud-with-cloudfox",
+      "path": "skills/enumerating-cloud-with-cloudfox",
+      "tree_sha256": "d0828d5ac53517f32bb22f82625aef4a306d1d630c4787427d6c0488861668dd"
+    },
+    {
+      "name": "eradicating-malware-from-infected-systems",
+      "path": "skills/eradicating-malware-from-infected-systems",
+      "tree_sha256": "52cdbd64ebe47d73b6bbb5ff1f770b541535d17080662b6a60857f2423e2d3a4"
+    },
+    {
+      "name": "escaping-containers-to-host",
+      "path": "skills/escaping-containers-to-host",
+      "tree_sha256": "e68bbbf928954b0706916250ed057cc866b99526895f08e421a692ab9f74f688"
+    },
+    {
+      "name": "evaluating-threat-intelligence-platforms",
+      "path": "skills/evaluating-threat-intelligence-platforms",
+      "tree_sha256": "f1193a4d5db1ff7bfcbd94fa64e5c8de72e6eca970a0b983181b07fd2724ada9"
+    },
+    {
+      "name": "executing-active-directory-attack-simulation",
+      "path": "skills/executing-active-directory-attack-simulation",
+      "tree_sha256": "f21b42fdbaf36a2155223695cefb03f9dc03f23654637868156a0ba654df34ec"
+    },
+    {
+      "name": "executing-nist-rmf-authorization-to-operate",
+      "path": "skills/executing-nist-rmf-authorization-to-operate",
+      "tree_sha256": "0d7857727e021a41c2755ade81af156f92f8ef06bd6ef3bc6ccff86587c5956d"
+    },
+    {
+      "name": "executing-phishing-simulation-campaign",
+      "path": "skills/executing-phishing-simulation-campaign",
+      "tree_sha256": "ae9de9e9fc0c8a9f24c264348d00ca53cb5b34ef6af8536ee7b78e48f5a2ba07"
+    },
+    {
+      "name": "executing-red-team-engagement-planning",
+      "path": "skills/executing-red-team-engagement-planning",
+      "tree_sha256": "72691c86da3f4b6fa3a1c9a9ad4ad3abaf26de4b65403afa284ed789d788d1f5"
+    },
+    {
+      "name": "executing-red-team-exercise",
+      "path": "skills/executing-red-team-exercise",
+      "tree_sha256": "794aa6d329bddcc41296fab9591a70d67d66c17a97e9b4058db13b22c756dcf4"
+    },
+    {
+      "name": "exploiting-active-directory-certificate-services-esc1",
+      "path": "skills/exploiting-active-directory-certificate-services-esc1",
+      "tree_sha256": "f257e5a9e0fa26f16a73f469e49b5588b0b045592d9f432e80e404b55e378458"
+    },
+    {
+      "name": "exploiting-active-directory-with-bloodhound",
+      "path": "skills/exploiting-active-directory-with-bloodhound",
+      "tree_sha256": "cb160d229335ffd52e8df096bc3467303e9b67da49f010ed218b6ac634b06e30"
+    },
+    {
+      "name": "exploiting-adcs-with-certipy",
+      "path": "skills/exploiting-adcs-with-certipy",
+      "tree_sha256": "b2d850a6180cbd22a678b6fd57c1d3d382c1fb3bb5be73796fff4beb585d59ef"
+    },
+    {
+      "name": "exploiting-api-injection-vulnerabilities",
+      "path": "skills/exploiting-api-injection-vulnerabilities",
+      "tree_sha256": "e6662f4c850edea022c50514504c25f76a0354e03b64f71aee4162514bc7b2ea"
+    },
+    {
+      "name": "exploiting-aws-with-pacu",
+      "path": "skills/exploiting-aws-with-pacu",
+      "tree_sha256": "5edb348c22ad808251500e897c1fcbeef831c6e5c2f896e10b5536afb8dd466a"
+    },
+    {
+      "name": "exploiting-bgp-hijacking-vulnerabilities",
+      "path": "skills/exploiting-bgp-hijacking-vulnerabilities",
+      "tree_sha256": "471cdea3b8128ffea5d8467d29e2e679ecf63a108f980a779c1c1a4515d001c7"
+    },
+    {
+      "name": "exploiting-broken-function-level-authorization",
+      "path": "skills/exploiting-broken-function-level-authorization",
+      "tree_sha256": "5d354a59dc6cd443b96e8ba867ddad8497c89051598b7ea58a844e01868a21fe"
+    },
+    {
+      "name": "exploiting-broken-link-hijacking",
+      "path": "skills/exploiting-broken-link-hijacking",
+      "tree_sha256": "ce6ab2fa5fbcb1e19000ac9b0ec6528af4a7b818d23d8657046270c709309a1c"
+    },
+    {
+      "name": "exploiting-constrained-delegation-abuse",
+      "path": "skills/exploiting-constrained-delegation-abuse",
+      "tree_sha256": "44474631e2f04e779cdbef158bc521fc71560dfada7982af20ec6036ffa7fd5a"
+    },
+    {
+      "name": "exploiting-deeplink-vulnerabilities",
+      "path": "skills/exploiting-deeplink-vulnerabilities",
+      "tree_sha256": "8e63fb1ebd6460e062834fa4ba0c829c24a31ca26c78468db0aedb4fdcd116df"
+    },
+    {
+      "name": "exploiting-excessive-data-exposure-in-api",
+      "path": "skills/exploiting-excessive-data-exposure-in-api",
+      "tree_sha256": "a20e8e0481f4c0f7191cf230ca6bc5bbb6ea960b3cf0635949af54aac0f10771"
+    },
+    {
+      "name": "exploiting-http-request-smuggling",
+      "path": "skills/exploiting-http-request-smuggling",
+      "tree_sha256": "bb7d3b07b096e16338ce3619add06f7667e60e3095e6f9a2d278eef58386fe5d"
+    },
+    {
+      "name": "exploiting-idor-vulnerabilities",
+      "path": "skills/exploiting-idor-vulnerabilities",
+      "tree_sha256": "6e4a3488f6925ccdf9a56114e5eb6575226056ea773251ffda615aaa1e1c0573"
+    },
+    {
+      "name": "exploiting-insecure-data-storage-in-mobile",
+      "path": "skills/exploiting-insecure-data-storage-in-mobile",
+      "tree_sha256": "48d2683241c825956821aad5f021671e0a93a5b5371f4bb5cc059520a5b32c1f"
+    },
+    {
+      "name": "exploiting-insecure-deserialization",
+      "path": "skills/exploiting-insecure-deserialization",
+      "tree_sha256": "4c14a7cc9e686212b4fce481bb3cdf0eca062915f44a616d31d439b39d177eac"
+    },
+    {
+      "name": "exploiting-ipv6-vulnerabilities",
+      "path": "skills/exploiting-ipv6-vulnerabilities",
+      "tree_sha256": "1443e94956d8c543d676bb434259ce356a66e14eb40952477f26c85719db15ec"
+    },
+    {
+      "name": "exploiting-jwt-algorithm-confusion-attack",
+      "path": "skills/exploiting-jwt-algorithm-confusion-attack",
+      "tree_sha256": "e93ec765d29fa77fa48ddcffd187f72448a07a1007680082e22768894ff16000"
+    },
+    {
+      "name": "exploiting-kerberoasting-with-impacket",
+      "path": "skills/exploiting-kerberoasting-with-impacket",
+      "tree_sha256": "5cec44ded7f0edf5d61496df7c575c9104a25ff53bc7fa4a3447ef62cb3afb01"
+    },
+    {
+      "name": "exploiting-mass-assignment-in-rest-apis",
+      "path": "skills/exploiting-mass-assignment-in-rest-apis",
+      "tree_sha256": "ddac216a04c0659aea4d5d2c4ca73937740f8b492affc6c9dae5e35bb5f7d842"
+    },
+    {
+      "name": "exploiting-ms17-010-eternalblue-vulnerability",
+      "path": "skills/exploiting-ms17-010-eternalblue-vulnerability",
+      "tree_sha256": "89488b2af8b102aa55c94d38def196702cb3dc4f47e4b7152f3c14c542116192"
+    },
+    {
+      "name": "exploiting-nopac-cve-2021-42278-42287",
+      "path": "skills/exploiting-nopac-cve-2021-42278-42287",
+      "tree_sha256": "15511b0cf793fde5c7150e0edc9c9ece152cb572dbb1c930253f624caaeaa075"
+    },
+    {
+      "name": "exploiting-nosql-injection-vulnerabilities",
+      "path": "skills/exploiting-nosql-injection-vulnerabilities",
+      "tree_sha256": "a806070fe98e52ebb87a0ee4e2192e200bb776e7a752b0a47d8d99ea3e3acf5b"
+    },
+    {
+      "name": "exploiting-oauth-misconfiguration",
+      "path": "skills/exploiting-oauth-misconfiguration",
+      "tree_sha256": "8a6ad2b5f6c669be7d5ebdaad2143ebb9945ece3593b15bab68f490ada83beff"
+    },
+    {
+      "name": "exploiting-prototype-pollution-in-javascript",
+      "path": "skills/exploiting-prototype-pollution-in-javascript",
+      "tree_sha256": "d425f22cb39ebec90723f9e6316b3f511d5718636432c8a29a6ea021837c2e1a"
+    },
+    {
+      "name": "exploiting-race-condition-vulnerabilities",
+      "path": "skills/exploiting-race-condition-vulnerabilities",
+      "tree_sha256": "6196bb8f237ee8ecaf860f7b066b9d1595c7994ba3f1d7bd9a19134ad24da4c3"
+    },
+    {
+      "name": "exploiting-server-side-request-forgery",
+      "path": "skills/exploiting-server-side-request-forgery",
+      "tree_sha256": "518b1f9434695502b235b2030141dcbb7265468a4b7d3f6f05a6afd568cf9778"
+    },
+    {
+      "name": "exploiting-smb-vulnerabilities-with-metasploit",
+      "path": "skills/exploiting-smb-vulnerabilities-with-metasploit",
+      "tree_sha256": "cdc426dbef49eae3ae452368c5b4673ba6e5b07713d4d224dc331c675b4d60b0"
+    },
+    {
+      "name": "exploiting-sql-injection-vulnerabilities",
+      "path": "skills/exploiting-sql-injection-vulnerabilities",
+      "tree_sha256": "6e7446b1e8670c0c3ac50b36d590fd8a5ccce860b64c3171ed39f6a23ceb980c"
+    },
+    {
+      "name": "exploiting-sql-injection-with-sqlmap",
+      "path": "skills/exploiting-sql-injection-with-sqlmap",
+      "tree_sha256": "136fe72a40873d9be54b0e8bd9bd2aeafe46c9be99e68535e1f5cee41c80b8fb"
+    },
+    {
+      "name": "exploiting-template-injection-vulnerabilities",
+      "path": "skills/exploiting-template-injection-vulnerabilities",
+      "tree_sha256": "fd4e254eae68fc532cd2f4a48098be9b662d0c1f23d60a66f9bb085513c7288c"
+    },
+    {
+      "name": "exploiting-type-juggling-vulnerabilities",
+      "path": "skills/exploiting-type-juggling-vulnerabilities",
+      "tree_sha256": "bf184da97ecdbc85a9a5844a0817960e2ee7737cdcf282d271a9d199320f3ee4"
+    },
+    {
+      "name": "exploiting-vulnerabilities-with-metasploit-framework",
+      "path": "skills/exploiting-vulnerabilities-with-metasploit-framework",
+      "tree_sha256": "e036ba5d340a57267cb32e78d088e97c5425a036ba188490b0380becb46a81cb"
+    },
+    {
+      "name": "exploiting-websocket-vulnerabilities",
+      "path": "skills/exploiting-websocket-vulnerabilities",
+      "tree_sha256": "6a8cbaa11df26af64330b1067b64a55c64bfc8c9e64efe50696a46acf902d398"
+    },
+    {
+      "name": "exploiting-zerologon-vulnerability-cve-2020-1472",
+      "path": "skills/exploiting-zerologon-vulnerability-cve-2020-1472",
+      "tree_sha256": "2e680c7840be9c921e01834ed9c88634ae1d54e3804ea4ffa8432e6eb65c59a1"
+    },
+    {
+      "name": "extracting-browser-history-artifacts",
+      "path": "skills/extracting-browser-history-artifacts",
+      "tree_sha256": "7a1f2deb97a39244b9222688ffa5215612368e3e98b86790e829927041338812"
+    },
+    {
+      "name": "extracting-config-from-agent-tesla-rat",
+      "path": "skills/extracting-config-from-agent-tesla-rat",
+      "tree_sha256": "37a886c6a49fcc10d21193ffe85f73b8a41d25054e7c17edfbcbb41ea103c9fc"
+    },
+    {
+      "name": "extracting-credentials-from-memory-dump",
+      "path": "skills/extracting-credentials-from-memory-dump",
+      "tree_sha256": "b0d36943d73ed9c86563489678476a4fc6af76509f87941630ff561efb8a7872"
+    },
+    {
+      "name": "extracting-iocs-from-malware-samples",
+      "path": "skills/extracting-iocs-from-malware-samples",
+      "tree_sha256": "c11c913755185a4203851b38e1e44ccdb950281758b9e7050d06546c89023880"
+    },
+    {
+      "name": "extracting-memory-artifacts-with-rekall",
+      "path": "skills/extracting-memory-artifacts-with-rekall",
+      "tree_sha256": "11a1a463e7dc77c94d354abc2b7f9006c13d5b1fc80261c09232c942ec6b57c7"
+    },
+    {
+      "name": "extracting-windows-event-logs-artifacts",
+      "path": "skills/extracting-windows-event-logs-artifacts",
+      "tree_sha256": "4579ed3fa2edfb007751c88b558df4fbff8a8690eae59c7b800ac4c9e5319abd"
+    },
+    {
+      "name": "fleet-hunting-with-velociraptor",
+      "path": "skills/fleet-hunting-with-velociraptor",
+      "tree_sha256": "34ed4d83822105c96d2bf48cba13327de0af62038575258d33cb9fcf3ee76148"
+    },
+    {
+      "name": "generating-and-analyzing-sboms",
+      "path": "skills/generating-and-analyzing-sboms",
+      "tree_sha256": "4f9cf5e2d4712810d1bc7438a57c462e573290fffff7094f9b1fc61f20abfa13"
+    },
+    {
+      "name": "generating-forensic-timelines-with-hayabusa",
+      "path": "skills/generating-forensic-timelines-with-hayabusa",
+      "tree_sha256": "2bfe8db9c7bf4b886199b85b776d04c3a8f846488ad31b4562ef05cae52ba03c"
+    },
+    {
+      "name": "generating-threat-intelligence-reports",
+      "path": "skills/generating-threat-intelligence-reports",
+      "tree_sha256": "06f29740b774b481e13448715bbb24af7a12cb85607487f8d0937ed1aa621100"
+    },
+    {
+      "name": "hardening-docker-containers-for-production",
+      "path": "skills/hardening-docker-containers-for-production",
+      "tree_sha256": "324c5c102f7b775c374ab9363bf9f91689a3627e9886c8b4cceae8504a26a152"
+    },
+    {
+      "name": "hardening-docker-daemon-configuration",
+      "path": "skills/hardening-docker-daemon-configuration",
+      "tree_sha256": "ca3300cbaf4e6b2690e8a771e49f293175fb637ad05577772471def8846f5608"
+    },
+    {
+      "name": "hardening-linux-endpoint-with-cis-benchmark",
+      "path": "skills/hardening-linux-endpoint-with-cis-benchmark",
+      "tree_sha256": "b996cf1db9388dac042e40a3913144ab934db2f0c5fd1cf209da5440fd9aeac6"
+    },
+    {
+      "name": "hardening-windows-endpoint-with-cis-benchmark",
+      "path": "skills/hardening-windows-endpoint-with-cis-benchmark",
+      "tree_sha256": "85e2ff9166dee4edf0cf12ecda244132f251427045f77084b10920fabe946da3"
+    },
+    {
+      "name": "hunting-advanced-persistent-threats",
+      "path": "skills/hunting-advanced-persistent-threats",
+      "tree_sha256": "1e4df554fc3dd8a5fe27aecb583acd29458797e2b970cf05cb1f726e724270c9"
+    },
+    {
+      "name": "hunting-bootkits-in-efi-system-partition",
+      "path": "skills/hunting-bootkits-in-efi-system-partition",
+      "tree_sha256": "24332b617883910911cad582220f5228129ac87005b23286b1c1a24c0b386595"
+    },
+    {
+      "name": "hunting-credential-stuffing-attacks",
+      "path": "skills/hunting-credential-stuffing-attacks",
+      "tree_sha256": "e5f6b04c4f9ecfbdbec6977e038a71bf25491b6ea9cb06ec96fae10ecfcf19d3"
+    },
+    {
+      "name": "hunting-evtx-with-chainsaw",
+      "path": "skills/hunting-evtx-with-chainsaw",
+      "tree_sha256": "54598e2bc468c421d0bd5e1398a0ef7f7ba75966cee6f641f2d6abc6134f7f49"
+    },
+    {
+      "name": "hunting-for-anomalous-powershell-execution",
+      "path": "skills/hunting-for-anomalous-powershell-execution",
+      "tree_sha256": "2150370dcb32f65e45177b3928072e55212bc77cff34eb906b3fafcc0c63bcf3"
+    },
+    {
+      "name": "hunting-for-beaconing-with-frequency-analysis",
+      "path": "skills/hunting-for-beaconing-with-frequency-analysis",
+      "tree_sha256": "f6cdb3b49a2a19b434215cf4b40836873418d3198c775abd72a0c2632f289572"
+    },
+    {
+      "name": "hunting-for-cobalt-strike-beacons",
+      "path": "skills/hunting-for-cobalt-strike-beacons",
+      "tree_sha256": "3340a7d8fbb8bdd5a796bda3f2c52e823abf2c39c727f225f76a4093a9ced5db"
+    },
+    {
+      "name": "hunting-for-command-and-control-beaconing",
+      "path": "skills/hunting-for-command-and-control-beaconing",
+      "tree_sha256": "0b96ce75fde06cc52b9c0584d2c5d708130ffcd79b357f330799194610cb9405"
+    },
+    {
+      "name": "hunting-for-data-exfiltration-indicators",
+      "path": "skills/hunting-for-data-exfiltration-indicators",
+      "tree_sha256": "f12f0a124610750a0f112de17d93df5ef0fe557d2980c3ff185981366884ad1a"
+    },
+    {
+      "name": "hunting-for-data-staging-before-exfiltration",
+      "path": "skills/hunting-for-data-staging-before-exfiltration",
+      "tree_sha256": "915594698810d1078bedc8804254d6af68b31886cd3338e70aaa6289f01d794b"
+    },
+    {
+      "name": "hunting-for-dcom-lateral-movement",
+      "path": "skills/hunting-for-dcom-lateral-movement",
+      "tree_sha256": "49a7230f963ab4a0ddfc645d643d5653d5b670d4716a936b76b03b1261f5eba8"
+    },
+    {
+      "name": "hunting-for-dcsync-attacks",
+      "path": "skills/hunting-for-dcsync-attacks",
+      "tree_sha256": "740cb303f18707d44927e6806e68018d0374f97a3f26cf50b5f2c86f9cc9bf0d"
+    },
+    {
+      "name": "hunting-for-defense-evasion-via-timestomping",
+      "path": "skills/hunting-for-defense-evasion-via-timestomping",
+      "tree_sha256": "d650e0ddb52338c28dc56d66fa5d9d665dbb123bd415bcd70c46ca9b10237577"
+    },
+    {
+      "name": "hunting-for-dns-based-persistence",
+      "path": "skills/hunting-for-dns-based-persistence",
+      "tree_sha256": "561007a2706dd6283d7a6c373e94bbb0b783800d3747e9048a32e73a3a0b80fe"
+    },
+    {
+      "name": "hunting-for-dns-tunneling-with-zeek",
+      "path": "skills/hunting-for-dns-tunneling-with-zeek",
+      "tree_sha256": "44f4798ae70722312ac260b26db5f441da03797d0b6eeca0fa079e2d0416b81e"
+    },
+    {
+      "name": "hunting-for-domain-fronting-c2-traffic",
+      "path": "skills/hunting-for-domain-fronting-c2-traffic",
+      "tree_sha256": "bcd110e6309344fd4eaf2b088f3a108297e66eff430b960f1eea1e6f119ced80"
+    },
+    {
+      "name": "hunting-for-lateral-movement-via-wmi",
+      "path": "skills/hunting-for-lateral-movement-via-wmi",
+      "tree_sha256": "ca947cb8552bbffbc699216e8d33d7b2f91daf524f6ef4af8a66742867fc8fea"
+    },
+    {
+      "name": "hunting-for-living-off-the-cloud-techniques",
+      "path": "skills/hunting-for-living-off-the-cloud-techniques",
+      "tree_sha256": "590a65773bef84ab26dde5a0c85cf2337ba3cb235b44e9d34abd5cdb153582ce"
+    },
+    {
+      "name": "hunting-for-living-off-the-land-binaries",
+      "path": "skills/hunting-for-living-off-the-land-binaries",
+      "tree_sha256": "f4490f1a2dc8debbac462ccc2bd1fee9189ddc51ffbc7319fa63888ee1d2bed9"
+    },
+    {
+      "name": "hunting-for-lolbins-execution-in-endpoint-logs",
+      "path": "skills/hunting-for-lolbins-execution-in-endpoint-logs",
+      "tree_sha256": "c41ae5c7ea37d46dbd84459e0682881924f3593d16a4d8a8848bbf1bf3535154"
+    },
+    {
+      "name": "hunting-for-ntlm-relay-attacks",
+      "path": "skills/hunting-for-ntlm-relay-attacks",
+      "tree_sha256": "8c9000e2050f0ba24b951372090ce0280ae2a3e88faa3acf947c1ad4c18aef75"
+    },
+    {
+      "name": "hunting-for-persistence-mechanisms-in-windows",
+      "path": "skills/hunting-for-persistence-mechanisms-in-windows",
+      "tree_sha256": "73a2c8d49f8c82fcea3f780cd1f38852db2d054c1f92f73f4f6529335fff8b1c"
+    },
+    {
+      "name": "hunting-for-persistence-via-wmi-subscriptions",
+      "path": "skills/hunting-for-persistence-via-wmi-subscriptions",
+      "tree_sha256": "0bab6c6cc3c9decfe215afb888472dde55f2804c17081b26a443e6aef054e44f"
+    },
+    {
+      "name": "hunting-for-process-injection-techniques",
+      "path": "skills/hunting-for-process-injection-techniques",
+      "tree_sha256": "65617ef0a61b38e1f9b5eca83ee21267bda946e790ad8cfecf1938838062436f"
+    },
+    {
+      "name": "hunting-for-registry-persistence-mechanisms",
+      "path": "skills/hunting-for-registry-persistence-mechanisms",
+      "tree_sha256": "deabe97e1c6ad70efb3f35c28404044d9b818aecb76c1ea88123010d0aa2888d"
+    },
+    {
+      "name": "hunting-for-registry-run-key-persistence",
+      "path": "skills/hunting-for-registry-run-key-persistence",
+      "tree_sha256": "c3e4e1135d31594c3ea3af83235c5b2f959d8e60dc15fe2cdcfbad90af18455d"
+    },
+    {
+      "name": "hunting-for-scheduled-task-persistence",
+      "path": "skills/hunting-for-scheduled-task-persistence",
+      "tree_sha256": "b530a2cdb8a8d5fc0126bf4f1f181f5d388d061ba749f68fa706b9af932ae834"
+    },
+    {
+      "name": "hunting-for-shadow-copy-deletion",
+      "path": "skills/hunting-for-shadow-copy-deletion",
+      "tree_sha256": "5546d14bb744cd6614ca586f651fab883b6993d4947b4a1608b100f9c0489a1f"
+    },
+    {
+      "name": "hunting-for-spearphishing-indicators",
+      "path": "skills/hunting-for-spearphishing-indicators",
+      "tree_sha256": "e9cc6a65c21b0574250ed5bf88a68c4143344b11d30aa8b7774ae562c4c87ed0"
+    },
+    {
+      "name": "hunting-for-startup-folder-persistence",
+      "path": "skills/hunting-for-startup-folder-persistence",
+      "tree_sha256": "2e82d9bf318fefbbf123ebd3c23235191f9e1c792e3039e00d3622d5f34c0c87"
+    },
+    {
+      "name": "hunting-for-supply-chain-compromise",
+      "path": "skills/hunting-for-supply-chain-compromise",
+      "tree_sha256": "00d6baf0f340341c368b942e07aefc0a4be66649fac85d6a0d00b399a76ddd95"
+    },
+    {
+      "name": "hunting-for-suspicious-scheduled-tasks",
+      "path": "skills/hunting-for-suspicious-scheduled-tasks",
+      "tree_sha256": "8d4fa2decdff539113c1a570ce32eb8d3455d933f5f11fda435fb035a477c378"
+    },
+    {
+      "name": "hunting-for-t1098-account-manipulation",
+      "path": "skills/hunting-for-t1098-account-manipulation",
+      "tree_sha256": "76c39b796ea7a7f8572e7de1a7208bd43c1541ee8ba75cca879d099c9be99467"
+    },
+    {
+      "name": "hunting-for-unusual-network-connections",
+      "path": "skills/hunting-for-unusual-network-connections",
+      "tree_sha256": "69c4b7e02061a03951345b4623e9f34247c0260832c43da37e38a8c15601bf5e"
+    },
+    {
+      "name": "hunting-for-unusual-service-installations",
+      "path": "skills/hunting-for-unusual-service-installations",
+      "tree_sha256": "a5f3aab82376f4f6c944356e730e5cdf06b9d1160ac749e6919a797196f55e70"
+    },
+    {
+      "name": "hunting-for-webshell-activity",
+      "path": "skills/hunting-for-webshell-activity",
+      "tree_sha256": "bb16a68dc847c480c4bbd7f1b8c21b6ae72aeb3af29abde2d5113453c7b41aa5"
+    },
+    {
+      "name": "hunting-saas-sso-token-abuse",
+      "path": "skills/hunting-saas-sso-token-abuse",
+      "tree_sha256": "0ae2d3fc6f6b6b14a3ce9981027f68752e22345c87cc0d7c49662b61a8abad56"
+    },
+    {
+      "name": "implementing-aes-encryption-for-data-at-rest",
+      "path": "skills/implementing-aes-encryption-for-data-at-rest",
+      "tree_sha256": "66c6862080360e9b408ebee6c7d83c903f4994138498b093ebc59b5e06d73508"
+    },
+    {
+      "name": "implementing-alert-fatigue-reduction",
+      "path": "skills/implementing-alert-fatigue-reduction",
+      "tree_sha256": "77f118228dfd89584865efc850fd5ace54b09fa1e16f2829e9914613ccacbd6f"
+    },
+    {
+      "name": "implementing-anti-phishing-training-program",
+      "path": "skills/implementing-anti-phishing-training-program",
+      "tree_sha256": "4c38a66988601e2e011f7536e82e58a0da321c0e4ae7c740f6e0c110274728ba"
+    },
+    {
+      "name": "implementing-anti-ransomware-group-policy",
+      "path": "skills/implementing-anti-ransomware-group-policy",
+      "tree_sha256": "ec8c633eccf65578f3dd8d8bbb0f913a018329082ad51ee1b0261cdf61e5ce24"
+    },
+    {
+      "name": "implementing-api-abuse-detection-with-rate-limiting",
+      "path": "skills/implementing-api-abuse-detection-with-rate-limiting",
+      "tree_sha256": "92325effbd42610025aad7a3556f346574ff716f6b65798e81641f8b1cf6a9d0"
+    },
+    {
+      "name": "implementing-api-gateway-security-controls",
+      "path": "skills/implementing-api-gateway-security-controls",
+      "tree_sha256": "35cc824d78933005f3c9157fba43411adde51890a1ba1bca426781b49a00e97d"
+    },
+    {
+      "name": "implementing-api-key-security-controls",
+      "path": "skills/implementing-api-key-security-controls",
+      "tree_sha256": "46710fa9d5630bed5fe03c3e437bedc9ee81b139a1b82180d040bb6e5bd7a617"
+    },
+    {
+      "name": "implementing-api-rate-limiting-and-throttling",
+      "path": "skills/implementing-api-rate-limiting-and-throttling",
+      "tree_sha256": "ca0cfa78611694edcdebcd048371c1f7e3c7386933613cd19e864428cf579224"
+    },
+    {
+      "name": "implementing-api-schema-validation-security",
+      "path": "skills/implementing-api-schema-validation-security",
+      "tree_sha256": "e77026c0d41a913b6480b7115be1a0bef19919ecf19ab8fed77e4e3be38981ab"
+    },
+    {
+      "name": "implementing-api-security-posture-management",
+      "path": "skills/implementing-api-security-posture-management",
+      "tree_sha256": "7b9dfc044ee2c999037f30e9258407b526b004844aca9346adb6d67ee86b5bb4"
+    },
+    {
+      "name": "implementing-api-security-testing-with-42crunch",
+      "path": "skills/implementing-api-security-testing-with-42crunch",
+      "tree_sha256": "36e72f73b3f58b7ffca1b2e7e60c4b0e4bb68099cf4cff8aa4b6fddcaa53e51a"
+    },
+    {
+      "name": "implementing-api-threat-protection-with-apigee",
+      "path": "skills/implementing-api-threat-protection-with-apigee",
+      "tree_sha256": "01da746ab41c687602406b4126535ba4c30dec988acfc0cd072369f50bd28e75"
+    },
+    {
+      "name": "implementing-application-whitelisting-with-applocker",
+      "path": "skills/implementing-application-whitelisting-with-applocker",
+      "tree_sha256": "7087598e1902b3fcd94fdf883fd9f32113e8f1cd11b5931ee6ca6717fa82a8f0"
+    },
+    {
+      "name": "implementing-aqua-security-for-container-scanning",
+      "path": "skills/implementing-aqua-security-for-container-scanning",
+      "tree_sha256": "198a2885dec29d00d7a2832986ad8def18060176be3022c2523557d80094fa74"
+    },
+    {
+      "name": "implementing-attack-path-analysis-with-xm-cyber",
+      "path": "skills/implementing-attack-path-analysis-with-xm-cyber",
+      "tree_sha256": "fe14f06d32fd4df0a355136dd2d6eb981f848fd3eebcdfceeeceb29ac830b2e0"
+    },
+    {
+      "name": "implementing-attack-surface-management",
+      "path": "skills/implementing-attack-surface-management",
+      "tree_sha256": "69ebb88851379c64e11a3aa998dcf3b27169570c816a7db3a729f0c35638140a"
+    },
+    {
+      "name": "implementing-aws-config-rules-for-compliance",
+      "path": "skills/implementing-aws-config-rules-for-compliance",
+      "tree_sha256": "fb2a553639af62a58a5b75c8f74b1131cc6e0da53273963cf6ec1c95367f28b6"
+    },
+    {
+      "name": "implementing-aws-iam-permission-boundaries",
+      "path": "skills/implementing-aws-iam-permission-boundaries",
+      "tree_sha256": "2fc3bc86a643d9e48691250b185d2ff7d654b4327477a4ff9734b21e61bbdda5"
+    },
+    {
+      "name": "implementing-aws-macie-for-data-classification",
+      "path": "skills/implementing-aws-macie-for-data-classification",
+      "tree_sha256": "5b743b898e427b69dbbb6edf32a8a6e47e99997b7a0804cc25becdc9ff0ca5bf"
+    },
+    {
+      "name": "implementing-aws-nitro-enclave-security",
+      "path": "skills/implementing-aws-nitro-enclave-security",
+      "tree_sha256": "cf2ca7749497219ea550a6266df76a1ded442d44ce538e4f73af90c6d04af7ed"
+    },
+    {
+      "name": "implementing-aws-security-hub",
+      "path": "skills/implementing-aws-security-hub",
+      "tree_sha256": "b1a4c817b027fd3fb6eb11a2185503cd2ab7f392affb94b22ae265a6df3f3410"
+    },
+    {
+      "name": "implementing-aws-security-hub-compliance",
+      "path": "skills/implementing-aws-security-hub-compliance",
+      "tree_sha256": "cf835ef0d15080d5d6ef119608c4c218288bf2b189a7110cc8ed56e4f6256b1c"
+    },
+    {
+      "name": "implementing-azure-ad-privileged-identity-management",
+      "path": "skills/implementing-azure-ad-privileged-identity-management",
+      "tree_sha256": "f2c039d12ef236e7d86df8ff10412369911924243719ecf857005dd2dfeb58c5"
+    },
+    {
+      "name": "implementing-azure-defender-for-cloud",
+      "path": "skills/implementing-azure-defender-for-cloud",
+      "tree_sha256": "a7ae340c300df0926e269cdbe96d59cf627da149c5654a1a1a9c74863a3f1fdc"
+    },
+    {
+      "name": "implementing-beyondcorp-zero-trust-access-model",
+      "path": "skills/implementing-beyondcorp-zero-trust-access-model",
+      "tree_sha256": "678ec917b1905685554f293d754542e9ce29ecc8c7064323b1dc568867a74602"
+    },
+    {
+      "name": "implementing-bgp-security-with-rpki",
+      "path": "skills/implementing-bgp-security-with-rpki",
+      "tree_sha256": "f2dd6db34978db534b08d20ff2fffbc1351010a2affbb6f9ff053f27e4cb5140"
+    },
+    {
+      "name": "implementing-browser-isolation-for-zero-trust",
+      "path": "skills/implementing-browser-isolation-for-zero-trust",
+      "tree_sha256": "5815d1ce278c307c85f338642328706bd2fae02be5f26ba8371146f9ded8e485"
+    },
+    {
+      "name": "implementing-canary-tokens-for-network-intrusion",
+      "path": "skills/implementing-canary-tokens-for-network-intrusion",
+      "tree_sha256": "bbc5d4ad85057ac86c676c6c51ae5432d54c3e88ae2035e8e5930ad4d61a1dd0"
+    },
+    {
+      "name": "implementing-cisa-zero-trust-maturity-model",
+      "path": "skills/implementing-cisa-zero-trust-maturity-model",
+      "tree_sha256": "aaef889890c3e51f7241fed0ba4fa5c0a87396e11407c6c48c1af0e3605094fe"
+    },
+    {
+      "name": "implementing-cloud-dlp-for-data-protection",
+      "path": "skills/implementing-cloud-dlp-for-data-protection",
+      "tree_sha256": "a5f2f2021bffd931ec9e14f7bc92a9cf210077a19451d5a895333b0527e4161d"
+    },
+    {
+      "name": "implementing-cloud-security-posture-management",
+      "path": "skills/implementing-cloud-security-posture-management",
+      "tree_sha256": "4e3430fea2b50776530e24f0360d474053b8e8696e5df91f7a24047fa27196c4"
+    },
+    {
+      "name": "implementing-cloud-trail-log-analysis",
+      "path": "skills/implementing-cloud-trail-log-analysis",
+      "tree_sha256": "8358906929c15eca16f21bc694df2ca0ca2490cc3caa160b3f615b0852d3c9d4"
+    },
+    {
+      "name": "implementing-cloud-vulnerability-posture-management",
+      "path": "skills/implementing-cloud-vulnerability-posture-management",
+      "tree_sha256": "9b7e1c72c0b12656604d004ad8c666650c603a6e55abbfda8b4fc2a63d299e1f"
+    },
+    {
+      "name": "implementing-cloud-waf-rules",
+      "path": "skills/implementing-cloud-waf-rules",
+      "tree_sha256": "a9633fc7587a853755a7f13a82b9d4a167af8ad639f253eef5c8ce8c1b04913a"
+    },
+    {
+      "name": "implementing-cloud-workload-protection",
+      "path": "skills/implementing-cloud-workload-protection",
+      "tree_sha256": "f51b70a9c5edb5fbee7e3f05978b6a4016d2ae97cdf61fd5974bf7c9a63498f5"
+    },
+    {
+      "name": "implementing-code-signing-for-artifacts",
+      "path": "skills/implementing-code-signing-for-artifacts",
+      "tree_sha256": "3f97bd169255905aefadee9865c31977ed0c3f3b28dd709749256d136f3cd0df"
+    },
+    {
+      "name": "implementing-conditional-access-policies-azure-ad",
+      "path": "skills/implementing-conditional-access-policies-azure-ad",
+      "tree_sha256": "0872a7d57b7688bfae6ecba3b111231d6a6e91547827a73bbf7661bc85ba05e3"
+    },
+    {
+      "name": "implementing-conduit-security-for-ot-remote-access",
+      "path": "skills/implementing-conduit-security-for-ot-remote-access",
+      "tree_sha256": "eb0e707c39bd4d3bb948eb73f76a1ffe8033838374af59b242a5e1ee190a2534"
+    },
+    {
+      "name": "implementing-container-image-minimal-base-with-distroless",
+      "path": "skills/implementing-container-image-minimal-base-with-distroless",
+      "tree_sha256": "f353887167b2344de5380803115f34e9156ef55bd0432b063ebce05990ecff24"
+    },
+    {
+      "name": "implementing-container-network-policies-with-calico",
+      "path": "skills/implementing-container-network-policies-with-calico",
+      "tree_sha256": "90c96620f917270bdff01625d58b4b96a7314d52d3cd5ce088076402903de88e"
+    },
+    {
+      "name": "implementing-continuous-security-validation-with-bas",
+      "path": "skills/implementing-continuous-security-validation-with-bas",
+      "tree_sha256": "d7771ecd5dc7e142eb2a7f565b6a9abc38189f0d1db82bc02afd28a7779a81ee"
+    },
+    {
+      "name": "implementing-data-loss-prevention-with-microsoft-purview",
+      "path": "skills/implementing-data-loss-prevention-with-microsoft-purview",
+      "tree_sha256": "8bdf99b867b7018cb523f035ab5795fa5a38b644f9b5a441a6623fc89da15a07"
+    },
+    {
+      "name": "implementing-ddos-mitigation-with-cloudflare",
+      "path": "skills/implementing-ddos-mitigation-with-cloudflare",
+      "tree_sha256": "e3892c742b7e35191f0eef65ed19abd3c8fe6e4b522f65f097ea82829f652251"
+    },
+    {
+      "name": "implementing-deception-based-detection-with-canarytoken",
+      "path": "skills/implementing-deception-based-detection-with-canarytoken",
+      "tree_sha256": "cadc7524b6b5bdda2cd15a2b098a6db8c573a850a502589b70b724f3b33dafe1"
+    },
+    {
+      "name": "implementing-delinea-secret-server-for-pam",
+      "path": "skills/implementing-delinea-secret-server-for-pam",
+      "tree_sha256": "f2d9dd55c69682341b10fe28a4b02fb2aa96a13d114377dbd0cb0f0b5a932689"
+    },
+    {
+      "name": "implementing-device-posture-assessment-in-zero-trust",
+      "path": "skills/implementing-device-posture-assessment-in-zero-trust",
+      "tree_sha256": "9936b0e23a552107c94f65cba4efe22d8c946edd0eece45626d7501546a7ed29"
+    },
+    {
+      "name": "implementing-devsecops-security-scanning",
+      "path": "skills/implementing-devsecops-security-scanning",
+      "tree_sha256": "7f1d03c9d16a9f93487eead03af7307c8fceb0f93343cf16519315781750b6b3"
+    },
+    {
+      "name": "implementing-diamond-model-analysis",
+      "path": "skills/implementing-diamond-model-analysis",
+      "tree_sha256": "e3181caa8eed4aa2ac1ce4ad888d52595d287e7c8822699af30613b9428b344c"
+    },
+    {
+      "name": "implementing-digital-signatures-with-ed25519",
+      "path": "skills/implementing-digital-signatures-with-ed25519",
+      "tree_sha256": "da123491d746959e016c7e395b4963fcfd186bec469430dfc2c03914cbe04804"
+    },
+    {
+      "name": "implementing-disk-encryption-with-bitlocker",
+      "path": "skills/implementing-disk-encryption-with-bitlocker",
+      "tree_sha256": "09386b9b14dbcb611a90830582c33e4320cdd35de339b35ce061c382efd05dee"
+    },
+    {
+      "name": "implementing-dmarc-dkim-spf-email-security",
+      "path": "skills/implementing-dmarc-dkim-spf-email-security",
+      "tree_sha256": "ce294c0dac5016ee638e2c99cc0b0cffc1ace8f75d6b39e2f80cad6f52d31ea0"
+    },
+    {
+      "name": "implementing-dragos-platform-for-ot-monitoring",
+      "path": "skills/implementing-dragos-platform-for-ot-monitoring",
+      "tree_sha256": "2d5806a48d9368b5bb7eefc1fbf52d1ba7841506e12fcd477b6a997573933d1e"
+    },
+    {
+      "name": "implementing-ebpf-security-monitoring",
+      "path": "skills/implementing-ebpf-security-monitoring",
+      "tree_sha256": "a3e3c25398d7d8b6312394b0c056c2c195cc64f01b1b7d43dc8c0561d89a7c15"
+    },
+    {
+      "name": "implementing-email-sandboxing-with-proofpoint",
+      "path": "skills/implementing-email-sandboxing-with-proofpoint",
+      "tree_sha256": "ac6d3d52a69c4cdb7951bf36bddbe0e24b96ccccf199efdd75e2dba2d9cbe178"
+    },
+    {
+      "name": "implementing-end-to-end-encryption-for-messaging",
+      "path": "skills/implementing-end-to-end-encryption-for-messaging",
+      "tree_sha256": "a0e68853d50c2f84c5322b2fd97b4252543cafc4e58c07f77afbcc15494e3862"
+    },
+    {
+      "name": "implementing-endpoint-detection-with-wazuh",
+      "path": "skills/implementing-endpoint-detection-with-wazuh",
+      "tree_sha256": "59f3765a9af5c4aae880ed6d45297d5aece7af12d26898937eb1ef628434a387"
+    },
+    {
+      "name": "implementing-endpoint-dlp-controls",
+      "path": "skills/implementing-endpoint-dlp-controls",
+      "tree_sha256": "b8c0d1a7300d323027e0e2b70a1f4a003af4555788caa15e2de167b76e252c7f"
+    },
+    {
+      "name": "implementing-envelope-encryption-with-aws-kms",
+      "path": "skills/implementing-envelope-encryption-with-aws-kms",
+      "tree_sha256": "619f09ac44d932d5fd4ca2bf3941ca6cda8f630e949f96dc40211f69cdd7e87b"
+    },
+    {
+      "name": "implementing-epss-score-for-vulnerability-prioritization",
+      "path": "skills/implementing-epss-score-for-vulnerability-prioritization",
+      "tree_sha256": "d71c99359c844fcd07a21caf5de8d35a434f439f7ec8232fa576605409606520"
+    },
+    {
+      "name": "implementing-file-integrity-monitoring-with-aide",
+      "path": "skills/implementing-file-integrity-monitoring-with-aide",
+      "tree_sha256": "0e603a71c06f5c2e5a8ed025819b09d491d7f9b0357af6cacaf68d72177e693f"
+    },
+    {
+      "name": "implementing-fuzz-testing-in-cicd-with-aflplusplus",
+      "path": "skills/implementing-fuzz-testing-in-cicd-with-aflplusplus",
+      "tree_sha256": "a188d5337e8dc05593b840af55da02a2e7cd9d5a47659c4aa81b648f7f0b644b"
+    },
+    {
+      "name": "implementing-gcp-binary-authorization",
+      "path": "skills/implementing-gcp-binary-authorization",
+      "tree_sha256": "82f64c0d739d310a9ec7b9f5847880ebf31a6b159771c22b6a3c8386b016e811"
+    },
+    {
+      "name": "implementing-gcp-organization-policy-constraints",
+      "path": "skills/implementing-gcp-organization-policy-constraints",
+      "tree_sha256": "e0bb10d357c5785b86b5757f54e95ec37ed4d828e2507ebd2c69eb0ec5a765c1"
+    },
+    {
+      "name": "implementing-gcp-vpc-firewall-rules",
+      "path": "skills/implementing-gcp-vpc-firewall-rules",
+      "tree_sha256": "b3e30241b2eb4cf53209e6a51c02d343655d0a1f0d67b4509e60ea2dbfa2ef72"
+    },
+    {
+      "name": "implementing-gdpr-data-protection-controls",
+      "path": "skills/implementing-gdpr-data-protection-controls",
+      "tree_sha256": "653bb753884b578ad8ecea1c4954b1676f1671df217288e71628e7900ae4dcb9"
+    },
+    {
+      "name": "implementing-gdpr-data-subject-access-request",
+      "path": "skills/implementing-gdpr-data-subject-access-request",
+      "tree_sha256": "079b3677c732f2fc141ef6d1879cd487c31b5fbf4d81163ae18ed2f468c86493"
+    },
+    {
+      "name": "implementing-github-advanced-security-for-code-scanning",
+      "path": "skills/implementing-github-advanced-security-for-code-scanning",
+      "tree_sha256": "19f93cf0d8c521e388694c2794caef719bcff9a7549176c5e20f13253b7db6e1"
+    },
+    {
+      "name": "implementing-google-workspace-admin-security",
+      "path": "skills/implementing-google-workspace-admin-security",
+      "tree_sha256": "decb234dd49f1f6e6d8076d13f08bc423c4dfe54978a284d7cb989d840c69c38"
+    },
+    {
+      "name": "implementing-google-workspace-phishing-protection",
+      "path": "skills/implementing-google-workspace-phishing-protection",
+      "tree_sha256": "105e9e14c105933380ae3b185f3e0fd96bff61ca9cb1df90174d2faa561ebb84"
+    },
+    {
+      "name": "implementing-google-workspace-sso-configuration",
+      "path": "skills/implementing-google-workspace-sso-configuration",
+      "tree_sha256": "c333a56714cc3cf941247f05fb5b1645c859b512c630b46e8ee33b60ba1ff0d2"
+    },
+    {
+      "name": "implementing-hardware-security-key-authentication",
+      "path": "skills/implementing-hardware-security-key-authentication",
+      "tree_sha256": "75d9f56828da13385ff5097add0e8d5577bccb9346ac23eb527a5868f9d41a5d"
+    },
+    {
+      "name": "implementing-hashicorp-vault-dynamic-secrets",
+      "path": "skills/implementing-hashicorp-vault-dynamic-secrets",
+      "tree_sha256": "1f2f4321cfc7e0a00c855d8b3d6524641e66f8bc9a440a98138dd5a8e9357df3"
+    },
+    {
+      "name": "implementing-hipaa-security-rule-safeguards",
+      "path": "skills/implementing-hipaa-security-rule-safeguards",
+      "tree_sha256": "2b28e78e1a88429814e26f278d4f49e31128a89317254d569879fcb63e45b12c"
+    },
+    {
+      "name": "implementing-honeypot-for-ransomware-detection",
+      "path": "skills/implementing-honeypot-for-ransomware-detection",
+      "tree_sha256": "039c09ff71099a4c1e4cce6c0500dbf0cb3f57a1334d7e4c199aedc087fb3cd6"
+    },
+    {
+      "name": "implementing-honeytokens-for-breach-detection",
+      "path": "skills/implementing-honeytokens-for-breach-detection",
+      "tree_sha256": "dfe5b3d1b8f1b95982e4b4abbaa99030e52285a347667c455e52d9142779d8ad"
+    },
+    {
+      "name": "implementing-ics-firewall-with-tofino",
+      "path": "skills/implementing-ics-firewall-with-tofino",
+      "tree_sha256": "583740a7b27a9363d7f1b898aa7d749e0a7724099a6750d82730b0b56799bccc"
+    },
+    {
+      "name": "implementing-identity-governance-with-sailpoint",
+      "path": "skills/implementing-identity-governance-with-sailpoint",
+      "tree_sha256": "7f3c5a98e0f3a13d5f7070b401b54c9bac93b07e973dda6680ea715557ad1a3c"
+    },
+    {
+      "name": "implementing-identity-verification-for-zero-trust",
+      "path": "skills/implementing-identity-verification-for-zero-trust",
+      "tree_sha256": "cae8abde8c453fc7319d3e841167538491a0f3047ad5132990ad9c375a97390e"
+    },
+    {
+      "name": "implementing-iec-62443-security-zones",
+      "path": "skills/implementing-iec-62443-security-zones",
+      "tree_sha256": "5ba0a4d0e52a24b6123323d56a13a69db4237638242c4bde8578579b153e29cd"
+    },
+    {
+      "name": "implementing-image-provenance-verification-with-cosign",
+      "path": "skills/implementing-image-provenance-verification-with-cosign",
+      "tree_sha256": "89010504b7aa5a442fdcf08b5bb9b270cdb7bc783b89c9b8d4e6ab66bd3cc5eb"
+    },
+    {
+      "name": "implementing-immutable-backup-with-restic",
+      "path": "skills/implementing-immutable-backup-with-restic",
+      "tree_sha256": "365165c4cc2ba4e35996b65abdf04bf4aa8525e090e2142f5234117f8bce5fa2"
+    },
+    {
+      "name": "implementing-infrastructure-as-code-security-scanning",
+      "path": "skills/implementing-infrastructure-as-code-security-scanning",
+      "tree_sha256": "964fbbcb9555726954ced2050e01ef78dda5736af46893ffb75febd9ef613151"
+    },
+    {
+      "name": "implementing-iso-27001-information-security-management",
+      "path": "skills/implementing-iso-27001-information-security-management",
+      "tree_sha256": "3cd7192d6082136e48f66ff2a479fcdf92dcb451e5f3814f3db2e2166048690a"
+    },
+    {
+      "name": "implementing-just-in-time-access-provisioning",
+      "path": "skills/implementing-just-in-time-access-provisioning",
+      "tree_sha256": "7280dfb3580798bacd809e4c1dcd06beea403639f0c8a1a8e174a6d526932080"
+    },
+    {
+      "name": "implementing-jwt-signing-and-verification",
+      "path": "skills/implementing-jwt-signing-and-verification",
+      "tree_sha256": "d534eb707cd8393e0614937e9d12d6334ee78b00125ff197fa943617c17c18c4"
+    },
+    {
+      "name": "implementing-kubernetes-network-policy-with-calico",
+      "path": "skills/implementing-kubernetes-network-policy-with-calico",
+      "tree_sha256": "d9b3376e04986234af31a5587142d4a2694d7699196f8988df26ad252d7df26a"
+    },
+    {
+      "name": "implementing-kubernetes-pod-security-standards",
+      "path": "skills/implementing-kubernetes-pod-security-standards",
+      "tree_sha256": "2dbaa777cc44a6744b93d7427cec228991d5dd93c4d09018f8bd65244b5360b7"
+    },
+    {
+      "name": "implementing-llm-guardrails-for-security",
+      "path": "skills/implementing-llm-guardrails-for-security",
+      "tree_sha256": "481f36d69e94211e2c799275a18f58bbac4407bec764e37f857f0f9fcc0cb2a9"
+    },
+    {
+      "name": "implementing-log-forwarding-with-fluentd",
+      "path": "skills/implementing-log-forwarding-with-fluentd",
+      "tree_sha256": "ebf491409f2224a64deae73e784250c4fdf505f86d18624e7879b6b60483f4be"
+    },
+    {
+      "name": "implementing-log-integrity-with-blockchain",
+      "path": "skills/implementing-log-integrity-with-blockchain",
+      "tree_sha256": "b3f8d0fdfa027f0471c5b496089643283cd524ab6716531aa1834106f9517496"
+    },
+    {
+      "name": "implementing-memory-protection-with-dep-aslr",
+      "path": "skills/implementing-memory-protection-with-dep-aslr",
+      "tree_sha256": "0323954e85bd457d922a5a03bf31c5b030cad959aa708c8945dbb6083f7f6a0c"
+    },
+    {
+      "name": "implementing-microsegmentation-with-guardicore",
+      "path": "skills/implementing-microsegmentation-with-guardicore",
+      "tree_sha256": "8acbf92bc8012b021012f3675e18789c27456d8ea3c1dd0576f4f94d2e2ec517"
+    },
+    {
+      "name": "implementing-mimecast-targeted-attack-protection",
+      "path": "skills/implementing-mimecast-targeted-attack-protection",
+      "tree_sha256": "a14af3dc114f4b694f46c17bbc547a645a42782c6a6f03b932a53fbae41df3d8"
+    },
+    {
+      "name": "implementing-mitre-attack-coverage-mapping",
+      "path": "skills/implementing-mitre-attack-coverage-mapping",
+      "tree_sha256": "1c83af91d6af9db2ede2e2d8fa7022a8a1c30ca2d8bb0b39cee306e49d98ecc8"
+    },
+    {
+      "name": "implementing-mobile-application-management",
+      "path": "skills/implementing-mobile-application-management",
+      "tree_sha256": "127c44e5d8d04eec9fbfbb1a69f3e22335002c47bdadd2aeffec669ccfc3f2b4"
+    },
+    {
+      "name": "implementing-mtls-for-zero-trust-services",
+      "path": "skills/implementing-mtls-for-zero-trust-services",
+      "tree_sha256": "37a123ddc28bc968714290f5be15c7f3c542c9850e83419e847f4d34791cc0b8"
+    },
+    {
+      "name": "implementing-nerc-cip-compliance-controls",
+      "path": "skills/implementing-nerc-cip-compliance-controls",
+      "tree_sha256": "60ada4cb4b31b2dfa52facc38aa4677dc968a99b897fc0c108b9cf36ef8497af"
+    },
+    {
+      "name": "implementing-network-access-control",
+      "path": "skills/implementing-network-access-control",
+      "tree_sha256": "cdb29182d7825f30b73b7c670fa809d639290a9eecc7ddf37fe50ba1ad612282"
+    },
+    {
+      "name": "implementing-network-access-control-with-cisco-ise",
+      "path": "skills/implementing-network-access-control-with-cisco-ise",
+      "tree_sha256": "cd1c9bc6f2d7323674905c7e1848c383682958414e98b87fe056be7c9831ab80"
+    },
+    {
+      "name": "implementing-network-deception-with-honeypots",
+      "path": "skills/implementing-network-deception-with-honeypots",
+      "tree_sha256": "601c644d6db2ae5a7acb30f61fe25c90db5384165d42d09ed09ed257439cb126"
+    },
+    {
+      "name": "implementing-network-intrusion-prevention-with-suricata",
+      "path": "skills/implementing-network-intrusion-prevention-with-suricata",
+      "tree_sha256": "473cfcc5f9ac19c6f36d8c3a569f17a8560199d204e20049d248d3f336fe4097"
+    },
+    {
+      "name": "implementing-network-policies-for-kubernetes",
+      "path": "skills/implementing-network-policies-for-kubernetes",
+      "tree_sha256": "1426fc27f459efdb9e32c1753bcaae84e2d7a01e9b609628a91867ab34568d29"
+    },
+    {
+      "name": "implementing-network-segmentation-for-ot",
+      "path": "skills/implementing-network-segmentation-for-ot",
+      "tree_sha256": "70b0ef61af7c605cabcea994c52d75bcd4bd8882d0d0df8bd012f9f4169c6b08"
+    },
+    {
+      "name": "implementing-network-segmentation-with-firewall-zones",
+      "path": "skills/implementing-network-segmentation-with-firewall-zones",
+      "tree_sha256": "66207e1850c3cb586466b60778c7e2735ca4ca1abc03df17e234c6065f62db75"
+    },
+    {
+      "name": "implementing-network-traffic-analysis-with-arkime",
+      "path": "skills/implementing-network-traffic-analysis-with-arkime",
+      "tree_sha256": "9af7bc043d041ebb705b07b356ec6349ef7930b61fc4d7cf58472ad1244550f4"
+    },
+    {
+      "name": "implementing-network-traffic-baselining",
+      "path": "skills/implementing-network-traffic-baselining",
+      "tree_sha256": "2149df188dbc9eb4fd6ee5c47e7fa37b9c9991a52f72659bc7afa59ea0070c84"
+    },
+    {
+      "name": "implementing-next-generation-firewall-with-palo-alto",
+      "path": "skills/implementing-next-generation-firewall-with-palo-alto",
+      "tree_sha256": "2adee7aab03e85e7c5302e4bb3943b75f2e1df168320987e0d19d087a40f19b6"
+    },
+    {
+      "name": "implementing-opa-gatekeeper-for-policy-enforcement",
+      "path": "skills/implementing-opa-gatekeeper-for-policy-enforcement",
+      "tree_sha256": "0aeffb06837d059714c62c3ad8b5894cd53ddd92f9b418a38aea1c8f52f49aec"
+    },
+    {
+      "name": "implementing-ot-incident-response-playbook",
+      "path": "skills/implementing-ot-incident-response-playbook",
+      "tree_sha256": "c3e5ec6e8f9bd07c9e159b00314683f9103c2cbb2657f9180711933685996e17"
+    },
+    {
+      "name": "implementing-ot-network-traffic-analysis-with-nozomi",
+      "path": "skills/implementing-ot-network-traffic-analysis-with-nozomi",
+      "tree_sha256": "c3deca49b9ebcdfc1aa5d728d9865b64c9bf430ffe917af803293ea57293caf0"
+    },
+    {
+      "name": "implementing-pam-for-database-access",
+      "path": "skills/implementing-pam-for-database-access",
+      "tree_sha256": "9e71636933452c30b9ec613f54859d3caf256705dbec97f83d192a003b2d0eb4"
+    },
+    {
+      "name": "implementing-passwordless-auth-with-microsoft-entra",
+      "path": "skills/implementing-passwordless-auth-with-microsoft-entra",
+      "tree_sha256": "aa8102c8e362125dd8e7a774d9c408316abe1d78ac9114b787e21940a517e5ed"
+    },
+    {
+      "name": "implementing-passwordless-authentication-with-fido2",
+      "path": "skills/implementing-passwordless-authentication-with-fido2",
+      "tree_sha256": "25ffbd79cae5dcbc555d691f939cc1f296d6c9874167b1a38792c3121b77e1b7"
+    },
+    {
+      "name": "implementing-patch-management-for-ot-systems",
+      "path": "skills/implementing-patch-management-for-ot-systems",
+      "tree_sha256": "5fe21a112aebfd311282bd8dd10d92d27f192cbc3c2306f303c8de01516927a2"
+    },
+    {
+      "name": "implementing-patch-management-workflow",
+      "path": "skills/implementing-patch-management-workflow",
+      "tree_sha256": "1020f427f4cb7c4203af4023b9a1931598cda9d336028990defabe9ad4c26e33"
+    },
+    {
+      "name": "implementing-pci-dss-compliance-controls",
+      "path": "skills/implementing-pci-dss-compliance-controls",
+      "tree_sha256": "9ebda1a7197e8b941c8794d5ceb829139259634d4e578c7dadd241ab50c3efa3"
+    },
+    {
+      "name": "implementing-pod-security-admission-controller",
+      "path": "skills/implementing-pod-security-admission-controller",
+      "tree_sha256": "f1cd624e448ccc5a1abf737e4a77ed94a17b98a4ea3903b7b4ca55c2fe52c6a1"
+    },
+    {
+      "name": "implementing-policy-as-code-with-open-policy-agent",
+      "path": "skills/implementing-policy-as-code-with-open-policy-agent",
+      "tree_sha256": "c9c841a52d3e6f5f39ab13654898f2a8ebadee9efb52ee5019490899bc041767"
+    },
+    {
+      "name": "implementing-privileged-access-management-with-cyberark",
+      "path": "skills/implementing-privileged-access-management-with-cyberark",
+      "tree_sha256": "38b4147c900de0c610b8153d4852e81fd009cb400cafb88fe8c6fbf4e6ee18f8"
+    },
+    {
+      "name": "implementing-privileged-access-workstation",
+      "path": "skills/implementing-privileged-access-workstation",
+      "tree_sha256": "e0b5a9f7633242c838ccfb4d28ad7e4d7e78e33ae352f6ec8909275dd72ee642"
+    },
+    {
+      "name": "implementing-privileged-session-monitoring",
+      "path": "skills/implementing-privileged-session-monitoring",
+      "tree_sha256": "5565b142e62bbaf1dac9c471437ca732c3acc0a98609d2376b5c7b7fb7f2b3cb"
+    },
+    {
+      "name": "implementing-proofpoint-email-security-gateway",
+      "path": "skills/implementing-proofpoint-email-security-gateway",
+      "tree_sha256": "1f1fadfeae0cd8e941180f64ad112ba1aafb32442ca8be2b5c48e6b67ae7ad91"
+    },
+    {
+      "name": "implementing-purdue-model-network-segmentation",
+      "path": "skills/implementing-purdue-model-network-segmentation",
+      "tree_sha256": "fe837d4d5f6ad2007e762058048d63146ee3b501cf1b6312923fd5c5c5273781"
+    },
+    {
+      "name": "implementing-ransomware-backup-strategy",
+      "path": "skills/implementing-ransomware-backup-strategy",
+      "tree_sha256": "a6798bc10e6db3dfc26d485c425581ad0c1a167ebe1f02b60f2b55b7b6b97999"
+    },
+    {
+      "name": "implementing-ransomware-kill-switch-detection",
+      "path": "skills/implementing-ransomware-kill-switch-detection",
+      "tree_sha256": "d75f0c5ab84237177d5355cb1abe5f48b498ba191d5543fb3969ba183f0cf96e"
+    },
+    {
+      "name": "implementing-rapid7-insightvm-for-scanning",
+      "path": "skills/implementing-rapid7-insightvm-for-scanning",
+      "tree_sha256": "812ff3ccfccd9a3177b956728f788ad5e7d77b9ff0a902f47f3a047d3122a44d"
+    },
+    {
+      "name": "implementing-rbac-hardening-for-kubernetes",
+      "path": "skills/implementing-rbac-hardening-for-kubernetes",
+      "tree_sha256": "70144a4363fc4985b7716ab71e9c8166ffb0f8830f2b4dfc2ba33c0e61b5c12d"
+    },
+    {
+      "name": "implementing-rsa-key-pair-management",
+      "path": "skills/implementing-rsa-key-pair-management",
+      "tree_sha256": "f8f2609bb74d79e29a117390ea6c6e35f368de9bccc29f0ac0d264299982718d"
+    },
+    {
+      "name": "implementing-runtime-application-self-protection",
+      "path": "skills/implementing-runtime-application-self-protection",
+      "tree_sha256": "9f271cc59109454f2e6321856c27750c7a4dfb5b6a7f6bc6fd17e057c306c5cf"
+    },
+    {
+      "name": "implementing-runtime-security-with-tetragon",
+      "path": "skills/implementing-runtime-security-with-tetragon",
+      "tree_sha256": "26f6b76d946115378b3b7a892338dadc9051b33e8349a0eed4f2b6777b7cf4aa"
+    },
+    {
+      "name": "implementing-saml-sso-with-okta",
+      "path": "skills/implementing-saml-sso-with-okta",
+      "tree_sha256": "d6cce62a74771b65f55ff7ab50c904602308662761af079c34a8a740124d46ad"
+    },
+    {
+      "name": "implementing-scim-provisioning-with-okta",
+      "path": "skills/implementing-scim-provisioning-with-okta",
+      "tree_sha256": "d2b8d7572a367b86dc32a7ea08c4cd0edfd1fe3623bc94520fc577c0612ce615"
+    },
+    {
+      "name": "implementing-secret-scanning-with-gitleaks",
+      "path": "skills/implementing-secret-scanning-with-gitleaks",
+      "tree_sha256": "e21a429c6542427c8a4716979de746ce624a7941027d62f1d76259cb1b8c2a77"
+    },
+    {
+      "name": "implementing-secrets-management-with-vault",
+      "path": "skills/implementing-secrets-management-with-vault",
+      "tree_sha256": "3809f64e6002a43bedd91866e0b19f3f5c1a35943eb188852dc607370e8cf9bb"
+    },
+    {
+      "name": "implementing-secrets-scanning-in-ci-cd",
+      "path": "skills/implementing-secrets-scanning-in-ci-cd",
+      "tree_sha256": "e8d2f4fd0a0ac3a3f90adb473c65a529507d330cb0bcfa6f621bd1afe2f7d3e1"
+    },
+    {
+      "name": "implementing-security-chaos-engineering",
+      "path": "skills/implementing-security-chaos-engineering",
+      "tree_sha256": "adec82147cda2accd5bd901f7acfd5cb35bb2599b6f00c7e9be68f311840d068"
+    },
+    {
+      "name": "implementing-security-information-sharing-with-stix2",
+      "path": "skills/implementing-security-information-sharing-with-stix2",
+      "tree_sha256": "3ef3420bd5893533ae202bc0718c88d246193a9766d36e5be1f97793ae995c37"
+    },
+    {
+      "name": "implementing-security-monitoring-with-datadog",
+      "path": "skills/implementing-security-monitoring-with-datadog",
+      "tree_sha256": "444a03d1898641897f3f913361516d887585458e910c448b1e72f837c0b8d58f"
+    },
+    {
+      "name": "implementing-semgrep-for-custom-sast-rules",
+      "path": "skills/implementing-semgrep-for-custom-sast-rules",
+      "tree_sha256": "9644cc9ecf7977d806aab2dd69701bb7a059f25994d2df92b181f57b5a19cdcc"
+    },
+    {
+      "name": "implementing-siem-correlation-rules-for-apt",
+      "path": "skills/implementing-siem-correlation-rules-for-apt",
+      "tree_sha256": "9ce38ef7496e2fdaffd201cd02c136415c20722a715a3f5e2dfd798030d7e635"
+    },
+    {
+      "name": "implementing-siem-use-case-tuning",
+      "path": "skills/implementing-siem-use-case-tuning",
+      "tree_sha256": "930cd2ccc1a39ff4afe80f61c4fb094b856ed6cf1ade57ee8dbb2b074fd3c80f"
+    },
+    {
+      "name": "implementing-siem-use-cases-for-detection",
+      "path": "skills/implementing-siem-use-cases-for-detection",
+      "tree_sha256": "bc196588b5d5489dadd70e8026877349430a7ab097f5386eb70dfc87cdffb9f8"
+    },
+    {
+      "name": "implementing-sigstore-for-software-signing",
+      "path": "skills/implementing-sigstore-for-software-signing",
+      "tree_sha256": "236ff92512648815d4a124ac8d796c818893b6e4649e8a3b9690ca0671a36c09"
+    },
+    {
+      "name": "implementing-soar-automation-with-phantom",
+      "path": "skills/implementing-soar-automation-with-phantom",
+      "tree_sha256": "0ef54858b1c9a2716859c4ce5d10bb052656fde1894a8e38c8e3f97e71fd51cd"
+    },
+    {
+      "name": "implementing-soar-playbook-for-phishing",
+      "path": "skills/implementing-soar-playbook-for-phishing",
+      "tree_sha256": "7de7808796f7ab207a0c8614f3fb3cacb22f06c81effe321f7f4f11c5e93b41f"
+    },
+    {
+      "name": "implementing-soar-playbook-with-palo-alto-xsoar",
+      "path": "skills/implementing-soar-playbook-with-palo-alto-xsoar",
+      "tree_sha256": "c965434b63f3907e286de62e17ae452fe5c1b829670e2dbfe139b78ddf7f1c25"
+    },
+    {
+      "name": "implementing-stix-taxii-feed-integration",
+      "path": "skills/implementing-stix-taxii-feed-integration",
+      "tree_sha256": "13e950317712e151b961ee4cef956520218272811a41e5688661234d586bd02a"
+    },
+    {
+      "name": "implementing-supply-chain-security-with-in-toto",
+      "path": "skills/implementing-supply-chain-security-with-in-toto",
+      "tree_sha256": "ed28a804835d8edfaf4139452848f3d591c02810fe221375ac9ce3343837ead7"
+    },
+    {
+      "name": "implementing-syslog-centralization-with-rsyslog",
+      "path": "skills/implementing-syslog-centralization-with-rsyslog",
+      "tree_sha256": "47f2a0eb4aa948e51c0793a2188ef99869f1e762a9316c2dc9893ef23d3a98ce"
+    },
+    {
+      "name": "implementing-taxii-server-with-opentaxii",
+      "path": "skills/implementing-taxii-server-with-opentaxii",
+      "tree_sha256": "19298a2c7c35b744cc7bd6dbf8cbbc8046dc8dc92554a1631f15b48d48068a0d"
+    },
+    {
+      "name": "implementing-threat-intelligence-lifecycle-management",
+      "path": "skills/implementing-threat-intelligence-lifecycle-management",
+      "tree_sha256": "12f83fee4764fd023c56fd6488d209d004e7984d9fc9eeb77989f9cdcddc2c7b"
+    },
+    {
+      "name": "implementing-threat-modeling-with-mitre-attack",
+      "path": "skills/implementing-threat-modeling-with-mitre-attack",
+      "tree_sha256": "898f575b262abdf5648bc9456bd4709df5b7ea3317e943ae5e6bdf2f515f51c8"
+    },
+    {
+      "name": "implementing-ticketing-system-for-incidents",
+      "path": "skills/implementing-ticketing-system-for-incidents",
+      "tree_sha256": "cc6371a30ecc695c58f18bf19841cf55862aabe2b467c4d9aaa38f9b4f64ab0c"
+    },
+    {
+      "name": "implementing-usb-device-control-policy",
+      "path": "skills/implementing-usb-device-control-policy",
+      "tree_sha256": "4f3a4fc2b6a8538e5a62eda578793006964084d37c5a3e9244cb240cfb3be0ed"
+    },
+    {
+      "name": "implementing-velociraptor-for-ir-collection",
+      "path": "skills/implementing-velociraptor-for-ir-collection",
+      "tree_sha256": "6aed0d1a5e1699b00e9bf171fa683f78ef551b3dbe06724cdc3cf1cadd7c775e"
+    },
+    {
+      "name": "implementing-vulnerability-management-with-greenbone",
+      "path": "skills/implementing-vulnerability-management-with-greenbone",
+      "tree_sha256": "8a758485a611060bb14f43a1cc5cc00397bb7215aa9c76d53d94e4eb38dec95d"
+    },
+    {
+      "name": "implementing-vulnerability-remediation-sla",
+      "path": "skills/implementing-vulnerability-remediation-sla",
+      "tree_sha256": "d7098d98b83c6775de8e738679af2dbfc3dc5cd995b3097facddaa419d0e6048"
+    },
+    {
+      "name": "implementing-vulnerability-sla-breach-alerting",
+      "path": "skills/implementing-vulnerability-sla-breach-alerting",
+      "tree_sha256": "c37f613856049eb5a49607f10c058ee4039daaae057253765c84241b0f02cc8f"
+    },
+    {
+      "name": "implementing-web-application-logging-with-modsecurity",
+      "path": "skills/implementing-web-application-logging-with-modsecurity",
+      "tree_sha256": "f9499fb5a6f3e9d9df480140fc0916c319444c7f9c0e8ea15d9aff5fb7a452f9"
+    },
+    {
+      "name": "implementing-zero-knowledge-proof-for-authentication",
+      "path": "skills/implementing-zero-knowledge-proof-for-authentication",
+      "tree_sha256": "6bef14395df04d39460f2bcbde4d866f9268a4b4fbfd20dabd38306f20b36c01"
+    },
+    {
+      "name": "implementing-zero-standing-privilege-with-cyberark",
+      "path": "skills/implementing-zero-standing-privilege-with-cyberark",
+      "tree_sha256": "5571230dd60b49cec5265feba94b4e91822902d2470bd73f5ed7c52dde34bb78"
+    },
+    {
+      "name": "implementing-zero-trust-dns-with-nextdns",
+      "path": "skills/implementing-zero-trust-dns-with-nextdns",
+      "tree_sha256": "2ad93818e14d29f54eaffdbe95e3df00d3225c0cdffdb11e6158c496cbaf7036"
+    },
+    {
+      "name": "implementing-zero-trust-for-saas-applications",
+      "path": "skills/implementing-zero-trust-for-saas-applications",
+      "tree_sha256": "4ae50106e193c93dcddfc694327b3103106f832401ff1cd8b6e9b31aa5b4a701"
+    },
+    {
+      "name": "implementing-zero-trust-in-cloud",
+      "path": "skills/implementing-zero-trust-in-cloud",
+      "tree_sha256": "7fe46d6c44dddfc31f0625f1607af01100d4b4fc2b6272de38446070fec51c55"
+    },
+    {
+      "name": "implementing-zero-trust-network-access",
+      "path": "skills/implementing-zero-trust-network-access",
+      "tree_sha256": "30fbb7a9267823c643c869c974d1aeaaa8999184c4e1f425d343916beafebd66"
+    },
+    {
+      "name": "implementing-zero-trust-network-access-with-zscaler",
+      "path": "skills/implementing-zero-trust-network-access-with-zscaler",
+      "tree_sha256": "6c771ddb20df58223607ad3e64a5212ba43813d26605d37330b9b332cc9a4be7"
+    },
+    {
+      "name": "implementing-zero-trust-with-beyondcorp",
+      "path": "skills/implementing-zero-trust-with-beyondcorp",
+      "tree_sha256": "ef3ada457727cf6c2fbb7140e64a928a8a83b87a8fd8ef840884fa7cd2946126"
+    },
+    {
+      "name": "implementing-zero-trust-with-hashicorp-boundary",
+      "path": "skills/implementing-zero-trust-with-hashicorp-boundary",
+      "tree_sha256": "569a7e1d3d50d6055b9b0e8a1115dfb7e6efd78be52326eed834a86bd6cb51ce"
+    },
+    {
+      "name": "integrating-dast-with-owasp-zap-in-pipeline",
+      "path": "skills/integrating-dast-with-owasp-zap-in-pipeline",
+      "tree_sha256": "353caeee641a29b3a13b9822e9fe6520e7e8b6c07c1d7e90527f284e65515721"
+    },
+    {
+      "name": "integrating-sast-into-github-actions-pipeline",
+      "path": "skills/integrating-sast-into-github-actions-pipeline",
+      "tree_sha256": "15d35194af10f71aaae7d48b7135c028adbcc8cdaa38cdbf3c2876240cb11b4e"
+    },
+    {
+      "name": "intercepting-mobile-traffic-with-burpsuite",
+      "path": "skills/intercepting-mobile-traffic-with-burpsuite",
+      "tree_sha256": "98fcd9e72bad314fa61218b68a0deee0c182a61cdc0a8cea71193c6f02014453"
+    },
+    {
+      "name": "investigating-insider-threat-indicators",
+      "path": "skills/investigating-insider-threat-indicators",
+      "tree_sha256": "0f0f5e8c9633b3b6dbb4d1c6ee68551502a9e54fc0447b7274ba890dbe47cb0d"
+    },
+    {
+      "name": "investigating-phishing-email-incident",
+      "path": "skills/investigating-phishing-email-incident",
+      "tree_sha256": "b7e6bcf611be41fb9ea7d1dacfeb8be55bc0b3f0a76e5b36968cd938572fdcbb"
+    },
+    {
+      "name": "investigating-ransomware-attack-artifacts",
+      "path": "skills/investigating-ransomware-attack-artifacts",
+      "tree_sha256": "7417b88f3b6e55e765bfa9170b23fc5b88faa935f8e3ed18e377cd197260f163"
+    },
+    {
+      "name": "managing-cloud-identity-with-okta",
+      "path": "skills/managing-cloud-identity-with-okta",
+      "tree_sha256": "46e307105a37cef5f20ea5f1325a6ebac29696f6121ddc350124535a76b195a3"
+    },
+    {
+      "name": "managing-intelligence-lifecycle",
+      "path": "skills/managing-intelligence-lifecycle",
+      "tree_sha256": "66256124ff05d9919921c319d69fe35e3bb350bd360fba986b8e49c6f3ffa29b"
+    },
+    {
+      "name": "managing-third-party-vendor-risk",
+      "path": "skills/managing-third-party-vendor-risk",
+      "tree_sha256": "9f4e8ca36c65dacc891f0ab1982d3402c006cf1cadd149b7a5533fb320589fa9"
+    },
+    {
+      "name": "mapping-attack-paths-with-bloodhound-ce",
+      "path": "skills/mapping-attack-paths-with-bloodhound-ce",
+      "tree_sha256": "3740192e6fffd00a261d179cfc491cf87f357212e28c2633bcb288f5e10ecaaa"
+    },
+    {
+      "name": "mapping-mitre-attack-techniques",
+      "path": "skills/mapping-mitre-attack-techniques",
+      "tree_sha256": "4c372da2a9bfa6813844c85b905d398407b6ce37816bf1b803c16895bde7ff7d"
+    },
+    {
+      "name": "migrating-to-post-quantum-cryptography",
+      "path": "skills/migrating-to-post-quantum-cryptography",
+      "tree_sha256": "cbeade863a228b437b715c086a97ddc5a67e6e596c669fca6930d8029805ce85"
+    },
+    {
+      "name": "modeling-threats-with-opencti",
+      "path": "skills/modeling-threats-with-opencti",
+      "tree_sha256": "705eee547173e611841bf8f0e01d09ba23a88a369ece5af0517bef93c16386b7"
+    },
+    {
+      "name": "monitoring-darkweb-sources",
+      "path": "skills/monitoring-darkweb-sources",
+      "tree_sha256": "e6f8bf097b829009eb31b23aecb4585f1cff93f65b031ee87cc462d34bc1f2f3"
+    },
+    {
+      "name": "monitoring-scada-modbus-traffic-anomalies",
+      "path": "skills/monitoring-scada-modbus-traffic-anomalies",
+      "tree_sha256": "d4bdcd25339eb572b7277147f178d3b360fe7530292cc260ddab2ed575a78e6f"
+    },
+    {
+      "name": "moving-laterally-with-netexec",
+      "path": "skills/moving-laterally-with-netexec",
+      "tree_sha256": "03b4b557e30d6ef7c9a3b86a8dc7009866c7cf9f420076ade6e94b3a4de0de47"
+    },
+    {
+      "name": "operating-havoc-c2",
+      "path": "skills/operating-havoc-c2",
+      "tree_sha256": "86e23c1648fd5f100e62f5dfcdb9cae06bac44bd2f6cf68fb9f114dce1ef39bb"
+    },
+    {
+      "name": "operating-sliver-c2",
+      "path": "skills/operating-sliver-c2",
+      "tree_sha256": "e8008413a67ba1b42b5412a7294481a303273cd771af84bb0d6d5d2cccbe00f2"
+    },
+    {
+      "name": "operationalizing-misp-threat-feeds",
+      "path": "skills/operationalizing-misp-threat-feeds",
+      "tree_sha256": "ecbec3d1bc17af841eb951fde84a7034b3b79009a73eac5c0ae467eba79ae43f"
+    },
+    {
+      "name": "orchestrating-llm-attacks-with-pyrit",
+      "path": "skills/orchestrating-llm-attacks-with-pyrit",
+      "tree_sha256": "9094bf1fa369df69404bccdefb1deff98a22894aa296c99e99c372d7439d0988"
+    },
+    {
+      "name": "parsing-artifacts-with-eric-zimmerman-tools",
+      "path": "skills/parsing-artifacts-with-eric-zimmerman-tools",
+      "tree_sha256": "2712b263ae97f5e9d53b9a5e52693a8022e8aefca646243f792387a3f0384719"
+    },
+    {
+      "name": "performing-access-recertification-with-saviynt",
+      "path": "skills/performing-access-recertification-with-saviynt",
+      "tree_sha256": "e734ac014a097664f85009de241f066b267fa1796dfe3feda753472fca55abd4"
+    },
+    {
+      "name": "performing-access-review-and-certification",
+      "path": "skills/performing-access-review-and-certification",
+      "tree_sha256": "881e806fc38a508f55c4b87488a0a20389c75253b328c0361268b82d05743c55"
+    },
+    {
+      "name": "performing-active-directory-bloodhound-analysis",
+      "path": "skills/performing-active-directory-bloodhound-analysis",
+      "tree_sha256": "f7cc845975f071eb378c9c8c5055d66c7d508a7af6cc66f539c7d46e3fd5d77a"
+    },
+    {
+      "name": "performing-active-directory-compromise-investigation",
+      "path": "skills/performing-active-directory-compromise-investigation",
+      "tree_sha256": "faa09ce52e7f95e591ce468d1fb6b8cbc5f9c4d1be7a2f61e59a761379465328"
+    },
+    {
+      "name": "performing-active-directory-forest-trust-attack",
+      "path": "skills/performing-active-directory-forest-trust-attack",
+      "tree_sha256": "1a31458e2755d53273b0d4a7040cbfcc142244450c0e5e1f8870a4d6008a2442"
+    },
+    {
+      "name": "performing-active-directory-penetration-test",
+      "path": "skills/performing-active-directory-penetration-test",
+      "tree_sha256": "2e4ef919288026dde57f8882a1071fe51293d40213fdb06cc8107df7c7eb31f9"
+    },
+    {
+      "name": "performing-active-directory-vulnerability-assessment",
+      "path": "skills/performing-active-directory-vulnerability-assessment",
+      "tree_sha256": "f2eeadc7f300b9fd2f569ea7bca7de316519764803bf8c799bfca56cfb9f113b"
+    },
+    {
+      "name": "performing-adversary-in-the-middle-phishing-detection",
+      "path": "skills/performing-adversary-in-the-middle-phishing-detection",
+      "tree_sha256": "93ee54e161c6b059c7efefcc478bf6d82f64b8272a141539320f1840a1a48a6c"
+    },
+    {
+      "name": "performing-agentless-vulnerability-scanning",
+      "path": "skills/performing-agentless-vulnerability-scanning",
+      "tree_sha256": "64d753f92cb0eb6ddaef113fbaff3af65cb908b98ea350ea962d9baca663bf32"
+    },
+    {
+      "name": "performing-ai-driven-osint-correlation",
+      "path": "skills/performing-ai-driven-osint-correlation",
+      "tree_sha256": "a668efee28f544f60978ca4554be85d15f9fbc6e70eb00b19b584230a6b48765"
+    },
+    {
+      "name": "performing-alert-triage-with-elastic-siem",
+      "path": "skills/performing-alert-triage-with-elastic-siem",
+      "tree_sha256": "6cdc24f98acb9a39ea5ce9fb8a102e559379c4c4b3213488a39af5287f1e2f47"
+    },
+    {
+      "name": "performing-android-app-static-analysis-with-mobsf",
+      "path": "skills/performing-android-app-static-analysis-with-mobsf",
+      "tree_sha256": "b0c68dec0c3e55a276902a8948769158ba85ffc213d1b11e3c7a68adfcce89c5"
+    },
+    {
+      "name": "performing-api-fuzzing-with-restler",
+      "path": "skills/performing-api-fuzzing-with-restler",
+      "tree_sha256": "09773c4a95da4dcb2ab7916fb3275344fc4a98ef84bcbb5b229adb8e0d7046ec"
+    },
+    {
+      "name": "performing-api-inventory-and-discovery",
+      "path": "skills/performing-api-inventory-and-discovery",
+      "tree_sha256": "5b67edcb4d367d9e3154153b85e53c66153609c9a81dce88c2f233fff7fc7791"
+    },
+    {
+      "name": "performing-api-rate-limiting-bypass",
+      "path": "skills/performing-api-rate-limiting-bypass",
+      "tree_sha256": "757b599f5e22d6a68bfc087ad10d2a4f4ebd7d6178339e0a3db31b2aa5dc8d58"
+    },
+    {
+      "name": "performing-api-security-testing-with-postman",
+      "path": "skills/performing-api-security-testing-with-postman",
+      "tree_sha256": "970bb2c45f90498d7fa9ff17a515f0c68f0fe05207d1a4c97b50c0138e6104a3"
+    },
+    {
+      "name": "performing-arp-spoofing-attack-simulation",
+      "path": "skills/performing-arp-spoofing-attack-simulation",
+      "tree_sha256": "b0b7de4b32479a2275c91d8236b5b27a6dc5abefc2938c7aed9887298c12e047"
+    },
+    {
+      "name": "performing-asset-criticality-scoring-for-vulns",
+      "path": "skills/performing-asset-criticality-scoring-for-vulns",
+      "tree_sha256": "1bb46110b8c278a602baa6a617873953ffcaa80e147dd0075e551b5ddd1d8e4d"
+    },
+    {
+      "name": "performing-authenticated-scan-with-openvas",
+      "path": "skills/performing-authenticated-scan-with-openvas",
+      "tree_sha256": "eec97bf46abd78fdfc05235d8763e37233a23839fbe2e64f9f8a95669c5788f9"
+    },
+    {
+      "name": "performing-authenticated-vulnerability-scan",
+      "path": "skills/performing-authenticated-vulnerability-scan",
+      "tree_sha256": "1017bbd40b6c66138c2329105e1485b8da373ac67478facb710cd490d2209275"
+    },
+    {
+      "name": "performing-automated-malware-analysis-with-cape",
+      "path": "skills/performing-automated-malware-analysis-with-cape",
+      "tree_sha256": "e21d0c949cb1718b3dfd0d1bfebb84b261e53aa510b10c976df8d7e54fe1ba9a"
+    },
+    {
+      "name": "performing-aws-account-enumeration-with-scout-suite",
+      "path": "skills/performing-aws-account-enumeration-with-scout-suite",
+      "tree_sha256": "1f4ebcfcf057a6e2dd655670169ddb982591e0864488ebf4121a0653aa189bd0"
+    },
+    {
+      "name": "performing-aws-privilege-escalation-assessment",
+      "path": "skills/performing-aws-privilege-escalation-assessment",
+      "tree_sha256": "9e93ab04c005b500108921d0e5c39859d754e215551716d32d67a2739d2e9d17"
+    },
+    {
+      "name": "performing-bandwidth-throttling-attack-simulation",
+      "path": "skills/performing-bandwidth-throttling-attack-simulation",
+      "tree_sha256": "3d18b360229395311d01d5fc12861bbc866c693275d00e13453f81f21cca9522"
+    },
+    {
+      "name": "performing-binary-exploitation-analysis",
+      "path": "skills/performing-binary-exploitation-analysis",
+      "tree_sha256": "fdf7f40d1a19c6431ffc3f03bed6528b4d64232c21d4d7868004bb008559f7b8"
+    },
+    {
+      "name": "performing-blind-ssrf-exploitation",
+      "path": "skills/performing-blind-ssrf-exploitation",
+      "tree_sha256": "40d17d2afcb592e9e82fc35fd8e3721b8cbd45b9289c2000fc15c93dfeb1dd1b"
+    },
+    {
+      "name": "performing-bluetooth-security-assessment",
+      "path": "skills/performing-bluetooth-security-assessment",
+      "tree_sha256": "48b1b014e58e569a177e6c513080b6b23acee2449f1348eb28cbaa2dedb0f20b"
+    },
+    {
+      "name": "performing-brand-monitoring-for-impersonation",
+      "path": "skills/performing-brand-monitoring-for-impersonation",
+      "tree_sha256": "fa8fe1fb7342c235f2dab36beac1083cb6140e3d6072dfb6701c2724bdf32d1c"
+    },
+    {
+      "name": "performing-clickjacking-attack-test",
+      "path": "skills/performing-clickjacking-attack-test",
+      "tree_sha256": "f675118fdf74249203f66929120a7e75619e0ea07ad2480dd69df8ca5a568c46"
+    },
+    {
+      "name": "performing-cloud-asset-inventory-with-cartography",
+      "path": "skills/performing-cloud-asset-inventory-with-cartography",
+      "tree_sha256": "e6ec92a79a76f23346932569f37f9c0f59bebb0ee4db101d079a31257a02aba9"
+    },
+    {
+      "name": "performing-cloud-forensics-investigation",
+      "path": "skills/performing-cloud-forensics-investigation",
+      "tree_sha256": "ff1f705647af247c4aa11910e17ec2a3195f4415cf371c602cfaadb93866ef76"
+    },
+    {
+      "name": "performing-cloud-forensics-with-aws-cloudtrail",
+      "path": "skills/performing-cloud-forensics-with-aws-cloudtrail",
+      "tree_sha256": "55ef55887461a0ff87bee0ee0aae6107841b991c353ef14a29865507db6d162c"
+    },
+    {
+      "name": "performing-cloud-incident-containment-procedures",
+      "path": "skills/performing-cloud-incident-containment-procedures",
+      "tree_sha256": "9b7ca3693292643133377202647ce941a6ff615ddf8ac7dc12cb481641db742e"
+    },
+    {
+      "name": "performing-cloud-log-forensics-with-athena",
+      "path": "skills/performing-cloud-log-forensics-with-athena",
+      "tree_sha256": "473be9734c58bcc093d6247d24bd54ee4883953732a3c14a5cf22d771c9a7d9d"
+    },
+    {
+      "name": "performing-cloud-native-forensics-with-falco",
+      "path": "skills/performing-cloud-native-forensics-with-falco",
+      "tree_sha256": "7d04d6485676500fb7fc2c7ea5b838d65464ae2079218141a7608c0402612848"
+    },
+    {
+      "name": "performing-cloud-native-threat-hunting-with-aws-detective",
+      "path": "skills/performing-cloud-native-threat-hunting-with-aws-detective",
+      "tree_sha256": "ea5bedc6cb810eef057e07e3f0d415c6f24787de2804bfcf7a7e8f1f7778a20e"
+    },
+    {
+      "name": "performing-cloud-penetration-testing-with-pacu",
+      "path": "skills/performing-cloud-penetration-testing-with-pacu",
+      "tree_sha256": "d8325c21fc53bd47ca81981d46c10a2b962a46994d0df116fccd619547295acb"
+    },
+    {
+      "name": "performing-cloud-storage-forensic-acquisition",
+      "path": "skills/performing-cloud-storage-forensic-acquisition",
+      "tree_sha256": "953b6a9ea557a70e23cc30b7867eee0da7a9f931206758a440812cf72353d6b2"
+    },
+    {
+      "name": "performing-container-escape-detection",
+      "path": "skills/performing-container-escape-detection",
+      "tree_sha256": "5c4c8f05037269cdd6e2c8e91ef1522527d2537465b82058d0f43644658a0493"
+    },
+    {
+      "name": "performing-container-image-hardening",
+      "path": "skills/performing-container-image-hardening",
+      "tree_sha256": "aa1b816f0c6c3490566fc9e835881e370d7bcbe56f91411d28405b47f19129ba"
+    },
+    {
+      "name": "performing-container-security-scanning-with-trivy",
+      "path": "skills/performing-container-security-scanning-with-trivy",
+      "tree_sha256": "e8a24c56d618aaf2bfa467168f35c65c3d069c462b24268759815b91cca23d0b"
+    },
+    {
+      "name": "performing-content-security-policy-bypass",
+      "path": "skills/performing-content-security-policy-bypass",
+      "tree_sha256": "70215e79327ca31bbd190e5be42db456701a1e1ff394951fad4ef72bec569f95"
+    },
+    {
+      "name": "performing-credential-access-with-lazagne",
+      "path": "skills/performing-credential-access-with-lazagne",
+      "tree_sha256": "b146abb6f5c9f7c838fe58ea922f5acf1385ce265c96767f00df9cc0ad1108a0"
+    },
+    {
+      "name": "performing-cryptographic-audit-of-application",
+      "path": "skills/performing-cryptographic-audit-of-application",
+      "tree_sha256": "557d25eba1c6db54dfbc799052c15c18719611926c95bc87a7fa4195cee1e11f"
+    },
+    {
+      "name": "performing-csrf-attack-simulation",
+      "path": "skills/performing-csrf-attack-simulation",
+      "tree_sha256": "88c796de1d9b4940a36843f58fc5568b6c5f88126a8d8b5c27a4facecbd007f7"
+    },
+    {
+      "name": "performing-cve-prioritization-with-kev-catalog",
+      "path": "skills/performing-cve-prioritization-with-kev-catalog",
+      "tree_sha256": "3f5d2a545b5262c532f14b385a2725ae8ff831a7ae9307046e14f9a48f5fa586"
+    },
+    {
+      "name": "performing-dark-web-monitoring-for-threats",
+      "path": "skills/performing-dark-web-monitoring-for-threats",
+      "tree_sha256": "abb1b0e24879b3dec07a462ef892787bd65379d53041ed52307b4f887120c43a"
+    },
+    {
+      "name": "performing-deception-technology-deployment",
+      "path": "skills/performing-deception-technology-deployment",
+      "tree_sha256": "8f38d2e1d294e7462def7c7ac03b4286afe8dac2571269f77eb8840ddc1e3094"
+    },
+    {
+      "name": "performing-directory-traversal-testing",
+      "path": "skills/performing-directory-traversal-testing",
+      "tree_sha256": "a71083976dfa716d4225de2a782f440ee456c1aa54b8274cf8db9f53d9bce7e1"
+    },
+    {
+      "name": "performing-disk-forensics-investigation",
+      "path": "skills/performing-disk-forensics-investigation",
+      "tree_sha256": "edc35da3d65614a9176f08ffef3efdf1c19ba09d4c3272f2ea50431c493fab0a"
+    },
+    {
+      "name": "performing-dmarc-policy-enforcement-rollout",
+      "path": "skills/performing-dmarc-policy-enforcement-rollout",
+      "tree_sha256": "e792c4d2df07ccab4abaaadd4cab4183974f509df1cbc9633baeee4e05e57bfc"
+    },
+    {
+      "name": "performing-dns-enumeration-and-zone-transfer",
+      "path": "skills/performing-dns-enumeration-and-zone-transfer",
+      "tree_sha256": "5c8aae53c4b39e44fc6bdf644ee2e61b6365141a82fe052d4c7c120abbd9e531"
+    },
+    {
+      "name": "performing-dns-tunneling-detection",
+      "path": "skills/performing-dns-tunneling-detection",
+      "tree_sha256": "9df21515c32a349cc90945f524535f6fe0f0fc6fe271baaa34fc618130e629d5"
+    },
+    {
+      "name": "performing-docker-bench-security-assessment",
+      "path": "skills/performing-docker-bench-security-assessment",
+      "tree_sha256": "18c6992e82f77196195af8440d747062986c7d1091d202a6a0a92991a3b35d32"
+    },
+    {
+      "name": "performing-dynamic-analysis-of-android-app",
+      "path": "skills/performing-dynamic-analysis-of-android-app",
+      "tree_sha256": "667103647b7427aa4979e7f5e307a23d84d09b6b8de098c33298207885d1fb7f"
+    },
+    {
+      "name": "performing-dynamic-analysis-with-any-run",
+      "path": "skills/performing-dynamic-analysis-with-any-run",
+      "tree_sha256": "23103b8e60774d4a1a188d7701250808e4d7cb4adf90e4adae4c6620e68a75dd"
+    },
+    {
+      "name": "performing-endpoint-forensics-investigation",
+      "path": "skills/performing-endpoint-forensics-investigation",
+      "tree_sha256": "0568693e2d3d35a30093f01bc11b04516d7de0f6b28add9519eb96644de81f96"
+    },
+    {
+      "name": "performing-endpoint-vulnerability-remediation",
+      "path": "skills/performing-endpoint-vulnerability-remediation",
+      "tree_sha256": "934c4a0bafd923a41f04e728f752f65ef7bd855968a7ca88707461071e0cbd4f"
+    },
+    {
+      "name": "performing-entitlement-review-with-sailpoint-iiq",
+      "path": "skills/performing-entitlement-review-with-sailpoint-iiq",
+      "tree_sha256": "87cff78e931eb078c38a8a9c7ad7268e7b1777235168fd712a33e2d3a8c1b123"
+    },
+    {
+      "name": "performing-external-network-penetration-test",
+      "path": "skills/performing-external-network-penetration-test",
+      "tree_sha256": "95ecfb58865aeab8c531a7f6987c3874ef672938873b463e04d1fbd51d899bbe"
+    },
+    {
+      "name": "performing-false-positive-reduction-in-siem",
+      "path": "skills/performing-false-positive-reduction-in-siem",
+      "tree_sha256": "47b34ca777c824872364868ca4e6f2dbc63a1627e33e2c84509f6fe489914e88"
+    },
+    {
+      "name": "performing-file-carving-with-foremost",
+      "path": "skills/performing-file-carving-with-foremost",
+      "tree_sha256": "c841c2fe822ee1b78c2cfac5d052db1303b67cf33c07d67f55a117350a9e788c"
+    },
+    {
+      "name": "performing-firmware-extraction-with-binwalk",
+      "path": "skills/performing-firmware-extraction-with-binwalk",
+      "tree_sha256": "a06bd7bf611ea9ea9ea80dac73c423c651a9524f3116f5841239b2fd84eaa49b"
+    },
+    {
+      "name": "performing-firmware-malware-analysis",
+      "path": "skills/performing-firmware-malware-analysis",
+      "tree_sha256": "131f0eb006767e21f9ebd8b961fbbc355814ee6e1e13885c6909351917a6bc28"
+    },
+    {
+      "name": "performing-fuzzing-with-aflplusplus",
+      "path": "skills/performing-fuzzing-with-aflplusplus",
+      "tree_sha256": "f51973a3ea0507a73d3dec380e35cba2c7a568b462f703d71dfbf83d3bd53dc7"
+    },
+    {
+      "name": "performing-gcp-penetration-testing-with-gcpbucketbrute",
+      "path": "skills/performing-gcp-penetration-testing-with-gcpbucketbrute",
+      "tree_sha256": "4ca3f6d36f399417a524f6154819eb66263c168fe293870394ff04d17ebb0996"
+    },
+    {
+      "name": "performing-gcp-security-assessment-with-forseti",
+      "path": "skills/performing-gcp-security-assessment-with-forseti",
+      "tree_sha256": "34a4bbb6cfed9d8459f6de842bc287f88d65152b295cfc5a0e2bb39aea8961ca"
+    },
+    {
+      "name": "performing-graphql-depth-limit-attack",
+      "path": "skills/performing-graphql-depth-limit-attack",
+      "tree_sha256": "161f099d1fa373edc43d66150655d25922f5f4d1b2985d1b1796b50a180634b7"
+    },
+    {
+      "name": "performing-graphql-introspection-attack",
+      "path": "skills/performing-graphql-introspection-attack",
+      "tree_sha256": "3449c1f7d4e8f72163340530902696d20a0a1f0a6d5da5dc2ad7ea5fbf86381f"
+    },
+    {
+      "name": "performing-graphql-security-assessment",
+      "path": "skills/performing-graphql-security-assessment",
+      "tree_sha256": "0a06dc31c305808c6468223f6cd64ad7b2a2a44f4f7992ab3057b492fb89519d"
+    },
+    {
+      "name": "performing-hardware-security-module-integration",
+      "path": "skills/performing-hardware-security-module-integration",
+      "tree_sha256": "921730d8ecf200180a1398630fbcdcd4bf04658b837eb194af7f2697e055155a"
+    },
+    {
+      "name": "performing-hash-cracking-with-hashcat",
+      "path": "skills/performing-hash-cracking-with-hashcat",
+      "tree_sha256": "64ce9340a96c2d7b998bf81917f7a2a07aae3eae5edbfd8bb519cf0366716736"
+    },
+    {
+      "name": "performing-http-parameter-pollution-attack",
+      "path": "skills/performing-http-parameter-pollution-attack",
+      "tree_sha256": "069976a61b2c52a4bf7ba6dcade0297abcb8ad81e8163e38002d0e1fe7ffc118"
+    },
+    {
+      "name": "performing-ics-asset-discovery-with-claroty",
+      "path": "skills/performing-ics-asset-discovery-with-claroty",
+      "tree_sha256": "d9d56e50ffaf96ac476395e2ff934f5340d822e270638c2e2258340ebfadb151"
+    },
+    {
+      "name": "performing-indicator-lifecycle-management",
+      "path": "skills/performing-indicator-lifecycle-management",
+      "tree_sha256": "f2edcdcbc289caa7bc6091c981601261d1c933eec9720cc1548ecd20343748e7"
+    },
+    {
+      "name": "performing-initial-access-with-evilginx3",
+      "path": "skills/performing-initial-access-with-evilginx3",
+      "tree_sha256": "b072abcefd879bbe6441c5e0f372b3d023a7d6870b22d5ae13ffbae8cb3d5bee"
+    },
+    {
+      "name": "performing-insider-threat-investigation",
+      "path": "skills/performing-insider-threat-investigation",
+      "tree_sha256": "c849d265490a07a845d10d999569c2388d3776bb0621f69fd7550b61446d6e6f"
+    },
+    {
+      "name": "performing-ioc-enrichment-automation",
+      "path": "skills/performing-ioc-enrichment-automation",
+      "tree_sha256": "bf4e50d09dbd634ddf2db8b1644ad6ab302b32053e9ec57d4f7791e54136618e"
+    },
+    {
+      "name": "performing-ios-app-security-assessment",
+      "path": "skills/performing-ios-app-security-assessment",
+      "tree_sha256": "a4a12445d5f1615f49a5ff3fe8973d0fd93a4c1914cd5d8911d76be060a40ba7"
+    },
+    {
+      "name": "performing-iot-security-assessment",
+      "path": "skills/performing-iot-security-assessment",
+      "tree_sha256": "bfcb0a99e4872b77e8edd7e75ebd3c1e56624b12dae1e43f4ce6a29c1fb5b601"
+    },
+    {
+      "name": "performing-ip-reputation-analysis-with-shodan",
+      "path": "skills/performing-ip-reputation-analysis-with-shodan",
+      "tree_sha256": "e71b8d124ef49f953a62d8798b010e3533ea645cf772e72d18d86ae91e086ee5"
+    },
+    {
+      "name": "performing-jwt-none-algorithm-attack",
+      "path": "skills/performing-jwt-none-algorithm-attack",
+      "tree_sha256": "9e89a9efe5a44143ebeb067e59d94544e032693cf3399104e3bb02a5db3cbb14"
+    },
+    {
+      "name": "performing-kerberoasting-attack",
+      "path": "skills/performing-kerberoasting-attack",
+      "tree_sha256": "3ff158c5c6ccfcc3772f99f48a1e3ccee867089e5a76171d4106a25024bf0a1c"
+    },
+    {
+      "name": "performing-kubernetes-cis-benchmark-with-kube-bench",
+      "path": "skills/performing-kubernetes-cis-benchmark-with-kube-bench",
+      "tree_sha256": "8e40c11c65372866d3d158286a6199cdfececc822801d9a9987291af25d9dc1b"
+    },
+    {
+      "name": "performing-kubernetes-etcd-security-assessment",
+      "path": "skills/performing-kubernetes-etcd-security-assessment",
+      "tree_sha256": "c7295f386a3ea3e6bf77b49199f5567430d9f8cb0210814fc64a0a2d48a7c6f1"
+    },
+    {
+      "name": "performing-kubernetes-penetration-testing",
+      "path": "skills/performing-kubernetes-penetration-testing",
+      "tree_sha256": "9d002997698a9eb15fb56f8ba2a59f998a04430acede91f65043bd4a2cfaaf45"
+    },
+    {
+      "name": "performing-lateral-movement-detection",
+      "path": "skills/performing-lateral-movement-detection",
+      "tree_sha256": "77de2a1f5775b23cc43a3398b2538cf56e54ed6a1b46692b6debbd810cd145ac"
+    },
+    {
+      "name": "performing-lateral-movement-with-wmiexec",
+      "path": "skills/performing-lateral-movement-with-wmiexec",
+      "tree_sha256": "e6247e16aad9e4447721c1fd69059fe82dd873125de2164d30de5279dbf9f3d0"
+    },
+    {
+      "name": "performing-linux-log-forensics-investigation",
+      "path": "skills/performing-linux-log-forensics-investigation",
+      "tree_sha256": "673aab7da0302f365bc26821b1138450e819b9e62cca53ad5df9adfcedf0c2b7"
+    },
+    {
+      "name": "performing-log-analysis-for-forensic-investigation",
+      "path": "skills/performing-log-analysis-for-forensic-investigation",
+      "tree_sha256": "50ee1dd1997e61e678f457cb6a6cd7e979b6b0a226d31f2fbbb0f9c2a111fe7d"
+    },
+    {
+      "name": "performing-log-source-onboarding-in-siem",
+      "path": "skills/performing-log-source-onboarding-in-siem",
+      "tree_sha256": "7294a7e27cb353430acf203f48644b089450ccccf0d51adf4ad13434260c78e9"
+    },
+    {
+      "name": "performing-malware-hash-enrichment-with-virustotal",
+      "path": "skills/performing-malware-hash-enrichment-with-virustotal",
+      "tree_sha256": "c37de7408389a6abf53e5f5a0990dd93ad03788adf645d4892754fd6084f8bce"
+    },
+    {
+      "name": "performing-malware-ioc-extraction",
+      "path": "skills/performing-malware-ioc-extraction",
+      "tree_sha256": "0e606ba61a29488ed036f568f0fdfd5c348930eeac57d1cc8fc06571f58d1284"
+    },
+    {
+      "name": "performing-malware-persistence-investigation",
+      "path": "skills/performing-malware-persistence-investigation",
+      "tree_sha256": "58d011cd25650100ca6b7953c9eb60132d69efc9f88e8f1fd2081b462579ae1f"
+    },
+    {
+      "name": "performing-malware-triage-with-yara",
+      "path": "skills/performing-malware-triage-with-yara",
+      "tree_sha256": "91805728cfda6d0970530c7892b2e2507a84d4d3050acd223c3d0db7d61a4683"
+    },
+    {
+      "name": "performing-memory-forensics-with-volatility3",
+      "path": "skills/performing-memory-forensics-with-volatility3",
+      "tree_sha256": "b739f3bd90dcc7a32cf803410b6e70caf9ad6c1bb49a440a82000ea858b5498a"
+    },
+    {
+      "name": "performing-memory-forensics-with-volatility3-plugins",
+      "path": "skills/performing-memory-forensics-with-volatility3-plugins",
+      "tree_sha256": "5f7c904c626ca70107b08ce4606a628a0965108748919192e52b475858e715bf"
+    },
+    {
+      "name": "performing-mobile-app-certificate-pinning-bypass",
+      "path": "skills/performing-mobile-app-certificate-pinning-bypass",
+      "tree_sha256": "5499b63292275dd6a715ff5a6e517fb145cfb3765e0261e4762a0a3fda047eb2"
+    },
+    {
+      "name": "performing-mobile-device-forensics-with-cellebrite",
+      "path": "skills/performing-mobile-device-forensics-with-cellebrite",
+      "tree_sha256": "e3fadf139330e14e56d71cde14beeac4b4027ecd1037c9c49bd4004b967c7937"
+    },
+    {
+      "name": "performing-network-forensics-with-wireshark",
+      "path": "skills/performing-network-forensics-with-wireshark",
+      "tree_sha256": "9d9e1ff4a8683d37daa0973583aee06b629be9ef51d9e14ece6351404de73ba1"
+    },
+    {
+      "name": "performing-network-packet-capture-analysis",
+      "path": "skills/performing-network-packet-capture-analysis",
+      "tree_sha256": "6c2ae572163d4ff8f1c1b008dad50a56e96f053d062d158aeff3463a8b5029ac"
+    },
+    {
+      "name": "performing-network-traffic-analysis-with-tshark",
+      "path": "skills/performing-network-traffic-analysis-with-tshark",
+      "tree_sha256": "408d0ff5c4181f399783a3e74cb6c9f51f1978cbab056ba4650f62b2451c7b51"
+    },
+    {
+      "name": "performing-network-traffic-analysis-with-zeek",
+      "path": "skills/performing-network-traffic-analysis-with-zeek",
+      "tree_sha256": "160c02502071fe5763275969394be449b74bbe587af237b8ded4d80889a22f81"
+    },
+    {
+      "name": "performing-nist-csf-maturity-assessment",
+      "path": "skills/performing-nist-csf-maturity-assessment",
+      "tree_sha256": "fb6a35289b79ca0317a9c63d7319028c849d162aacaec6dc8cb82d7104de62eb"
+    },
+    {
+      "name": "performing-oauth-scope-minimization-review",
+      "path": "skills/performing-oauth-scope-minimization-review",
+      "tree_sha256": "4c4349d1315db5c333afb38c6d32eee6303534af16c2e273ac4d060ebd5a4e78"
+    },
+    {
+      "name": "performing-oil-gas-cybersecurity-assessment",
+      "path": "skills/performing-oil-gas-cybersecurity-assessment",
+      "tree_sha256": "c6ec52fa7a1c7c56ac3c4d30baae2116906a853a8a71d3b96393b83614bce353"
+    },
+    {
+      "name": "performing-open-source-intelligence-gathering",
+      "path": "skills/performing-open-source-intelligence-gathering",
+      "tree_sha256": "85a6af6c674dc1789d2dd6540983e0fd9458bb8883b7807b34e44f23d30557b3"
+    },
+    {
+      "name": "performing-osint-with-spiderfoot",
+      "path": "skills/performing-osint-with-spiderfoot",
+      "tree_sha256": "76b4bc223056188031e50f1a8fe80453bb90ee2a95d399ff3c9ad6d12d5b04c6"
+    },
+    {
+      "name": "performing-ot-network-security-assessment",
+      "path": "skills/performing-ot-network-security-assessment",
+      "tree_sha256": "30336c1139a2bae9934f7ce9ec68a2707943b4c0c17fe498bf906a0a97290550"
+    },
+    {
+      "name": "performing-ot-vulnerability-assessment-with-claroty",
+      "path": "skills/performing-ot-vulnerability-assessment-with-claroty",
+      "tree_sha256": "02d471722ceba116df23367b71ede7f136c9bb3c47a3ad30688ab424cc6a7a62"
+    },
+    {
+      "name": "performing-ot-vulnerability-scanning-safely",
+      "path": "skills/performing-ot-vulnerability-scanning-safely",
+      "tree_sha256": "f9d214791dec6a39d4a52dc201b25366aeee31791cef5c276d7f22c9fa2930bd"
+    },
+    {
+      "name": "performing-packet-injection-attack",
+      "path": "skills/performing-packet-injection-attack",
+      "tree_sha256": "90b0f5aae0d96a9e21b342cd10cd2796ea1b2312603145bfa76727b2dfa3d7c5"
+    },
+    {
+      "name": "performing-paste-site-monitoring-for-credentials",
+      "path": "skills/performing-paste-site-monitoring-for-credentials",
+      "tree_sha256": "efb311d6f8d46e786d53231b810076859cf444a28291e45fe731be3a17325129"
+    },
+    {
+      "name": "performing-phishing-simulation-with-gophish",
+      "path": "skills/performing-phishing-simulation-with-gophish",
+      "tree_sha256": "7813aebc8e2c8b90494f922d3bdb81e40f5fd3f530fc5518567063264a9574dc"
+    },
+    {
+      "name": "performing-physical-intrusion-assessment",
+      "path": "skills/performing-physical-intrusion-assessment",
+      "tree_sha256": "bd43b4f7b4ec60b1d3258e38a2ad5db6bf839f3015f540a3662b8b14e3b6a4a8"
+    },
+    {
+      "name": "performing-plc-firmware-security-analysis",
+      "path": "skills/performing-plc-firmware-security-analysis",
+      "tree_sha256": "a42010548efb9060b1bd67021060cfd84532a7c95607da1bafd6ac1b7f5544f6"
+    },
+    {
+      "name": "performing-post-quantum-cryptography-migration",
+      "path": "skills/performing-post-quantum-cryptography-migration",
+      "tree_sha256": "ba7cf4c52abc1966efd1d8a46e45c2a6f54c8a78b23f98f0d0d9aba48cd43c5f"
+    },
+    {
+      "name": "performing-power-grid-cybersecurity-assessment",
+      "path": "skills/performing-power-grid-cybersecurity-assessment",
+      "tree_sha256": "f5258ed7e672fbda55d12bd4a55655e33298d999b1bfcc684d5cd338de4075e6"
+    },
+    {
+      "name": "performing-privacy-impact-assessment",
+      "path": "skills/performing-privacy-impact-assessment",
+      "tree_sha256": "07e2131d0924fe0b05eb65ea65f03db2be80a749171ad9777c9709d6091d0a4c"
+    },
+    {
+      "name": "performing-privilege-escalation-assessment",
+      "path": "skills/performing-privilege-escalation-assessment",
+      "tree_sha256": "687a3f3ed3603c631a935af47e8bd3717b3b93cce87c66255577767eca7ad3f3"
+    },
+    {
+      "name": "performing-privilege-escalation-on-linux",
+      "path": "skills/performing-privilege-escalation-on-linux",
+      "tree_sha256": "dc77f6e87f76294f09c13e38e7fa231801ad62ad2b864401bb529c99340171e6"
+    },
+    {
+      "name": "performing-privileged-account-access-review",
+      "path": "skills/performing-privileged-account-access-review",
+      "tree_sha256": "b86722e7d91dc78685901e812ff5c4d9214d5b0fad30c56171168ea9e88e40c0"
+    },
+    {
+      "name": "performing-privileged-account-discovery",
+      "path": "skills/performing-privileged-account-discovery",
+      "tree_sha256": "500cecbaa07a426912ce3f4ce549e69bb399b135806cb51597253c42b733cf70"
+    },
+    {
+      "name": "performing-purple-team-atomic-testing",
+      "path": "skills/performing-purple-team-atomic-testing",
+      "tree_sha256": "3e4d3d11c9ac21fc5a4ff874276e53f7ebd3f0b0650c2793e1a9481da6b21e6d"
+    },
+    {
+      "name": "performing-purple-team-exercise",
+      "path": "skills/performing-purple-team-exercise",
+      "tree_sha256": "6b071b96907367fefc2b391ac9ebc051a7da6b5140638f52a6a2748ece0280f8"
+    },
+    {
+      "name": "performing-ransomware-response",
+      "path": "skills/performing-ransomware-response",
+      "tree_sha256": "d9c7c6ac52b67ace8b1d5128bb7f54b506c23ec6e7e999efd581cf97d940d7e6"
+    },
+    {
+      "name": "performing-ransomware-tabletop-exercise",
+      "path": "skills/performing-ransomware-tabletop-exercise",
+      "tree_sha256": "03bed5886849d385da091df0052ccedac37682f9a945c0a8e951e12a915c149d"
+    },
+    {
+      "name": "performing-red-team-phishing-with-gophish",
+      "path": "skills/performing-red-team-phishing-with-gophish",
+      "tree_sha256": "4b4729e1d534e89873f78b9dbbad0adb9c3e470fb51a42a803958ca29c926bb3"
+    },
+    {
+      "name": "performing-red-team-with-covenant",
+      "path": "skills/performing-red-team-with-covenant",
+      "tree_sha256": "f33d8d00286d608769f05f09ca5464743bedfe5a0ba733ac40045d69183f1ff4"
+    },
+    {
+      "name": "performing-s7comm-protocol-security-analysis",
+      "path": "skills/performing-s7comm-protocol-security-analysis",
+      "tree_sha256": "4b053d055b912184cd0cb23f12fa348221220d0d4aed19eac73c4ac6b2632f78"
+    },
+    {
+      "name": "performing-sca-dependency-scanning-with-snyk",
+      "path": "skills/performing-sca-dependency-scanning-with-snyk",
+      "tree_sha256": "97bd2b18ca882acbb278566cfacab8282f05a23ff99866fa3b17fda2467c37b6"
+    },
+    {
+      "name": "performing-scada-hmi-security-assessment",
+      "path": "skills/performing-scada-hmi-security-assessment",
+      "tree_sha256": "65ba7c4316504a7815ee22d9669a18ab3eb0b7b74c4963428e9e1bd8651fd439"
+    },
+    {
+      "name": "performing-second-order-sql-injection",
+      "path": "skills/performing-second-order-sql-injection",
+      "tree_sha256": "936297cd50aad5729a9f595d6b0a69236c914defa1c349ebf673af81a7be3986"
+    },
+    {
+      "name": "performing-security-headers-audit",
+      "path": "skills/performing-security-headers-audit",
+      "tree_sha256": "18299e6bc5d705a13e757658d8565779d583fda7b94b982adeb2a25b2b8b7cd9"
+    },
+    {
+      "name": "performing-serverless-function-security-review",
+      "path": "skills/performing-serverless-function-security-review",
+      "tree_sha256": "20ce1d8b39f19c5e7a28a78dd550e97fff8c8977c68266651dabb1bc0943e3b1"
+    },
+    {
+      "name": "performing-service-account-audit",
+      "path": "skills/performing-service-account-audit",
+      "tree_sha256": "ed0073f107171a2c734270ad9851099627869b11c8a36cdf6c6266abe19af917"
+    },
+    {
+      "name": "performing-service-account-credential-rotation",
+      "path": "skills/performing-service-account-credential-rotation",
+      "tree_sha256": "a4c29ebc662ea30edee0fb141a21d91e9a5cd0eb1d3e30f380d378cd1cd10e6c"
+    },
+    {
+      "name": "performing-soap-web-service-security-testing",
+      "path": "skills/performing-soap-web-service-security-testing",
+      "tree_sha256": "439771af8d1348e66043e071cb8334d069028bb139478f4c01380208e0d989be"
+    },
+    {
+      "name": "performing-soc-tabletop-exercise",
+      "path": "skills/performing-soc-tabletop-exercise",
+      "tree_sha256": "043c863fc7e95ef674ec64146ee32eed7a51b4970fd8280f8fdfc01ed5936c46"
+    },
+    {
+      "name": "performing-soc2-type2-audit-preparation",
+      "path": "skills/performing-soc2-type2-audit-preparation",
+      "tree_sha256": "af25a8e5c4f2f78104f1c3050393a31750a53a17e0fbacb592a81cb7accdb2b0"
+    },
+    {
+      "name": "performing-sqlite-database-forensics",
+      "path": "skills/performing-sqlite-database-forensics",
+      "tree_sha256": "40aa05f428576c6519f460ecb9776811fa353a306fb53a1c2115ca305bf8cb40"
+    },
+    {
+      "name": "performing-ssl-certificate-lifecycle-management",
+      "path": "skills/performing-ssl-certificate-lifecycle-management",
+      "tree_sha256": "d3bd041ffd6ed76aed8ec190e807c9ce1d6d0ec80c400a14d7ddad858e08e566"
+    },
+    {
+      "name": "performing-ssl-stripping-attack",
+      "path": "skills/performing-ssl-stripping-attack",
+      "tree_sha256": "af12e2d8d4b69c47d643c52cb1f4de454541b980cb0257b95a3ef7fb7c28db1a"
+    },
+    {
+      "name": "performing-ssl-tls-inspection-configuration",
+      "path": "skills/performing-ssl-tls-inspection-configuration",
+      "tree_sha256": "c8fca60d9fee831a4bc7dc8f419ddd7780d226d2b4b8e5aae7105acbd12d5b1c"
+    },
+    {
+      "name": "performing-ssl-tls-security-assessment",
+      "path": "skills/performing-ssl-tls-security-assessment",
+      "tree_sha256": "6272fb9fed1e690a496a5d296749b2b8a1c8885e3c030349d3b560cd4775ffdf"
+    },
+    {
+      "name": "performing-ssrf-vulnerability-exploitation",
+      "path": "skills/performing-ssrf-vulnerability-exploitation",
+      "tree_sha256": "fa3ed6b1267a78c6a75af87bc21267d2bc00c8550c7c591217d4eb3e083f8c7b"
+    },
+    {
+      "name": "performing-static-malware-analysis-with-pe-studio",
+      "path": "skills/performing-static-malware-analysis-with-pe-studio",
+      "tree_sha256": "47b0e3d2733c55b3cc6b21002d31d7f05927598f1df600dc5f276ff271fd8a47"
+    },
+    {
+      "name": "performing-steganography-detection",
+      "path": "skills/performing-steganography-detection",
+      "tree_sha256": "c6431e67e8f528374a0efecc27be09e7674043f683ffff021a1d8bfa7977057f"
+    },
+    {
+      "name": "performing-subdomain-enumeration-with-subfinder",
+      "path": "skills/performing-subdomain-enumeration-with-subfinder",
+      "tree_sha256": "697fba7c37cf291587692f005a18242712c3040086d8be9fc74660bbc57fd495"
+    },
+    {
+      "name": "performing-supply-chain-attack-simulation",
+      "path": "skills/performing-supply-chain-attack-simulation",
+      "tree_sha256": "41e9824025ca9048448760e15df0a8e17a1481d62610a7698217c735fbd76332"
+    },
+    {
+      "name": "performing-thick-client-application-penetration-test",
+      "path": "skills/performing-thick-client-application-penetration-test",
+      "tree_sha256": "be0f89c0d17635fc0d1f22b65392711680121bb8f2030d6e5c311eebd3cde742"
+    },
+    {
+      "name": "performing-threat-emulation-with-atomic-red-team",
+      "path": "skills/performing-threat-emulation-with-atomic-red-team",
+      "tree_sha256": "793e6fd866eda62f6a73c7fd017a1c8889b0718299f48a7e6e01f79507f7f94c"
+    },
+    {
+      "name": "performing-threat-hunting-with-elastic-siem",
+      "path": "skills/performing-threat-hunting-with-elastic-siem",
+      "tree_sha256": "bb667bc91c65f9fbf725f55dac4765090476e4bec90b4f502b93f681227f0df1"
+    },
+    {
+      "name": "performing-threat-hunting-with-yara-rules",
+      "path": "skills/performing-threat-hunting-with-yara-rules",
+      "tree_sha256": "b2e2ea2050427de384a6d08bd0e75c5c784f91ccb299032bef098191bfbaae81"
+    },
+    {
+      "name": "performing-threat-intelligence-sharing-with-misp",
+      "path": "skills/performing-threat-intelligence-sharing-with-misp",
+      "tree_sha256": "2b2dd7698d2212d922893a225e81e7d2202109589ca55e005763e4d06978fc5f"
+    },
+    {
+      "name": "performing-threat-landscape-assessment-for-sector",
+      "path": "skills/performing-threat-landscape-assessment-for-sector",
+      "tree_sha256": "d580a708671bee40111f790919e16df055e0350f4c32e22c6441f6fa4973fb5e"
+    },
+    {
+      "name": "performing-threat-modeling-with-owasp-threat-dragon",
+      "path": "skills/performing-threat-modeling-with-owasp-threat-dragon",
+      "tree_sha256": "419da920810d6324292aca0132ed5fff8fdb3ef353db8b9b352fda6279ee0f70"
+    },
+    {
+      "name": "performing-timeline-reconstruction-with-plaso",
+      "path": "skills/performing-timeline-reconstruction-with-plaso",
+      "tree_sha256": "4731511764465f791648eb6c17ab2177338558920f41ed3ffaad35ce2bee6adc"
+    },
+    {
+      "name": "performing-user-behavior-analytics",
+      "path": "skills/performing-user-behavior-analytics",
+      "tree_sha256": "8d2b1fa75860d1a10e73ec6357842b8bff6ff264b2f39d7f332ce7bfe4443754"
+    },
+    {
+      "name": "performing-vlan-hopping-attack",
+      "path": "skills/performing-vlan-hopping-attack",
+      "tree_sha256": "364318648fed5f9dca6a7d00ecbb94722e05b6af8178687c98e3ed779c7b05d6"
+    },
+    {
+      "name": "performing-vulnerability-scanning-with-nessus",
+      "path": "skills/performing-vulnerability-scanning-with-nessus",
+      "tree_sha256": "6722331aaf45d2054d7a4a34f2fa3175fd2460df6d70b8bf21713b19f0aa4ce2"
+    },
+    {
+      "name": "performing-web-application-firewall-bypass",
+      "path": "skills/performing-web-application-firewall-bypass",
+      "tree_sha256": "41139c54ea632c0988a67bf5cf69faf4d35485888b57398507db258ae7fb7780"
+    },
+    {
+      "name": "performing-web-application-penetration-test",
+      "path": "skills/performing-web-application-penetration-test",
+      "tree_sha256": "fd61918d7b399efd1efa8fbf91b39b562c7d3952008a8ecbf21591e9c63add11"
+    },
+    {
+      "name": "performing-web-application-scanning-with-nikto",
+      "path": "skills/performing-web-application-scanning-with-nikto",
+      "tree_sha256": "11d7b799ca7df8eed878d2d36b4d7e3478c2241cc808fe945737fced4c3554e2"
+    },
+    {
+      "name": "performing-web-application-vulnerability-triage",
+      "path": "skills/performing-web-application-vulnerability-triage",
+      "tree_sha256": "8ed0163d4aee6abe066173dec4b7a0cd8da0e7ba7f554d50de4602bed9f421f8"
+    },
+    {
+      "name": "performing-web-cache-deception-attack",
+      "path": "skills/performing-web-cache-deception-attack",
+      "tree_sha256": "1e07aa7a08fcb44fe1ca71115e5eaff4a5a90ece3073f475b910c5b31722e791"
+    },
+    {
+      "name": "performing-web-cache-poisoning-attack",
+      "path": "skills/performing-web-cache-poisoning-attack",
+      "tree_sha256": "d96419109814df6030c68b3ee30ceaf37610c5f77cf526e59dad809517adf817"
+    },
+    {
+      "name": "performing-wifi-password-cracking-with-aircrack",
+      "path": "skills/performing-wifi-password-cracking-with-aircrack",
+      "tree_sha256": "407221baba3f1698f7d1d002be598bbacf72674c03f9dc01e88f55ac120695af"
+    },
+    {
+      "name": "performing-windows-artifact-analysis-with-eric-zimmerman-tools",
+      "path": "skills/performing-windows-artifact-analysis-with-eric-zimmerman-tools",
+      "tree_sha256": "4c3f31d5389649fb76da7fca149b830a0ea2044bdb016eeaeb987205a2a18e46"
+    },
+    {
+      "name": "performing-wireless-network-penetration-test",
+      "path": "skills/performing-wireless-network-penetration-test",
+      "tree_sha256": "118b599799fffbe28dac0233eea1a7e41f9a2def22b5f2bfa637b25dbed68ef3"
+    },
+    {
+      "name": "performing-wireless-security-assessment-with-kismet",
+      "path": "skills/performing-wireless-security-assessment-with-kismet",
+      "tree_sha256": "ba632df61d64aca6c406d4c16f8222f7da0eee239bdab72175e5b120912bb0cc"
+    },
+    {
+      "name": "performing-yara-rule-development-for-detection",
+      "path": "skills/performing-yara-rule-development-for-detection",
+      "tree_sha256": "3db3ffff00a3e28a3f5afbb1f6f4663fc7405761e7bbb0edce51dff929672dc2"
+    },
+    {
+      "name": "post-exploiting-microsoft-graph-with-graphrunner",
+      "path": "skills/post-exploiting-microsoft-graph-with-graphrunner",
+      "tree_sha256": "8f9dbe16d9475f7e254f32ae26ae69308db7b3b5439b3a5ae8af49dbcc6a0652"
+    },
+    {
+      "name": "prioritizing-vulnerabilities-with-cvss-scoring",
+      "path": "skills/prioritizing-vulnerabilities-with-cvss-scoring",
+      "tree_sha256": "ee445bc135ded255f8d36436df5060d3868e76d48363ecab2cf9820d7083e7f8"
+    },
+    {
+      "name": "processing-stix-taxii-feeds",
+      "path": "skills/processing-stix-taxii-feeds",
+      "tree_sha256": "b98a8f6686832527a6aa7a8503a27e0b5f8c911a4926e36e82bca185edf645e1"
+    },
+    {
+      "name": "profiling-threat-actor-groups",
+      "path": "skills/profiling-threat-actor-groups",
+      "tree_sha256": "0ba0ca221c5ec8d1c4696457b01fbad9856e393f2de14eabb0e88a6115933582"
+    },
+    {
+      "name": "recovering-deleted-files-with-photorec",
+      "path": "skills/recovering-deleted-files-with-photorec",
+      "tree_sha256": "9f75734c5738c73da60765eeae14fc277aeb5a83b4fac8646ed308a9a55ad25c"
+    },
+    {
+      "name": "recovering-from-ransomware-attack",
+      "path": "skills/recovering-from-ransomware-attack",
+      "tree_sha256": "9a019b47451a8fae09a4c25aa831e988779b9da96cbadca3e3d6b4d14fd48d0e"
+    },
+    {
+      "name": "red-teaming-llms-with-garak",
+      "path": "skills/red-teaming-llms-with-garak",
+      "tree_sha256": "dc09675ffa97d7b957684c01c1bc3a675e5e79b1ad717a0f381657aae3dfcc2a"
+    },
+    {
+      "name": "relaying-ntlm-for-adcs-esc8",
+      "path": "skills/relaying-ntlm-for-adcs-esc8",
+      "tree_sha256": "50a787b5b7b047e6dc1c4a2d5b3b97de79ba9d1f062cf678fa0d6f8abd2b1ef1"
+    },
+    {
+      "name": "remediating-s3-bucket-misconfiguration",
+      "path": "skills/remediating-s3-bucket-misconfiguration",
+      "tree_sha256": "fa6bd34c8529f74020bd2280b95ab91cb0f1aa3edb27bb0caf5ac7e67845565f"
+    },
+    {
+      "name": "reverse-engineering-android-malware-with-jadx",
+      "path": "skills/reverse-engineering-android-malware-with-jadx",
+      "tree_sha256": "2bb5c8b2e4a15b8ec8021f0d4b5bfea507de5a6841bfaefeadd3180a925844f9"
+    },
+    {
+      "name": "reverse-engineering-dotnet-malware-with-dnspy",
+      "path": "skills/reverse-engineering-dotnet-malware-with-dnspy",
+      "tree_sha256": "590e8d5e3b511c90ce2b2cdee6d6383919f78d6d8a90d3230407db0c2efa29c8"
+    },
+    {
+      "name": "reverse-engineering-ios-app-with-frida",
+      "path": "skills/reverse-engineering-ios-app-with-frida",
+      "tree_sha256": "6f2c4e5c4f3eef12cc42a69d550b0c1e51b9b7df65053df4c3d1a4c065e3c3df"
+    },
+    {
+      "name": "reverse-engineering-malware-with-ghidra",
+      "path": "skills/reverse-engineering-malware-with-ghidra",
+      "tree_sha256": "702f9b578f7b4ee8dcfe97cd9c1b1c2d8eba7e4d21169f42989c7ee9481866fd"
+    },
+    {
+      "name": "reverse-engineering-ransomware-encryption-routine",
+      "path": "skills/reverse-engineering-ransomware-encryption-routine",
+      "tree_sha256": "ea697008db1bbdd11e1206c017be64f5cb6740b51a649268a90f8f80e25259f4"
+    },
+    {
+      "name": "reverse-engineering-rust-malware",
+      "path": "skills/reverse-engineering-rust-malware",
+      "tree_sha256": "90373ee42751bf709afc5e71988a7d1bb0edb01322c3484e1d8c42b8133de3a1"
+    },
+    {
+      "name": "scanning-container-images-with-grype",
+      "path": "skills/scanning-container-images-with-grype",
+      "tree_sha256": "f2c836327e53226402582c5dd23ed2165b4a5736751f2eeab0d305bd12f761ee"
+    },
+    {
+      "name": "scanning-containers-with-trivy-in-cicd",
+      "path": "skills/scanning-containers-with-trivy-in-cicd",
+      "tree_sha256": "4893fe688c50b615fe1d3f5fb2e84203d944eac45c009e5a6bb2615d16129168"
+    },
+    {
+      "name": "scanning-docker-images-with-trivy",
+      "path": "skills/scanning-docker-images-with-trivy",
+      "tree_sha256": "56c3a91513fdf7a84b3861c2568b1c2927c8a0b9d2cd691bc395d0bbd1dfd050"
+    },
+    {
+      "name": "scanning-iac-and-images-with-trivy",
+      "path": "skills/scanning-iac-and-images-with-trivy",
+      "tree_sha256": "164a89906d0a40f7a14f872962cd524cd961969fabc8edc074f4dba85fad3787"
+    },
+    {
+      "name": "scanning-infrastructure-with-nessus",
+      "path": "skills/scanning-infrastructure-with-nessus",
+      "tree_sha256": "3097d31f11d2a6589015c7e343b61f68d296f67b346befbd79e006c2a51f07b6"
+    },
+    {
+      "name": "scanning-kubernetes-manifests-with-kubesec",
+      "path": "skills/scanning-kubernetes-manifests-with-kubesec",
+      "tree_sha256": "b7b3b3e39dfed2abe412c6a27aacf7852c36ca11533ece168c8d68194780a0c7"
+    },
+    {
+      "name": "scanning-network-with-nmap-advanced",
+      "path": "skills/scanning-network-with-nmap-advanced",
+      "tree_sha256": "b7d43678b395c49cd65b0ef99d7568e7afe6eafd71ae5a362053136535579524"
+    },
+    {
+      "name": "securing-agentic-ai-tool-invocation",
+      "path": "skills/securing-agentic-ai-tool-invocation",
+      "tree_sha256": "f170782cd2406833a436019b8dc59a74b74cf51522f18a393df8641e1bc37792"
+    },
+    {
+      "name": "securing-api-gateway-with-aws-waf",
+      "path": "skills/securing-api-gateway-with-aws-waf",
+      "tree_sha256": "7c4dd29a66a113c23a3b12cbfeb9966b5ccdd2a46d846a3b390e8154c6b244d7"
+    },
+    {
+      "name": "securing-aws-iam-permissions",
+      "path": "skills/securing-aws-iam-permissions",
+      "tree_sha256": "d50bc31dfd5f68ba502e7954d199e8f855aeb218a3284995e66e0f76da703b8d"
+    },
+    {
+      "name": "securing-aws-lambda-execution-roles",
+      "path": "skills/securing-aws-lambda-execution-roles",
+      "tree_sha256": "113c49f4cc981b0049b629e4f43cecaf3a0e5acc16839c574b1b6d6c92dd9698"
+    },
+    {
+      "name": "securing-azure-with-microsoft-defender",
+      "path": "skills/securing-azure-with-microsoft-defender",
+      "tree_sha256": "e83d91b185e61d8944b27091baf897b957c7373fdf0bfd097d9552ac19d53398"
+    },
+    {
+      "name": "securing-container-registry-images",
+      "path": "skills/securing-container-registry-images",
+      "tree_sha256": "9aec16396d4e54b7df8ed731ddc82ecab22101694cd04d1dbe74d3d11549d52b"
+    },
+    {
+      "name": "securing-container-registry-with-harbor",
+      "path": "skills/securing-container-registry-with-harbor",
+      "tree_sha256": "11fa840697d0d00259e6a396e52e281312b77de4065d08cf7a3e76fc6b7e81dd"
+    },
+    {
+      "name": "securing-github-actions-workflows",
+      "path": "skills/securing-github-actions-workflows",
+      "tree_sha256": "6c0363eb8c8c4637a4b3bd1da9a905491591f5ca179ff5f7c7a7c189f7805373"
+    },
+    {
+      "name": "securing-helm-chart-deployments",
+      "path": "skills/securing-helm-chart-deployments",
+      "tree_sha256": "7828453e9b8c1c755e1216c242efb7a50c4be13cdfff393d8eb73e79eae3dea8"
+    },
+    {
+      "name": "securing-historian-server-in-ot-environment",
+      "path": "skills/securing-historian-server-in-ot-environment",
+      "tree_sha256": "cef9c6144d9d6dc4d0a25f3ec63b638e6c9d17ea31d97ec1d7f8027c6273af94"
+    },
+    {
+      "name": "securing-kubernetes-on-cloud",
+      "path": "skills/securing-kubernetes-on-cloud",
+      "tree_sha256": "549534a86676128fef46ae8179618d6667a3d6be0c477b20c2760d5df33b63ab"
+    },
+    {
+      "name": "securing-remote-access-to-ot-environment",
+      "path": "skills/securing-remote-access-to-ot-environment",
+      "tree_sha256": "e3afafe34fde61af9a61682a98deb702271f185f8cfb1a635e5bad3762bd18b6"
+    },
+    {
+      "name": "securing-serverless-functions",
+      "path": "skills/securing-serverless-functions",
+      "tree_sha256": "1569ee59ff8751832367f77f096a78b3b9d576e9cdfa4d67c37b46d47e71ee85"
+    },
+    {
+      "name": "testing-android-intents-for-vulnerabilities",
+      "path": "skills/testing-android-intents-for-vulnerabilities",
+      "tree_sha256": "624fa458a99ee90234aa59c07a4f352d3c49453f808b93b001849d268ec57697"
+    },
+    {
+      "name": "testing-api-authentication-weaknesses",
+      "path": "skills/testing-api-authentication-weaknesses",
+      "tree_sha256": "e3c3996b32930b2dbdb6423dc1dbb281104778359c05d3873e7101ad7aaa4836"
+    },
+    {
+      "name": "testing-api-for-broken-object-level-authorization",
+      "path": "skills/testing-api-for-broken-object-level-authorization",
+      "tree_sha256": "5d3de51b62ba5ee93956a6fb05da6acd28873254803a271a4eca38863e2c4c00"
+    },
+    {
+      "name": "testing-api-for-mass-assignment-vulnerability",
+      "path": "skills/testing-api-for-mass-assignment-vulnerability",
+      "tree_sha256": "11e24596a15b01929ef67eba427aeb1caafa5c037b8e315d24678871a13a92f1"
+    },
+    {
+      "name": "testing-api-security-with-owasp-top-10",
+      "path": "skills/testing-api-security-with-owasp-top-10",
+      "tree_sha256": "4335ebfff2c4b75b5092e07171a8bc8e48f247142ffbea823afb73ce9e79e0a5"
+    },
+    {
+      "name": "testing-cors-misconfiguration",
+      "path": "skills/testing-cors-misconfiguration",
+      "tree_sha256": "353d6f108308be9c6016a21fadebb44c4646174aaaf8c72bdbea0bb80d84d2b8"
+    },
+    {
+      "name": "testing-for-broken-access-control",
+      "path": "skills/testing-for-broken-access-control",
+      "tree_sha256": "cc05a1473966a34884c2b2435b18d9db51bdc96f91eacc4649e68235afc17280"
+    },
+    {
+      "name": "testing-for-business-logic-vulnerabilities",
+      "path": "skills/testing-for-business-logic-vulnerabilities",
+      "tree_sha256": "0cfe58909184810c3ca985c67da02f862a0d375e92a157a625e3c8eba2dc056c"
+    },
+    {
+      "name": "testing-for-email-header-injection",
+      "path": "skills/testing-for-email-header-injection",
+      "tree_sha256": "a5bea7ec48d591db7e6ee074f913aa0ee327f564338370a5dcefce11c544b609"
+    },
+    {
+      "name": "testing-for-host-header-injection",
+      "path": "skills/testing-for-host-header-injection",
+      "tree_sha256": "f27caec4d8e81b03999553c3dd66507e85741bbdf00b950bb3e091745d4bd8df"
+    },
+    {
+      "name": "testing-for-json-web-token-vulnerabilities",
+      "path": "skills/testing-for-json-web-token-vulnerabilities",
+      "tree_sha256": "16f44967a03054bc2254909193a679525361249d7d8e5456808e139a0d8d1c50"
+    },
+    {
+      "name": "testing-for-open-redirect-vulnerabilities",
+      "path": "skills/testing-for-open-redirect-vulnerabilities",
+      "tree_sha256": "011bb56c894573f6053665f52270a6e9587ce0784ab529b85a85d8e6c11ec28c"
+    },
+    {
+      "name": "testing-for-sensitive-data-exposure",
+      "path": "skills/testing-for-sensitive-data-exposure",
+      "tree_sha256": "98ea52b8328b36f6bf6872baa09fa8f0dae4946f151af1d8ba2625009a8cfc7b"
+    },
+    {
+      "name": "testing-for-system-prompt-leakage",
+      "path": "skills/testing-for-system-prompt-leakage",
+      "tree_sha256": "d29fe0975690be210c93c74fa715dac42529b94af4f64fde8005cfb5485675f4"
+    },
+    {
+      "name": "testing-for-xml-injection-vulnerabilities",
+      "path": "skills/testing-for-xml-injection-vulnerabilities",
+      "tree_sha256": "4c0228ec0c9f6fda3ad97c449bb59707dd97ba32ad10fa7ae1cf2b698b26b3cf"
+    },
+    {
+      "name": "testing-for-xss-vulnerabilities",
+      "path": "skills/testing-for-xss-vulnerabilities",
+      "tree_sha256": "4c6c36e3947ade16fb7d65ebdb8fc4d2f53292ddbcf844c2353c6ced1e2f0785"
+    },
+    {
+      "name": "testing-for-xss-vulnerabilities-with-burpsuite",
+      "path": "skills/testing-for-xss-vulnerabilities-with-burpsuite",
+      "tree_sha256": "93fdf29d7c406c36a8da48d877a6880c6e279348cfc2fcd7e6f18d5898088b72"
+    },
+    {
+      "name": "testing-for-xxe-injection-vulnerabilities",
+      "path": "skills/testing-for-xxe-injection-vulnerabilities",
+      "tree_sha256": "3020eb72e4a14679b85d075ea7ee4ce0c23742f501a12765005d027930caa4a2"
+    },
+    {
+      "name": "testing-jwt-token-security",
+      "path": "skills/testing-jwt-token-security",
+      "tree_sha256": "ff16f6a9a62e3cdb8547afe25a73f21ad08366d9f722bc1a631042337f860a25"
+    },
+    {
+      "name": "testing-mobile-api-authentication",
+      "path": "skills/testing-mobile-api-authentication",
+      "tree_sha256": "e5a6720f02a9591c34074eaa07354d0b54846b1b7fd65ab461ba8d7d08851dc6"
+    },
+    {
+      "name": "testing-oauth2-implementation-flaws",
+      "path": "skills/testing-oauth2-implementation-flaws",
+      "tree_sha256": "aec8a52ee1889decf2b4273323a9622892516c14ad4bb6ccf6a8797da8454df9"
+    },
+    {
+      "name": "testing-prompt-injection-in-rag-pipelines",
+      "path": "skills/testing-prompt-injection-in-rag-pipelines",
+      "tree_sha256": "90feb0e3b1aff85855f4b1d5e676b51bb49d7b52e09ae5958da14ab73f895cc4"
+    },
+    {
+      "name": "testing-ransomware-recovery-procedures",
+      "path": "skills/testing-ransomware-recovery-procedures",
+      "tree_sha256": "6d85d116b2ad4de2309b5fd7927bbf2a5a43918e3a9273465505cd026109b709"
+    },
+    {
+      "name": "testing-websocket-api-security",
+      "path": "skills/testing-websocket-api-security",
+      "tree_sha256": "996ea5dbccd63af1c5147e2471c538b440feaf4c031dd14857484b4248bcb99d"
+    },
+    {
+      "name": "tracking-threat-actor-infrastructure",
+      "path": "skills/tracking-threat-actor-infrastructure",
+      "tree_sha256": "de3ccb349b2a6a34c1e95c918039423cccbd75f04cb7e74cf85f9d3268c903fe"
+    },
+    {
+      "name": "triaging-security-alerts-in-splunk",
+      "path": "skills/triaging-security-alerts-in-splunk",
+      "tree_sha256": "66724501e4d7a0a9fd4a621cb481e95b0ee213ca619816b9fedfb127ddafd407"
+    },
+    {
+      "name": "triaging-security-incident",
+      "path": "skills/triaging-security-incident",
+      "tree_sha256": "3fc4005b0c8d880acea7caaff8ed7f791f51ca75e544838b509543c2ac19e1aa"
+    },
+    {
+      "name": "triaging-security-incident-with-ir-playbook",
+      "path": "skills/triaging-security-incident-with-ir-playbook",
+      "tree_sha256": "eb6c913197ebddb640b49f97f3a0375e8b01bdcf341445fd57b910b91471b26a"
+    },
+    {
+      "name": "triaging-vulnerabilities-with-ssvc-framework",
+      "path": "skills/triaging-vulnerabilities-with-ssvc-framework",
+      "tree_sha256": "608b136aff1903cfd946175bad35df391d2ebd1d1da67977cb583fc417cc98e4"
+    },
+    {
+      "name": "triaging-windows-with-kape",
+      "path": "skills/triaging-windows-with-kape",
+      "tree_sha256": "fe1b39d76dac722985f2014ae48844bb5a3c3be77df2140e306d23a04de18b59"
+    },
+    {
+      "name": "validating-backup-integrity-for-recovery",
+      "path": "skills/validating-backup-integrity-for-recovery",
+      "tree_sha256": "d1cca34ab06cb914be8857034177dbb20abf672a7cac32e8ae7eac572a20d8b1"
+    },
+    {
+      "name": "validating-tpm-measured-boot-attestation",
+      "path": "skills/validating-tpm-measured-boot-attestation",
+      "tree_sha256": "1482dd2931b1ec5c364a2397b6d094ed6bdf62354b344d86d7dfcc1caf47ce3c"
+    },
+    {
+      "name": "verifying-build-provenance-with-slsa-sigstore",
+      "path": "skills/verifying-build-provenance-with-slsa-sigstore",
+      "tree_sha256": "5dc1cb99808dea1622c616cc9f360a1fd0ed3b4a787576120c9e5636c0525f3e"
+    }
+  ]
+}

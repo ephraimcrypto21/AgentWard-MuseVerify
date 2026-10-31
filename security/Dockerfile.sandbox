@@ -1,0 +1,6 @@
+FROM python:3.12-slim
+RUN apt-get update -qq \
+    && apt-get install -y -qq --no-install-recommends strace \
+    && rm -rf /var/lib/apt/lists/*
+# The node starts a trusted tracer as root and drops payload UID/GID in its
+# immutable bootstrap. Never invoke this image directly with untrusted code.

@@ -17,12 +17,16 @@ import os
 import urllib.error
 import urllib.request
 import threading
+import hashlib
 from ingress_sanitizer import sanitize_source
+from sandbox_protocol import SandboxRequest
+from service_security import BodyLimitMiddleware, node_headers, node_urlopen, require_node_token
 
 import uvicorn
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel, Field, ConfigDict
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
+app.add_middleware(BodyLimitMiddleware)
 
 MODEL_ID = "Niansuh/Prompt-Guard-86M"
 LEGACY_SANDBOX_URL = os.environ.get(
@@ -31,6 +35,7 @@ LEGACY_SANDBOX_URL = os.environ.get(
 tokenizer = model = None
 _model_lock = threading.Lock()
 _model_error = None
+_scan_slots = threading.BoundedSemaphore(2)
 
 
 def load_classifier():
@@ -51,17 +56,13 @@ def load_classifier():
 
 
 class ScanRequest(BaseModel):
-    file_path: str = "unknown"
+    model_config = ConfigDict(extra='forbid')
+    file_path: str = Field(default='unknown', max_length=1024)
     content: str = Field(default="", max_length=200000)
     text: str = Field(default="", max_length=200000)
 
 
-class SandboxTestRequest(BaseModel):
-    vuln_id: str
-    target_filename: str
-    sanitized_target_code: str
-    test_script: str = ""
-    poc_script: str = ""
+SandboxTestRequest = SandboxRequest
 
 
 @app.get("/")
@@ -78,10 +79,19 @@ def health_check():
     }
 
 
-@app.post("/scan-ingress")
-@app.post("/classify")
-@app.post("/predict")
+@app.post("/scan-ingress", dependencies=[Depends(require_node_token)])
+@app.post("/classify", dependencies=[Depends(require_node_token)])
+@app.post("/predict", dependencies=[Depends(require_node_token)])
 def scan_ingress(req: ScanRequest):
+    if not _scan_slots.acquire(blocking=False):
+        raise HTTPException(429, 'All classifier slots are busy', headers={'Retry-After': '1'})
+    try:
+        return _scan_ingress(req)
+    finally:
+        _scan_slots.release()
+
+
+def _scan_ingress(req: ScanRequest):
     raw_text = req.content or req.text
     cleaned = sanitize_source(raw_text)
     load_classifier()
@@ -106,30 +116,26 @@ def scan_ingress(req: ScanRequest):
     labels = ['benign', 'injection', 'jailbreak']
     verified = cleaned['valid'] and max(clean_probs[1:]) <= .40 and clean_probs[0] >= max(clean_probs[1:])
     return {'file_path': req.file_path, 'backend': 'prompt_guard', 'coverage_complete': True,
+            'source_sha256': hashlib.sha256(raw_text.encode()).hexdigest(),
+            'sanitized_sha256': hashlib.sha256(cleaned['content'].encode()).hexdigest(),
             'sanitized_verified': verified, 'sanitized_content': cleaned['content'],
             'sanitized_count': cleaned['sanitized_count'], 'label': labels[top_idx],
             'scores': dict(zip(labels, [round(p, 4) for p in probs])),
             'blocked': not verified or top_idx != 0 or max(probs[1:]) > .40}
 
 
-@app.post("/run-sandbox-test")
-@app.post("/run-poc-sandbox")
+@app.post("/run-sandbox-test", dependencies=[Depends(require_node_token)])
+@app.post("/run-poc-sandbox", dependencies=[Depends(require_node_token)])
 def run_sandbox_test(req: SandboxTestRequest):
-    payload = json.dumps({
-        "vuln_id": req.vuln_id,
-        "target_filename": req.target_filename,
-        "sanitized_target_code": req.sanitized_target_code,
-        "test_script": req.test_script,
-        "poc_script": req.poc_script,
-    }).encode("utf-8")
+    payload = req.model_dump_json().encode('utf-8')
     request = urllib.request.Request(
         LEGACY_SANDBOX_URL,
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=node_headers(),
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=25) as resp:
+        with node_urlopen(request, timeout=25) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
