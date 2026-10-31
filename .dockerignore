@@ -1,0 +1,3 @@
+# The sandbox image uses only upstream images and its Dockerfile.
+# Keep credentials, virtual environments and runtime artifacts out of build context.
+**

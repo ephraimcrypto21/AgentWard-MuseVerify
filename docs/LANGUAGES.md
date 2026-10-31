@@ -110,5 +110,5 @@ false tripwire markers, policy restrictions, source-language binding, unsupporte
 extensions, scanner failures, real Node isolation, SQL/command positive controls,
 normal/tripwire regression, missing dependencies and complete seven-phase runs.
 Model/ingress fixtures are labeled as simulation; these tests do not claim live
-Meta or remote Prompt-Guard acceptance. The remote services have not been upgraded
-as part of this source change.
+Meta or remote Prompt-Guard acceptance. The subsequent coordinated remote upgrade
+and live node acceptance are recorded in [DEPLOYMENT_V3.md](DEPLOYMENT_V3.md).

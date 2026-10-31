@@ -113,6 +113,8 @@ or incorrect bearer token returns 401. All classifier and execution aliases
 require authentication. Health routes remain available for connectivity checks.
 
 **Upgrade the workstation, both node services and the sandbox image together.**
+The [protocol-v3 deployment record](docs/DEPLOYMENT_V3.md) documents the completed
+upgrade, live node acceptance, rollback location and remaining classifier limits.
 Protocol v3 binds protected traces to the language, runtime and target filename
 as well as the source/harness hashes. Ingress results bind the language and
 original/sanitized hashes. A stale node blocks live verification. See the
