@@ -30,7 +30,9 @@ supported extensions. `GET /api/languages` reports the registry and scope.
 
 1. Tree-sitter parses JavaScript/TypeScript without importing or executing it.
    Hostile comments/simple string literals can be sanitized; the remote
-   Prompt-Guard classifier must verify the full sanitized source and its hashes.
+   pinned ingress classifier must verify the full sanitized source and its hashes,
+   together with its model/policy identity. Parser context helps distinguish code
+   structure from embedded instructions; it never substitutes for the source scan.
 2. Deterministic Node harnesses import the source only inside Docker. They check
    normal returns and fire SQL or command-injection probes. Exceptions, absent
    exports and missing normal results cannot establish successful execution.

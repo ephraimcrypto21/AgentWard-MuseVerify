@@ -131,7 +131,8 @@ class LanguagePipelineTests(unittest.IsolatedAsyncioTestCase):
     async def test_ingress_checks_language_hash_binding(self):
         code = 'export const value: number = 1;'
         digest = hashlib.sha256(code.encode()).hexdigest()
-        valid = {'backend': 'prompt_guard', 'coverage_complete': True, 'sanitized_verified': True,
+        from ingress_guard import BACKEND, contract
+        valid = {'backend': BACKEND, 'classifier_contract': contract(), 'coverage_complete': True, 'sanitized_verified': True,
                  'source_sha256': digest, 'sanitized_sha256': digest, 'language': 'typescript'}
         for language in ['typescript', 'python']:
             with patch.object(ingress, 'node_urlopen', return_value=BytesIO(json.dumps({**valid, 'language': language}).encode())):

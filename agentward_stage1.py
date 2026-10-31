@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prompt-Guard ingress with syntax-preserving local fallback."""
+"""Authenticated ingress classification with syntax-preserving sanitization."""
 import json
 import hashlib
 import os
@@ -9,6 +9,7 @@ import urllib.request
 from dotenv import load_dotenv
 from language_adapters import adapter_for, UnsupportedLanguage
 from service_security import node_headers, node_urlopen
+from ingress_guard import BACKEND, contract
 
 load_dotenv()
 PROMPT_GUARD_URL = os.getenv('AGENTWARD_INGRESS_URL', 'http://127.0.0.1:18000/scan-ingress')
@@ -31,14 +32,16 @@ def check_prompt_guard(file_path, content):
     label = str(data.get('label', data.get('verdict', 'benign'))).lower()
     if local['sanitized_count']:
         label = 'injection'
+    complete = (data.get('backend') == BACKEND and data.get('coverage_complete') is True
+                and data.get('classifier_contract') == contract()
+                and data.get('source_sha256') == hashlib.sha256(content.encode()).hexdigest()
+                and data.get('language') == adapter.name
+                and data.get('sanitized_sha256') == hashlib.sha256(local['content'].encode()).hexdigest())
     return {**data, 'label': label, 'scores': data.get('scores', {}),
             'sanitized_content': local['content'], 'sanitized_count': local['sanitized_count'],
             'valid': local['valid'], 'backend': data.get('backend', 'local_heuristic'),
-            'evidence_verified': data.get('backend') == 'prompt_guard'
-                and data.get('coverage_complete') is True and data.get('sanitized_verified') is True
-                and data.get('source_sha256') == hashlib.sha256(content.encode()).hexdigest()
-                and data.get('language') == adapter.name
-                and data.get('sanitized_sha256') == hashlib.sha256(local['content'].encode()).hexdigest()}
+            'evidence_complete': complete,
+            'evidence_verified': complete and data.get('sanitized_verified') is True}
 
 
 def inspect_file_before_muse(file_path):
@@ -51,15 +54,17 @@ def inspect_file_before_muse(file_path):
     except (OSError, UnicodeError) as exc:
         return {'status': 'ERROR', 'reason': str(exc), 'content': '', 'sanitized_count': 0}
     result = check_prompt_guard(file_path, content)
-    if not result['evidence_verified']:
-        return {'status': 'UNVERIFIED', 'content': result['sanitized_content'], 'reason': 'Full Prompt-Guard verification unavailable',
+    if not result['evidence_complete']:
+        return {'status': 'UNVERIFIED', 'content': result['sanitized_content'], 'reason': 'Full ingress classification unavailable or classifier policy mismatch',
                 'sanitized_count': result['sanitized_count'], 'backend': result['backend'], 'evidence_verified': False}
     blocked = result.get('blocked') or result['label'] in ('injection', 'jailbreak')
-    if not result['valid'] or (blocked and not result['sanitized_count']):
-        return {'status': 'BLOCKED', 'content': '', 'reason': 'Input could not be safely sanitized', 'sanitized_count': 0}
+    if not result['valid'] or not result['evidence_verified'] or (blocked and not result['sanitized_count']):
+        return {'status': 'BLOCKED', 'content': '', 'reason': 'Input could not be safely sanitized', 'sanitized_count': 0,
+                'classifier_contract': result['classifier_contract'], 'scores': result['scores']}
     return {'status': 'SANITIZED' if result['sanitized_count'] else 'ALLOW',
             'reason': 'Instruction payloads removed' if result['sanitized_count'] else 'No ingress instruction detected',
-            'content': result['sanitized_content'], 'sanitized_count': result['sanitized_count'], 'backend': result['backend'], 'evidence_verified': True}
+            'content': result['sanitized_content'], 'sanitized_count': result['sanitized_count'], 'backend': result['backend'], 'evidence_verified': True,
+            'classifier_contract': result['classifier_contract'], 'scores': result['scores']}
 
 
 if __name__ == '__main__':

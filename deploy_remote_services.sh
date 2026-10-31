@@ -91,9 +91,10 @@ else
 fi
 SANDBOX_IMAGE="${SANDBOX_IMAGE}"
 
-# Ingress sanitization uses non-executing parsers for JavaScript and TypeScript.
-sudo -u ${USER_NAME} "${VENV_PATH}/bin/pip" install \
-    'tree-sitter>=0.25,<0.26' 'tree-sitter-javascript>=0.25,<0.26' 'tree-sitter-typescript>=0.23,<0.24'
+# Install node dependencies and verify the pinned classifier before restarting.
+sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" -m pip install -r "${APP_DIR}/requirements-node.txt"
+sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" -m pip check
+sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" "${APP_DIR}/tools/manage_ingress_model.py" install
 
 # ------------------------------------------------------------------------------
 # 1. /etc/systemd/system/agentward-ingress.service (Port 8000)
@@ -101,7 +102,7 @@ sudo -u ${USER_NAME} "${VENV_PATH}/bin/pip" install \
 echo "[*] Generating /etc/systemd/system/agentward-ingress.service..."
 cat <<EOF > /etc/systemd/system/agentward-ingress.service
 [Unit]
-Description=AgentWard Ingress Prompt-Guard Service (Stage 1)
+Description=AgentWard Ingress Classification Service (Stage 1)
 After=network.target
 
 [Service]

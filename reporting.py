@@ -37,9 +37,9 @@ def executive_brief(records, metrics):
     def cell(value):
         return str(value).replace('|', '\\|').replace('\n', ' ')
     lines = ['# Executive Security Brief', '',
-             'Verified outcomes require Prompt-Guard, unanimous model review, CodeShield, Docker/strace, adversarial controls and regression evidence.',
+             'Verified outcomes require Ingress guard, unanimous model review, CodeShield, Docker/strace, adversarial controls and regression evidence.',
              'Static assumptions and model observations below are review leads; they are not runtime proof.', '',
-             '| Target | Outcome | Verified CWEs | Prompt-Guard | Docker/strace | Injections | Tripwire |',
+             '| Target | Outcome | Verified CWEs | Ingress guard | Docker/strace | Injections | Tripwire |',
              '| --- | --- | --- | --- | --- | --- | --- |']
     for row in rows:
         lines.append('| ' + ' | '.join(cell(v) for v in [row['target'], row['outcome'], ', '.join(row['remediated_cwes']) or '—',
@@ -93,7 +93,7 @@ table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:12px;text
 li{margin:16px 0}.metrics{padding:16px;background:#edf6f5;border-left:4px solid #186b77}@media print{body{background:white}main{margin:0;padding:10px}h2,tr{break-inside:avoid}}
 </style></head><body><main><div class="eyebrow">AGENTWARD + MUSEVERIFY · EVIDENCE RECORD</div><h1>Executive Security Brief</h1>
 <p>Verified outcomes require all mandatory gates. Static assumptions and model commentary remain review leads.</p>
-<h2>Verified outcomes</h2><table><thead><tr><th>Target</th><th>Outcome</th><th>Remediated CWEs</th><th>Prompt-Guard</th><th>Docker / strace</th><th>Blocked injections</th><th>Tripwire</th></tr></thead><tbody>''' + table + '''</tbody></table>
+<h2>Verified outcomes</h2><table><thead><tr><th>Target</th><th>Outcome</th><th>Remediated CWEs</th><th>Ingress guard</th><th>Docker / strace</th><th>Blocked injections</th><th>Tripwire</th></tr></thead><tbody>''' + table + '''</tbody></table>
 <h2>Token and cost evidence</h2><div class="metrics">''' + esc(
         f"Input: {telemetry.get('input_tokens',0)} · Cached: {telemetry.get('cached_input_tokens',0)} · Output: {telemetry.get('output_tokens',0)} · Estimated USD: {telemetry.get('estimated_cost_usd')} · Cost complete: {telemetry.get('cost_complete',False)} · Usage complete: {telemetry.get('usage_complete',False)}") + '''</div>
 <p>Unreported usage and unknown tariffs remain unknown. Estimates do not guarantee cache hits or invoice totals.</p>

@@ -13,7 +13,7 @@ flowchart LR
     Source[Untrusted Python / JavaScript / TypeScript] --> Dashboard
     Skills[Pinned skill library] -. Engineering guidance .-> Engineer[Codex / engineer]
     Engineer --> Dashboard
-    Dashboard -->|Bearer token over SSH, tailnet or TLS| Ingress[Prompt-Guard node]
+    Dashboard -->|Bearer token over SSH, tailnet or TLS| Ingress[Pinned ingress classifier]
     Dashboard -->|Bearer token and bounded schema| Node[Sandbox service]
     Dashboard -->|Scoped source and policy prompts| Models[Selected model providers]
     Ingress -->|Original and sanitized source hashes| Dashboard
@@ -46,6 +46,8 @@ configuration, and selected provider identities are trusted dependencies.
 | T11 Disclosure | Redirects or ambient proxies receive node bearer tokens | Node HTTP client disables both redirects and environment proxies; redirect regression test | Plain HTTP must be carried inside SSH/Tailscale; use validated HTTPS otherwise |
 | T12 Tampering / elevation | Source selects a different interpreter or fabricates language evidence | Extension registry, schema language binding, fixed runtime allowlist, response filename/language/runtime checks | Adding an adapter requires explicit parser, harness, gate and runtime tests |
 | T13 Elevation / supply chain | A TypeScript project invokes compiler plugins or fetches npm packages during analysis | Non-executing Tree-sitter parsing/type erasure; official Node native loader only inside Docker; no package installation or project compiler loading | Project builds and external dependencies are unsupported; parser/runtime defects remain trusted dependencies |
+| T14 Tampering / supply chain | Changed model files, classifier policy or stale responses silently alter ingress decisions | Pinned revision and SHA-256 checks of all loaded model/tokenizer files; safetensors only, no remote code or inference-time downloads; model/policy contract checked by workstation | Model/runtime libraries and the node operator remain trusted dependencies |
+| T15 Tampering / denial of service | Source syntax is mistaken for instructions, or parser context masks an actual injection | Bounded deterministic names/node-kind context followed by the complete unchanged source; maximum risk across every overlapping window; sanitizer rescans; benign and adversarial context controls | Classifier results are probabilistic; parser facts do not prove safety, and tested cases do not establish universal precision/recall |
 
 ## Runtime contracts
 

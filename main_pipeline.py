@@ -147,9 +147,10 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
             except (SyntaxError, ValueError) as exc:
                 record.update(outcome='INVALID_SOURCE', error=str(exc))
                 return record
-            await phase(1, 'Analyzing', 'Prompt-Guard scanning')
+            await phase(1, 'Analyzing', 'Ingress guard scanning')
             s1 = await asyncio.to_thread(inspect_file_before_muse, str(target_file))
             record.update(ingress_shield=s1['status'], injections_sanitized=s1.get('sanitized_count', 0))
+            record['ingress_classifier'] = s1.get('classifier_contract')
             await phase(1, s1['status'], s1.get('reason', ''), True)
             record['ingress_evidence_verified'] = s1.get('evidence_verified', False)
             if s1['status'] not in ('ALLOW', 'SANITIZED') and not (report.mode == 'dry_run' and s1['status'] == 'UNVERIFIED'):

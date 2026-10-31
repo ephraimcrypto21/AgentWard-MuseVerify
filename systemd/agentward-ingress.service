@@ -1,5 +1,5 @@
 [Unit]
-Description=AgentWard Ingress Prompt-Guard Service (Stage 1)
+Description=AgentWard Ingress Ingress guard Service (Stage 1)
 After=network.target
 
 [Service]

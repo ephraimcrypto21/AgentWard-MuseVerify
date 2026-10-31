@@ -1,5 +1,8 @@
 # Protocol v3 deployment — 31 October 2026
 
+Historical deployment record. The later [ingress guard update](INGRESS_GUARD.md)
+replaces the classifier described below and resolves its reported JavaScript cases.
+
 The authorized Ubuntu verification node and workstation were upgraded together.
 Application release: `166a7b6b65e4fe78fdd4d1161a0c880fd598e7e9`.
 Both remote systemd services are enabled, active and running without restart

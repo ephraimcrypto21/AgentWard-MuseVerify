@@ -28,7 +28,7 @@ verified result. See [adapter behavior and limits](docs/LANGUAGES.md).
 
 | Phase | Responsibility | Required evidence |
 | --- | --- | --- |
-| 1 — Ingress Shield | Classify source with Prompt-Guard-86M; remove injected instructions without breaking Python syntax | Full source coverage and a second scan of sanitized content |
+| 1 — Ingress Shield | Classify complete source with the pinned ingress model and parser context; sanitize injected instructions | Full source coverage, sanitizer rescan, model/policy identity and artifact hashes |
 | 2 — Syscall Sandbox | Execute deterministic exploit probes in an isolated workspace | Docker execution, kernel strace events and completed behavioral probes |
 | 3 — Runtime Hooks | Regex/entropy screening, unanimous ensemble policy review and trajectory monitoring | Valid votes; current operator policy; denial triggers workspace rewind |
 | 4 — Patch Verification | Spark synthesis, API-contract checks, cross-file analysis, independent reviewers, CodeShield and structural tripwire validation | Every applicable gate passes |
@@ -99,11 +99,15 @@ Anti-Gravity tries the selected high-end model, then the deduplicated cascade `g
 
 Custom pre-flight has a five-second deadline and requires HTTP 200 with nonempty, complete content. Authentication failures, missing endpoints, timeouts and placeholder configuration exclude the provider without breaking discovery. Credentials are never returned by `/api/providers`.
 
-## Remote Prompt-Guard and sandbox node
+## Remote ingress guard and sandbox node
 
-Use an Ubuntu host with Docker, a Python environment containing FastAPI/Uvicorn, PyTorch/Transformers, and a locally cached Prompt-Guard-86M model. The supplied classifier currently loads `Niansuh/Prompt-Guard-86M`; provision that artifact before starting the service. Unavailable weights fail closed.
+Use an Ubuntu host with Docker and the dependencies in `requirements-node.txt`.
+Ingress uses the pinned `Horizon-Labs/prompt-injection-guard-small` model with
+bounded parser context and complete source coverage. The model runs locally;
+its five artifacts are hash-verified before loading. Unavailable or changed
+weights fail closed. See [ingress guard validation](docs/INGRESS_GUARD.md).
 
-Deploy the full checkout to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. The services need the shared `language_adapters.py`, `ecmascript.py`, `sandbox_protocol.py`, `service_security.py` and sanitizer modules, plus `security/Dockerfile.sandbox`. The script installs the parsers, builds `agentward-sandbox:multilang-v3` with Python, Node 24 and strace, and installs both systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
+Deploy the full checkout to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. Include `ingress_guard.py`, `security/ingress-model.lock.json` and the shared language, protocol, security and sanitizer modules. The script installs node dependencies, provisions and verifies the pinned model, builds `agentward-sandbox:multilang-v3` with Python, Node 24 and strace, and installs both systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
 
 The deployment script creates `/etc/agentward/node.env` with a random token and
 root-only permissions on first installation; subsequent deployments preserve it.
@@ -114,10 +118,12 @@ require authentication. Health routes remain available for connectivity checks.
 
 **Upgrade the workstation, both node services and the sandbox image together.**
 The [protocol-v3 deployment record](docs/DEPLOYMENT_V3.md) documents the completed
-upgrade, live node acceptance, rollback location and remaining classifier limits.
+upgrade, live node acceptance and rollback location. The subsequent
+[ingress guard update](docs/INGRESS_GUARD.md) addresses the reported classifier false positives.
 Protocol v3 binds protected traces to the language, runtime and target filename
 as well as the source/harness hashes. Ingress results bind the language and
-original/sanitized hashes. A stale node blocks live verification. See the
+original/sanitized hashes plus the pinned model and classification-policy identity.
+A stale node blocks live verification. See the
 [language verification record](docs/LANGUAGES.md) and earlier
 [31 October security record](docs/SECURITY_HARDENING.md).
 

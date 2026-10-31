@@ -23,7 +23,7 @@ MODES = {'auto', 'all_three', 'meta_plus_agy', 'meta_plus_custom', 'meta_only'}
 REASONING_EFFORTS = {'low', 'medium', 'high', 'xhigh', 'max'}
 DEEP_TASKS = {'patch_synthesis', 'patch_verification', 'semantic_hunt', 'root_cause', 'executive_brief', 'misalignment'}
 STATIC_PREFIX = ('AgentWard + MuseVerify repository security policy v3. Meta is the primary engine. '
-                 'Never waive Prompt-Guard, CodeShield, sandbox evidence or unanimous independent review. '
+                 'Never waive Ingress guard, CodeShield, sandbox evidence or unanimous independent review. '
                  'Gate order: Phase 1 verifies ingress; Phase 2 collects Docker/strace evidence; Phase 3 reviews '
                  'runtime actions; Phase 4 generates and independently reviews a patch and scans it with CodeShield; '
                  'Phases 4.5 and 5 verify adversarial robustness and regression. A phase-specific approval is not '

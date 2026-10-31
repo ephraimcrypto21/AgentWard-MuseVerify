@@ -1,0 +1,16 @@
+{
+  "model_id": "Horizon-Labs/prompt-injection-guard-small",
+  "revision": "5ed691c28fc37db51f4e80fb81311b7d2b5d4646",
+  "license": "Apache-2.0",
+  "files_sha256": {
+    "config.json": "d6264037c9aa4b3d821c1c9a0329572033adbdb622788ecca91c3636066d9622",
+    "model.safetensors": "a23196c117baf414b4b8abd138c5f5656e728877c0bdb2775c361ee89df16deb",
+    "special_tokens_map.json": "baec30ea10906f16adb8c18af7a34023002c1746542612b8b41c9f09e1351351",
+    "tokenizer.json": "47834a7dbbb0c4324fe9569fe47955241594a9ee539c9e478755d6fbc51e5f46",
+    "tokenizer_config.json": "ea349495764b24570b4560fe2e4a557e5c0a47e6bce782c2409b1d6445cf8633"
+  },
+  "labels": [
+    "SAFE",
+    "INJECTION"
+  ]
+}

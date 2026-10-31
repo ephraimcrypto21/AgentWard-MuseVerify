@@ -7,10 +7,15 @@ import tokenize
 
 _INSTRUCTION = re.compile(r'ignore (?:all )?(?:previous|the summary)|system override|\[instructions\]|run .*silently|export.*host environment', re.I | re.S)
 _EXFIL = re.compile(r'(?:curl|wget|printenv).*(?:META_API_KEY|exfil|evil\.)|META_API_KEY.*(?:curl|exfil)', re.I | re.S)
+_ROLE_OVERRIDE = re.compile(
+    r'\b(?:ai(?:\s+code)?\s+reviewer|assistant|automated\s+agent|code\s+reviewer)\s*:\s*'
+    r'(?:(?:please|you\s+must)\s+)?'
+    r'(?:skip|bypass|disable|override|ignore|fabricate|falsify)\b[^\n]{0,200}'
+    r'\b(?:security|safety|checks?|tests?|audit|review|results?|policy|instructions?|reports?)\b', re.I)
 
 
 def _hostile(text):
-    return bool(_INSTRUCTION.search(text) or _EXFIL.search(text))
+    return bool(_INSTRUCTION.search(text) or _EXFIL.search(text) or _ROLE_OVERRIDE.search(text))
 
 
 def sanitize_source(content):

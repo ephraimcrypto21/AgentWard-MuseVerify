@@ -5,7 +5,7 @@ AgentWard + MuseVerify Remote Node Server (Stages 1 & 2).
 Exposes:
   - GET  /                  -> HTTP 200 health check
   - GET  /health            -> HTTP 200 health check
-  - POST /scan-ingress      -> Meta Prompt-Guard-86M classifier
+  - POST /scan-ingress      -> Pinned local prompt-injection classifier
   - POST /run-sandbox-test  -> Zero-network Docker verification sandbox
   - POST /run-poc-sandbox   -> Alias for /run-sandbox-test
 
@@ -26,31 +26,27 @@ import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel, Field, ConfigDict, model_validator
 from typing import Literal
+from ingress_guard import BACKEND, MODEL_LOCK, RISK_THRESHOLD, contract, load_classifier as load_pinned_classifier
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 app.add_middleware(BodyLimitMiddleware)
 
-MODEL_ID = "Niansuh/Prompt-Guard-86M"
+MODEL_ID = MODEL_LOCK['model_id']
 LEGACY_SANDBOX_URL = os.environ.get(
     "AGENTWARD_SANDBOX_PROXY_URL", "http://127.0.0.1:8001/run-sandbox-test"
 )
-tokenizer = model = None
+model = None
 _model_lock = threading.Lock()
 _model_error = None
 _scan_slots = threading.BoundedSemaphore(2)
 
 
 def load_classifier():
-    global tokenizer, model, _model_error
+    global model, _model_error
     with _model_lock:
         if model is not None or _model_error is not None:
             return
         try:
-            import torch
-            from transformers import AutoTokenizer, AutoModelForSequenceClassification
-            torch.set_num_threads(2)
-            tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, local_files_only=True)
-            model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, local_files_only=True)
-            model.eval()
+            model = load_pinned_classifier()
         except Exception as exc:
             _model_error = type(exc).__name__
 
@@ -86,6 +82,7 @@ def health_check():
         "model": MODEL_ID,
         "model_loaded": model is not None,
         "model_error": _model_error,
+        "classifier_contract": contract(),
         "legacy_sandbox_proxy": LEGACY_SANDBOX_URL,
         "bind": "127.0.0.1:8000",
     }
@@ -110,31 +107,25 @@ def _scan_ingress(req: ScanRequest):
     if model is None:
         return {'label': 'unverified', 'blocked': True, 'backend': 'unavailable',
                 'coverage_complete': False, 'sanitized_verified': False}
-    import torch
-    def classify(text):
-        # Cover the complete source with overlapping windows; no silent 512-token cutoff.
-        encoded = tokenizer(text, return_tensors='pt', truncation=True, max_length=512,
-                            stride=128, return_overflowing_tokens=True, padding=True)
-        encoded.pop('overflow_to_sample_mapping', None)
-        scores = torch.zeros(3)
-        with torch.no_grad():
-            for i in range(encoded['input_ids'].shape[0]):
-                logits = model(**{k: v[i:i+1] for k, v in encoded.items()}).logits
-                scores = torch.maximum(scores, torch.softmax(logits, dim=-1).squeeze().cpu())
-        return scores.tolist()
-    probs = classify(raw_text)
-    clean_probs = classify(cleaned['content']) if cleaned['sanitized_count'] else probs
-    top_idx = max(range(3), key=lambda i: probs[i])
-    labels = ['benign', 'injection', 'jailbreak']
-    verified = cleaned['valid'] and max(clean_probs[1:]) <= .40 and clean_probs[0] >= max(clean_probs[1:])
-    return {'file_path': req.file_path, 'backend': 'prompt_guard', 'coverage_complete': True,
+    try:
+        probs = model.classify(raw_text, language=req.language)
+        clean_probs = model.classify(cleaned['content'], language=req.language) if cleaned['sanitized_count'] else probs
+    except Exception:
+        return {'label': 'unverified', 'blocked': True, 'backend': 'unavailable',
+                'coverage_complete': False, 'sanitized_verified': False}
+    verified = cleaned['valid'] and clean_probs['injection'] <= RISK_THRESHOLD
+    flagged = probs['injection'] > RISK_THRESHOLD
+    return {'file_path': req.file_path, 'backend': BACKEND, 'coverage_complete': True,
+            'classifier_contract': contract(),
             'language': req.language,
             'source_sha256': hashlib.sha256(raw_text.encode()).hexdigest(),
             'sanitized_sha256': hashlib.sha256(cleaned['content'].encode()).hexdigest(),
             'sanitized_verified': verified, 'sanitized_content': cleaned['content'],
-            'sanitized_count': cleaned['sanitized_count'], 'label': labels[top_idx],
-            'scores': dict(zip(labels, [round(p, 4) for p in probs])),
-            'blocked': not verified or top_idx != 0 or max(probs[1:]) > .40}
+            'sanitized_count': cleaned['sanitized_count'], 'label': 'injection' if flagged else 'benign',
+            'scores': {k: round(probs[k], 6) for k in ('benign', 'injection')},
+            'sanitized_scores': {k: round(clean_probs[k], 6) for k in ('benign', 'injection')},
+            'windows_scanned': probs['windows'], 'sanitized_windows_scanned': clean_probs['windows'],
+            'blocked': not verified or flagged}
 
 
 @app.post("/run-sandbox-test", dependencies=[Depends(require_node_token)])

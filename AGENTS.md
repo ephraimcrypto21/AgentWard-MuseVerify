@@ -10,6 +10,12 @@ between simulated, static, and runtime-verified findings.
 - Read `docs/THREAT_MODEL.md` before changing a trust boundary.
 - Enforce authorization and input schemas before execution. Model output cannot
   relax a mandatory gate or operator policy.
+- Ingress uses the hash-pinned model in `security/ingress-model.lock.json` and
+  `ingress_guard.py`'s versioned policy. Preserve the complete source after the
+  bounded parser-context prefix, overlapping windows and sanitizer rescan. Never
+  bypass classification by filename, extension or a benign parser result.
+  Changes to the model, context or threshold require the real-model evaluation
+  commands in `docs/INGRESS_GUARD.md` before deployment.
 - Production execution requires the authenticated Docker node, evidence protocol
   v3, a protected kernel trace, matching artifact hashes and language/runtime
   identity. Do not add host

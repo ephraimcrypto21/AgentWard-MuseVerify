@@ -18,6 +18,7 @@ import ingress_server
 import sandbox_server
 from sandbox_protocol import SandboxRequest
 from service_security import BodyLimitMiddleware, _NoRedirect, node_headers
+from ingress_guard import BACKEND, contract
 
 
 class BrowserBoundaryTests(unittest.TestCase):
@@ -107,7 +108,7 @@ class ServiceBoundaryTests(unittest.TestCase):
 
     def test_ingress_evidence_bound_to_original_and_sanitized_source(self):
         digest = hashlib.sha256(b'pass').hexdigest()
-        valid = {'backend': 'prompt_guard', 'language': 'python', 'coverage_complete': True, 'sanitized_verified': True,
+        valid = {'backend': BACKEND, 'classifier_contract': contract(), 'language': 'python', 'coverage_complete': True, 'sanitized_verified': True,
                  'source_sha256': digest, 'sanitized_sha256': digest}
         for changes in [{}, {'source_sha256': 'wrong'}, {'sanitized_sha256': 'wrong'}]:
             with patch.object(stage1, 'node_urlopen', return_value=BytesIO(json.dumps({**valid, **changes}).encode())):
