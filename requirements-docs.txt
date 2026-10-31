@@ -1,0 +1,2 @@
+# Optional PDF-generation dependency; separate from application/node requirements.
+reportlab==4.4.9
