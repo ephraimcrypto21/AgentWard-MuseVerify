@@ -237,7 +237,8 @@ class RunReport:
                           'locations': [{'physicalLocation': {'artifactLocation': {'uri': quote(relative_uri(finding_file), safe='/')},
                                                               'region': {'startLine': max(1, f.get('line', 1))}}}],
                           'partialFingerprints': {'agentward/v1': hashlib.sha256(f"{record['target_file']}:{rule}:{f.get('line',1)}".encode()).hexdigest()},
-                          'properties': {'outcome': record['outcome'], 'verified_remediation': bool(fixed), 'run_id': record['run_id']}}
+                          'properties': {'outcome': record['outcome'], 'language': record.get('language', 'python'),
+                                         'verified_remediation': bool(fixed), 'run_id': record['run_id']}}
                 if record.get('diff') and fixed:
                     diff = record['diff']
                     original = diff['original']

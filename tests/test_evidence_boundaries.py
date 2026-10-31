@@ -59,7 +59,7 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
     def test_remote_requires_complete_kernel_trace(self):
         import hashlib
         digest=hashlib.sha256(b'pass').hexdigest()
-        valid={'evidence_version':2,'trace_protected':True,'source_sha256':digest,'harness_sha256':digest,'engine':'docker','trace_backend':'strace','trace_complete':True,'syscall_events':[{'source':'strace'}]}
+        valid={'evidence_version':3,'language':'python','runtime':'python3','target_filename':'x.py','trace_protected':True,'source_sha256':digest,'harness_sha256':digest,'engine':'docker','trace_backend':'strace','trace_complete':True,'syscall_events':[{'source':'strace'}]}
         for changes in [{},{'evidence_version':1},{'trace_protected':False},{'engine':'local'},{'trace_backend':'no_strace'},{'trace_complete':False},{'syscall_events':[]},{'source_sha256':'wrong'}]:
             data={**valid,**changes}
             with patch.object(sandbox,'node_urlopen',return_value=BytesIO(json.dumps(data).encode())):

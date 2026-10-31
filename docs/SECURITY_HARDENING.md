@@ -1,5 +1,9 @@
 # Security hardening verification — 31 October 2026
 
+This record describes the protocol-v2 hardening release. The subsequent
+[language-adapter change](LANGUAGES.md) introduces protocol v3 and a Python/Node
+image; use its deployment instructions for the current checkout.
+
 This change strengthens the existing seven-phase harness using the cybersecurity
 skills described in `SKILLS.md`. Meta remains mandatory for live verification.
 

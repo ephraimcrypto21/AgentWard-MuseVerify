@@ -16,6 +16,7 @@ from ai_provider import discover_and_verify_providers, configuration_update, sel
 from session_policy import SessionPolicy
 from reporting import executive_brief
 from service_security import BodyLimitMiddleware
+from language_adapters import adapter_for, UnsupportedLanguage, language_capabilities
 
 from main_pipeline import run_unified_pipeline, run_batch_benchmark, MAX_PARALLEL_SANDBOXES
 from museverify_stage2 import clean_worktrees
@@ -197,7 +198,13 @@ async def get_index():
 
 @app.get('/api/health')
 async def health():
-    return {'status': 'ok', 'running': _job is not None and not _job.done(), 'phases': [1, 2, 3, 4, 4.5, 5, 5.1]}
+    return {'status': 'ok', 'running': _job is not None and not _job.done(), 'phases': [1, 2, 3, 4, 4.5, 5, 5.1],
+            'languages': language_capabilities()}
+
+
+@app.get('/api/languages')
+async def languages():
+    return {'languages': language_capabilities()}
 
 
 @app.get('/api/metrics')
@@ -251,10 +258,14 @@ async def websocket_telemetry(websocket: WebSocket):
 def validate_target(target):
     path = Path(target)
     resolved = (ROOT / path).resolve() if not path.is_absolute() else path.resolve()
-    if not resolved.is_relative_to(ROOT) or any(p in {'venv', '.venv', '.git', 'patches', 'worktrees', 'reports'} for p in resolved.relative_to(ROOT).parts):
+    if not resolved.is_relative_to(ROOT) or any(p in {'venv', '.venv', '.git', 'patches', 'worktrees', 'reports', 'node_modules'} for p in resolved.relative_to(ROOT).parts):
         raise HTTPException(400, 'Target must be a source file in this workspace')
-    if resolved.suffix != '.py' or not resolved.is_file():
-        raise HTTPException(404, 'Python target not found')
+    try:
+        adapter_for(resolved)
+    except UnsupportedLanguage as exc:
+        raise HTTPException(422, {'code': exc.code, 'message': str(exc), 'supported': language_capabilities()}) from exc
+    if not resolved.is_file():
+        raise HTTPException(404, 'Source target not found')
     return str(resolved)
 
 

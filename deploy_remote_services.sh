@@ -78,19 +78,22 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 0b. Sandbox image with strace baked in. python:3.12-slim has no strace, so
-#     without this the sandbox can only ever use the in-process audit hook.
+# 0b. Versioned sandbox image with Python, official Node 24 and kernel tracing.
+#     Missing runtimes or traces fail closed; no host or audit-hook fallback.
 # ------------------------------------------------------------------------------
-SANDBOX_IMAGE="${SANDBOX_IMAGE:-agentward-sandbox:latest}"
+SANDBOX_IMAGE="${SANDBOX_IMAGE:-agentward-sandbox:multilang-v3}"
 if ! docker image inspect "${SANDBOX_IMAGE}" >/dev/null 2>&1; then
-    echo "[*] Building ${SANDBOX_IMAGE} (adds strace to python:3.12-slim)..."
-    printf 'FROM python:3.12-slim\nRUN apt-get update -qq && apt-get install -y -qq --no-install-recommends strace && rm -rf /var/lib/apt/lists/*\n' \
-        | docker build -q -t "${SANDBOX_IMAGE}" - >/dev/null
+    echo "[*] Building ${SANDBOX_IMAGE} (Python, Node 24 and strace)..."
+    docker build -q -t "${SANDBOX_IMAGE}" -f "${APP_DIR}/security/Dockerfile.sandbox" "${APP_DIR}" >/dev/null
     echo "  [✓] Built ${SANDBOX_IMAGE}"
 else
     echo "[✓] ${SANDBOX_IMAGE} already present"
 fi
 SANDBOX_IMAGE="${SANDBOX_IMAGE}"
+
+# Ingress sanitization uses non-executing parsers for JavaScript and TypeScript.
+sudo -u ${USER_NAME} "${VENV_PATH}/bin/pip" install \
+    'tree-sitter>=0.25,<0.26' 'tree-sitter-javascript>=0.25,<0.26' 'tree-sitter-typescript>=0.23,<0.24'
 
 # ------------------------------------------------------------------------------
 # 1. /etc/systemd/system/agentward-ingress.service (Port 8000)

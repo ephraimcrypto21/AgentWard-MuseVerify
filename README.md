@@ -1,6 +1,6 @@
 # AgentWard + MuseVerify
 
-A Meta-primary security harness for evidence-driven Python repair. It inspects poisoned source, reproduces benchmark vulnerabilities in an authenticated Docker/strace sandbox, generates candidate repairs, and verifies them through independent model review, CodeShield, adversarial replay and regression tests.
+A Meta-primary security harness for evidence-driven repair of Python and single-file JavaScript/TypeScript Node modules. It inspects poisoned source, reproduces benchmark vulnerabilities in an authenticated Docker/strace sandbox, generates candidate repairs, and verifies them through independent model review, CodeShield, adversarial replay and regression tests.
 
 **Meta remains mandatory on every live run.** `muse-spark-1.3` leads runtime policy checks and patch synthesis; `muse-wonder-1.0` leads deep semantic analysis. Verified Anti-Gravity and custom BYOK models can join as independent reviewers. Missing security evidence produces a blocked, rejected or inconclusive result.
 
@@ -10,6 +10,19 @@ defines those boundaries and their limits. All **818 cybersecurity skills** from
 the requested community collection are installed locally and pinned with full-tree
 hashes; see [skill provenance and usage](docs/SKILLS.md). The skills guide engineering
 reviews while the application enforces its own mandatory runtime gates.
+
+## Supported languages
+
+| Language | Extensions | Verification scope |
+| --- | --- | --- |
+| Python | `.py` | Existing Python parsing, graph analysis and benchmark probes |
+| JavaScript | `.js`, `.mjs`, `.cjs` | Node.js CommonJS/ES modules; exported single-argument SQL/command functions |
+| TypeScript | `.ts`, `.mts`, `.cts` | Same Node probes; erasable TypeScript syntax, AST type erasure for scanning, original source executed by Node 24 |
+
+Other extensions return `UNSUPPORTED_LANGUAGE`. A supported language with no
+compatible probe entry points returns `UNSUPPORTED_TARGET`; syntax errors return
+`INVALID_SOURCE`. Missing dependencies or execution evidence cannot become a
+verified result. See [adapter behavior and limits](docs/LANGUAGES.md).
 
 ## Seven phases
 
@@ -46,6 +59,8 @@ CLI entry points use the same orchestrator:
 
 ```bash
 python main_pipeline.py poisoned_app.py
+python main_pipeline.py benchmark_targets/cwe_78_cmd.js
+python main_pipeline.py benchmark_targets/cwe_89_sqli.ts
 python main_pipeline.py benchmark_targets
 ```
 
@@ -88,7 +103,7 @@ Custom pre-flight has a five-second deadline and requires HTTP 200 with nonempty
 
 Use an Ubuntu host with Docker, a Python environment containing FastAPI/Uvicorn, PyTorch/Transformers, and a locally cached Prompt-Guard-86M model. The supplied classifier currently loads `Niansuh/Prompt-Guard-86M`; provision that artifact before starting the service. Unavailable weights fail closed.
 
-Copy `ingress_server.py`, `ingress_sanitizer.py`, `sandbox_server.py`, `sandbox_protocol.py`, `service_security.py` and the deployment script to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. It builds a strace-capable image when needed and installs the two systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
+Deploy the full checkout to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. The services need the shared `language_adapters.py`, `ecmascript.py`, `sandbox_protocol.py`, `service_security.py` and sanitizer modules, plus `security/Dockerfile.sandbox`. The script installs the parsers, builds `agentward-sandbox:multilang-v3` with Python, Node 24 and strace, and installs both systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
 
 The deployment script creates `/etc/agentward/node.env` with a random token and
 root-only permissions on first installation; subsequent deployments preserve it.
@@ -97,10 +112,12 @@ then restart the dashboard. A missing/short node token returns HTTP 503; an abse
 or incorrect bearer token returns 401. All classifier and execution aliases
 require authentication. Health routes remain available for connectivity checks.
 
-**Upgrade the workstation and both node services together.** Protocol v2 rejects
-older sandbox responses without protected traces, and ingress results must carry
-original/sanitized source hashes. A stale node blocks live verification. See the
-[31 October verification record](docs/SECURITY_HARDENING.md) for what was tested locally.
+**Upgrade the workstation, both node services and the sandbox image together.**
+Protocol v3 binds protected traces to the language, runtime and target filename
+as well as the source/harness hashes. Ingress results bind the language and
+original/sanitized hashes. A stale node blocks live verification. See the
+[language verification record](docs/LANGUAGES.md) and earlier
+[31 October security record](docs/SECURITY_HARDENING.md).
 
 Choose SSH forwarding or private Tailscale endpoints to connect the workstation to the node.
 
@@ -155,7 +172,7 @@ the immutable bootstrap drops to UID/GID 65534 with no effective/permitted
 capabilities before loading source. Payloads cannot alter evidence or write
 host-backed files. Output, trace, event-count and execution-time limits fail
 closed, and containers are reaped on failure. Docker failure never triggers host
-execution on the remote server. The client requires protected protocol-v2 traces
+execution on the remote server. The client requires protected protocol-v3 traces
 and source/harness SHA-256 matches. Node requests disable redirects and ambient
 HTTP proxies so bearer credentials cannot be forwarded unexpectedly.
 
@@ -186,10 +203,11 @@ Self-play uses a bounded scenario language, not model-generated executable harne
 | Method | Route | Result |
 | --- | --- | --- |
 | GET | `/api/health` | Running state and phase identifiers |
+| GET | `/api/languages` | Supported extensions, runtimes and adapter scope |
 | GET | `/api/providers` | Pre-flight status and selected topology; `?force_refresh=true` retests |
 | POST | `/api/providers/mode` | `{"mode":"all_three"}` changes subsequent ensemble selection |
 | POST | `/api/steer` | Add a session restriction |
-| POST | `/api/run` | `{"target_file":"poisoned_app.py"}` |
+| POST | `/api/run` | `{"target_file":"poisoned_app.py"}` or a supported JavaScript/TypeScript workspace path |
 | POST | `/api/batch` | Run the benchmark corpus with concurrency capped at three |
 | POST | `/api/clean` | Prune temporary workspaces when idle |
 | GET | `/api/metrics` | Token, cost, outcome and timing metrics |
@@ -222,9 +240,9 @@ python -m tests.run_e2e --live --base http://127.0.0.1:8080
 Run the real Docker security checks separately (also enforced in CI):
 
 ```bash
-docker build -t agentward-sandbox:security-v2 -f security/Dockerfile.sandbox .
-AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:security-v2 \
-  python -m unittest tests.test_docker_security -v
+docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
+AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:multilang-v3 \
+  python -m unittest tests.test_docker_security tests.test_multilanguage_docker -v
 python3 tools/manage_cybersecurity_skills.py verify
 ```
 

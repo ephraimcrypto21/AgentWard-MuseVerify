@@ -18,13 +18,14 @@ import urllib.error
 import urllib.request
 import threading
 import hashlib
-from ingress_sanitizer import sanitize_source
+from language_adapters import adapter_for
 from sandbox_protocol import SandboxRequest
 from service_security import BodyLimitMiddleware, node_headers, node_urlopen, require_node_token
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, model_validator
+from typing import Literal
 app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 app.add_middleware(BodyLimitMiddleware)
 
@@ -57,9 +58,20 @@ def load_classifier():
 
 class ScanRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    file_path: str = Field(default='unknown', max_length=1024)
+    file_path: str = Field(default='unknown.py', max_length=1024)
+    language: Literal['python', 'javascript', 'typescript'] | None = None
     content: str = Field(default="", max_length=200000)
     text: str = Field(default="", max_length=200000)
+
+    @model_validator(mode='after')
+    def check_language(self):
+        adapter = adapter_for(self.file_path)
+        if self.language is not None and self.language != adapter.name:
+            raise ValueError('Language does not match file extension')
+        if self.content and self.text and self.content != self.text:
+            raise ValueError('Conflicting source aliases')
+        self.language = adapter.name
+        return self
 
 
 SandboxTestRequest = SandboxRequest
@@ -93,7 +105,7 @@ def scan_ingress(req: ScanRequest):
 
 def _scan_ingress(req: ScanRequest):
     raw_text = req.content or req.text
-    cleaned = sanitize_source(raw_text)
+    cleaned = adapter_for(req.file_path).sanitize(raw_text)
     load_classifier()
     if model is None:
         return {'label': 'unverified', 'blocked': True, 'backend': 'unavailable',
@@ -116,6 +128,7 @@ def _scan_ingress(req: ScanRequest):
     labels = ['benign', 'injection', 'jailbreak']
     verified = cleaned['valid'] and max(clean_probs[1:]) <= .40 and clean_probs[0] >= max(clean_probs[1:])
     return {'file_path': req.file_path, 'backend': 'prompt_guard', 'coverage_complete': True,
+            'language': req.language,
             'source_sha256': hashlib.sha256(raw_text.encode()).hexdigest(),
             'sanitized_sha256': hashlib.sha256(cleaned['content'].encode()).hexdigest(),
             'sanitized_verified': verified, 'sanitized_content': cleaned['content'],

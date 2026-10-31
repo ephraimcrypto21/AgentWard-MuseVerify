@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 import urllib.request
 from dotenv import load_dotenv
-from ingress_sanitizer import sanitize_source
+from language_adapters import adapter_for, UnsupportedLanguage
 from service_security import node_headers, node_urlopen
 
 load_dotenv()
@@ -16,11 +16,12 @@ LIGHTSAIL_SANDBOX_URL = os.getenv('AGENTWARD_SANDBOX_URL', 'http://127.0.0.1:180
 
 
 def check_prompt_guard(file_path, content):
-    local = sanitize_source(content)
+    adapter = adapter_for(file_path)
+    local = adapter.sanitize(content)
     data = {}
     if os.getenv('AGENTWARD_FORCE_LOCAL') != '1':
         request = urllib.request.Request(PROMPT_GUARD_URL,
-            data=json.dumps({'file_path': file_path, 'content': content, 'text': content}).encode(),
+            data=json.dumps({'file_path': file_path, 'content': content, 'language': adapter.name}).encode(),
             headers=node_headers(), method='POST')
         try:
             with node_urlopen(request, timeout=30) as response:
@@ -36,10 +37,15 @@ def check_prompt_guard(file_path, content):
             'evidence_verified': data.get('backend') == 'prompt_guard'
                 and data.get('coverage_complete') is True and data.get('sanitized_verified') is True
                 and data.get('source_sha256') == hashlib.sha256(content.encode()).hexdigest()
+                and data.get('language') == adapter.name
                 and data.get('sanitized_sha256') == hashlib.sha256(local['content'].encode()).hexdigest()}
 
 
 def inspect_file_before_muse(file_path):
+    try:
+        adapter_for(file_path)
+    except UnsupportedLanguage as exc:
+        return {'status': exc.code, 'reason': str(exc), 'content': '', 'sanitized_count': 0}
     try:
         content = Path(file_path).read_text(encoding='utf-8')
     except (OSError, UnicodeError) as exc:

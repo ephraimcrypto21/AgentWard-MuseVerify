@@ -34,21 +34,15 @@ import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
 from sandbox_protocol import SandboxRequest, EVIDENCE_VERSION
 from service_security import BodyLimitMiddleware, require_node_token
+from language_adapters import adapter_for
 
 app = FastAPI(title="MuseVerify Sandbox Node (Stage 2/5)")
 app.add_middleware(BodyLimitMiddleware)
 _sandbox_slots = threading.BoundedSemaphore(3)
 
 def _default_image() -> str:
-    """Prefer the trace-capable derived image when it has been built locally."""
-    if shutil.which("docker"):
-        probe = subprocess.run(
-            ["docker", "image", "inspect", "agentward-sandbox:latest"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if probe.returncode == 0:
-            return "agentward-sandbox:latest"
-    return "python:3.12-slim"
+    """Require the multi-runtime image; missing images fail closed at execution."""
+    return 'agentward-sandbox:multilang-v3'
 
 
 SANDBOX_IMAGE = os.environ.get("SANDBOX_IMAGE") or _default_image()
@@ -81,6 +75,8 @@ for name in os.listdir('/inputs'):
     shutil.copyfile('/inputs/' + name, '/workspace/' + name)
 sys.path.insert(0, '/workspace')
 os.chdir('/workspace')
+if len(sys.argv) > 1 and sys.argv[1] == 'node':
+    os.execv('/usr/local/bin/node', ['/usr/local/bin/node', '--no-warnings', '/workspace/verify_test.mjs'])
 sys.argv = ['/workspace/verify_test.py']
 runpy.run_path(sys.argv[0], run_name='__main__')
 '''
@@ -170,12 +166,13 @@ def _is_noisy(path: str) -> bool:
 
 def _write_harness_files(sandbox_dir: str, req: SandboxRequest) -> str:
     target_name = req.target_file or req.target_filename or 'target.py'
+    adapter = adapter_for(target_name)
     root = Path(sandbox_dir)
     root.chmod(0o755)
     inputs = root / 'inputs'
     inputs.mkdir(mode=0o755)
     (inputs / target_name).write_text(req.code_content or req.sanitized_target_code)
-    (inputs / 'verify_test.py').write_text(req.test_code or req.test_script or req.poc_script)
+    (inputs / adapter.harness_filename).write_text(req.test_code or req.test_script or req.poc_script)
     for path in inputs.iterdir():
         path.chmod(0o644)
     (root / 'bootstrap.py').write_text(BOOTSTRAP)
@@ -192,7 +189,9 @@ def _write_harness_files(sandbox_dir: str, req: SandboxRequest) -> str:
     return target_name
 
 
-def _run_container(sandbox_dir: str):
+def _run_container(sandbox_dir: str, runtime='python3'):
+    if runtime not in ('python3', 'node'):
+        raise ValueError('Unsupported sandbox runtime')
     name = 'agentward-' + uuid.uuid4().hex
     root = Path(sandbox_dir)
     command = [
@@ -209,9 +208,10 @@ def _run_container(sandbox_dir: str):
         '--mount', f'type=bind,src={root / "bootstrap.py"},dst=/opt/bootstrap.py,readonly',
         '--mount', f'type=bind,src={root / "evidence"},dst=/evidence',
         '-w', '/', '--env', 'PYTHONUNBUFFERED=1', '--env', 'PYTHONDONTWRITEBYTECODE=1',
+        '--env', 'NODE_OPTIONS=', '--env', 'NODE_PATH=',
         '--entrypoint', '/bin/sh', SANDBOX_IMAGE, '-c',
         'umask 022; exec strace -f -qq -e trace=' + TRACE_SYSCALLS
-        + ' -o /evidence/kernel.strace python3 -I /opt/bootstrap.py',
+        + ' -o /evidence/kernel.strace python3 -I /opt/bootstrap.py ' + runtime,
     ]
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     captured = {'stdout': bytearray(), 'stderr': bytearray()}
@@ -292,7 +292,7 @@ def health():
         "docker": have_docker,
         "sandbox_image": SANDBOX_IMAGE,
         "trace_capable": trace_capable,
-        "syscall_telemetry": "protected-strace-v2" if trace_capable else "unavailable (image lacks strace)",
+        "syscall_telemetry": "protected-strace-v3" if trace_capable else "unavailable (image lacks strace)",
         "evidence_version": EVIDENCE_VERSION,
     }
 
@@ -317,7 +317,9 @@ def _execute(req: SandboxRequest):
                'evidence_version': EVIDENCE_VERSION, 'syscall_events': []}
     try:
         _write_harness_files(sandbox_dir, req)
-        proc = _run_container(sandbox_dir)
+        target_name = req.target_file or req.target_filename or 'target.py'
+        adapter = adapter_for(target_name)
+        proc = _run_container(sandbox_dir, adapter.runtime)
         trace = _read_trace(Path(sandbox_dir) / 'evidence' / 'kernel.strace')
         events = normalize_strace(trace)
         complete = bool(events) and len(events) <= MAX_EVENTS and proc.returncode == 0
@@ -326,6 +328,7 @@ def _execute(req: SandboxRequest):
             'exit_code': proc.returncode, 'stdout': proc.stdout.strip(), 'stderr': proc.stderr.strip(),
             'trace_backend': 'strace', 'syscall_events': events[:MAX_EVENTS],
             'trace_complete': complete, 'trace_protected': True,
+            'language': adapter.name, 'runtime': adapter.runtime, 'target_filename': target_name,
             'source_sha256': hashlib.sha256((req.code_content or req.sanitized_target_code).encode()).hexdigest(),
             'harness_sha256': hashlib.sha256((req.test_code or req.test_script or req.poc_script).encode()).hexdigest(),
             'execution_contract': {'engine': 'docker', 'network': 'none', 'memory': '256m',

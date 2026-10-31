@@ -19,13 +19,17 @@ from ai_provider import telemetry_scope, telemetry_summary, discover_and_verify_
 from reporting import RunReport, atomic_write, verified_diff, synthesize_executive_commentary
 from security_graph import patch_context
 from session_policy import SessionPolicy
+from language_adapters import adapter_for, UnsupportedLanguage, SUPPORTED_EXTENSIONS
 
 MAX_PARALLEL_SANDBOXES = 3
 sandbox_semaphore = asyncio.Semaphore(MAX_PARALLEL_SANDBOXES)
 PHASES = (1, 2, 3, 4, 4.5, 5, 5.1)
 
 
-def regression_harness(base, tripwire, target_file):
+def regression_harness(base, tripwire, target_file, normal_probes=()):
+    if adapter_for(target_file).name != 'python':
+        from ecmascript_harness import regression
+        return regression(base, tripwire, normal_probes)
     # All generated code runs inside the same sandbox as the exploit harness.
     return base + '\n' + '''
 import logging
@@ -122,7 +126,8 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
         record['syscall_anomalies'] = record.get('syscall_anomalies', 0) + len(analysis['signals'])
         record.setdefault('sandbox_backends', []).append({'engine': result.get('engine'), 'trace_backend': result.get('trace_backend')})
         record.setdefault('sandbox_evidence', []).append({k: result.get(k) for k in
-            ('engine', 'trace_backend', 'trace_complete', 'source_sha256', 'harness_sha256', 'execution_contract', 'syscall_events', 'stdout', 'exit_code')})
+            ('engine', 'trace_backend', 'trace_complete', 'trace_protected', 'evidence_version', 'language', 'runtime', 'target_filename',
+             'source_sha256', 'harness_sha256', 'execution_contract', 'syscall_events', 'stdout', 'exit_code')})
         await publish('syscall_trace', '\n'.join(describe_syscall_trail(result.get('syscall_events', []), 80)), phase_no,
                       analysis['verdict'], note=f"backend={result.get('trace_backend')} / engine={result.get('engine')}")
         await publish('analysis', analysis, phase_no, analysis['verdict'])
@@ -130,7 +135,18 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
     try:
         with telemetry_scope(run_id, emit):
             await publish('run_start', {'file': str(target_file)})
+            try:
+                adapter = adapter_for(target_file)
+            except UnsupportedLanguage as exc:
+                record.update(outcome=exc.code, error=str(exc))
+                return record
+            record.update(language=adapter.name, runtime=adapter.runtime)
             original = await asyncio.to_thread(Path(target_file).read_text, encoding='utf-8')
+            try:
+                adapter.parse(original)
+            except (SyntaxError, ValueError) as exc:
+                record.update(outcome='INVALID_SOURCE', error=str(exc))
+                return record
             await phase(1, 'Analyzing', 'Prompt-Guard scanning')
             s1 = await asyncio.to_thread(inspect_file_before_muse, str(target_file))
             record.update(ingress_shield=s1['status'], injections_sanitized=s1.get('sanitized_count', 0))
@@ -140,21 +156,24 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
                 record['outcome'] = 'INGRESS_BLOCKED'
                 return record
             code = s1['content']
+            triage = synthesize_verification_harness(str(target_file), code)
+            if triage.get('supported') is False:
+                record.update(outcome='UNSUPPORTED_TARGET', coverage_limits=triage['coverage_limits'])
+                return record
             providers = await discover_and_verify_providers()
             record['provider_preflight'] = providers
             record['ensemble'] = select_ensemble(providers)
             await publish('providers', providers)
             await phase(2, 'Sandboxing', 'Behavioral probes + syscall audit')
             wt = await asyncio.to_thread(create_isolated_worktree, run_id, str(target_file), code)
-            triage = synthesize_verification_harness(str(target_file), code)
-            test_file = str(Path(wt) / 'verify_test.py')
+            test_file = str(Path(wt) / adapter.harness_filename)
             await asyncio.to_thread(atomic_write, test_file, triage['verification_test_code'])
             guard = await asyncio.to_thread(AgentWardRuntimeGuard, wt, policy=policy, evidence_context={
                 'stage': 'Stage 3 policy baseline, concurrent with Stage 2 behavioral verification',
                 'authorized_objective': 'Audit the selected benchmark source and generate a candidate remediation through all mandatory gates',
                 'target': str(target_file), 'prompt_guard_verified': record['ingress_evidence_verified'],
                 'execution_contract': {'engine': 'Docker', 'network': 'none', 'memory': '256 MiB',
-                                       'capabilities': 'all dropped except SYS_PTRACE', 'no_new_privileges': True,
+                                       'capabilities': 'payload has none; tracer has SYS_PTRACE, SETUID and SETGID', 'no_new_privileges': True,
                                        'host_credentials': 'not mounted or passed to container', 'working_directory': '/workspace'},
                 'decision_scope': 'Approve or deny the runtime policy baseline for sandboxed verification, not a patch or host shell execution. '
                                   'The orchestrator can consume this baseline only after Stage 2 returns valid Docker/strace evidence. '
@@ -220,12 +239,12 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
                 record['outcome'] = 'SELFPLAY_REJECTED'
                 return record
             await phase(5, 'Verifying', 'Exploit, normal behavior and live tripwire replay')
-            post = await sandbox(patched, regression_harness(triage['verification_test_code'], s4['tripwire'], target_file), 5)
+            post = await sandbox(patched, regression_harness(triage['verification_test_code'], s4['tripwire'], target_file, pre['probes']), 5)
             contract = [p for p in post['probes'] if p['probe'] == 'normal_behavior' or p['probe'].startswith('tripwire:')]
             expected = {'normal_behavior'} | {'tripwire:' + g['function'] for g in s4['tripwire']['guards']}
             actual = {p['probe'] for p in contract if p.get('ok') is True}
             fixed = post['safe'] and expected <= actual and all(p.get('ok') is True for p in contract)
-            fixed = fixed and not policy.halted and not policy.code_violation(patched) and audit.get('policy_revision') == policy.revision
+            fixed = fixed and not policy.halted and not policy.code_violation(patched, adapter.name) and audit.get('policy_revision') == policy.revision
             fixed = fixed and (report.mode == 'dry_run' or post.get('evidence_verified', False))
             record.update(regression_verified_fixed=fixed and report.mode == 'live', simulation_verified_fixed=fixed and report.mode == 'dry_run', post_patch_verdict=post['verdict'])
             if fixed:
@@ -300,7 +319,7 @@ async def run_batch_benchmark(targets_dir='benchmark_targets', *, on_event=None,
     results = []
     policy = policy or SessionPolicy()
     try:
-        paths = sorted(str(p) for p in Path(targets_dir).glob('*.py'))
+        paths = sorted(str(p) for p in Path(targets_dir).iterdir() if p.is_file() and p.suffix in SUPPORTED_EXTENSIONS)
         if not Path(targets_dir).is_dir():
             raise FileNotFoundError(targets_dir)
         # Bound whole tasks as well as containers: model/CodeShield work stays bounded.

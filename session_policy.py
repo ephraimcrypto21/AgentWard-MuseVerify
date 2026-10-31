@@ -37,10 +37,13 @@ class SessionPolicy:
                 return 'Operator forbids subprocess calls'
         return None
 
-    def code_violation(self, code):
+    def code_violation(self, code, language='python'):
         # AST enforcement avoids a comment falsely satisfying a new constraint.
         if self.halted:
             return 'Session halted by misalignment monitor'
+        if language != 'python':
+            from ecmascript import code_violation
+            return code_violation(code, language, self.constraints)
         tree = ast.parse(code)
         calls = [ast.unparse(n.func) for n in ast.walk(tree) if isinstance(n, ast.Call)]
         rules = ' '.join(self.constraints).lower()

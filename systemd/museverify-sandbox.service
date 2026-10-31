@@ -11,7 +11,7 @@ WorkingDirectory=/home/ubuntu/agentward-node
 Environment="PATH=/home/ubuntu/agentward-node/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 EnvironmentFile=/etc/agentward/node.env
-Environment="SANDBOX_IMAGE=agentward-sandbox:latest"
+Environment="SANDBOX_IMAGE=agentward-sandbox:multilang-v3"
 ExecStart=/home/ubuntu/agentward-node/venv/bin/uvicorn sandbox_server:app --host 127.0.0.1 --port 8001 --workers 1
 Restart=always
 RestartSec=5

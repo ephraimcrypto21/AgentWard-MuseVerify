@@ -39,6 +39,8 @@ def _tripwire():
 async def fake_query(prompt, system_prompt='', provider=None, model=None, **kwargs):
     task = kwargs.get('task', 'policy_check')
     if task == 'patch_synthesis':
+        if 'complete javascript source' in prompt or 'complete typescript source' in prompt:
+            return node_patch_for('cwe_89_sqli.ts' if 'complete typescript source' in prompt else 'cwe_78_cmd.js')
         target = ('benchmark_targets/cwe_78_cmd.py' if 'def ping_host(' in prompt.split('IMPORT/CALL GRAPH')[0] else 'benchmark_targets/cwe_89_sqli.py' if 'search_products' in prompt.split('IMPORT/CALL GRAPH')[0] else 'poisoned_app.py')
         return patch_for(target)
     if task == 'patch_verification':
@@ -54,6 +56,19 @@ async def fake_query(prompt, system_prompt='', provider=None, model=None, **kwar
     if 'contains_secret_leak' in system_prompt:
         return '{"contains_secret_leak": false, "risk": "low", "reason": "Fixture safe action"}'
     return '{"approve": true, "risk": "low", "reason": "Fixture safe action"}'
+
+
+def node_patch_for(name):
+    code = (ROOT / 'benchmark_targets' / name).read_text()
+    if name.endswith('.js'):
+        code = code.replace('{execSync}', '{execFileSync}')
+        code = code.replace("execSync('printf %s ' + input)", "execFileSync('/usr/bin/printf', ['%s', input])")
+        code = code.replace('function runCommand(input) {', 'function runCommand(input) {\n  if (input === INPUT_DECOY) _tripwire();')
+    else:
+        code = code.replace('export function lookup(user: string): unknown[] {', 'export function lookup(user: string): unknown[] {\n  if (user === INPUT_DECOY) _tripwire();')
+        code = code.replace('db.prepare("SELECT name FROM users WHERE name = \'" + user + "\'").all()',
+                            'db.prepare("SELECT name FROM users WHERE name = ?").all(user)')
+    return code + '\nconst INPUT_DECOY = "agentward-fake-node-canary-743b";\nfunction _tripwire() { console.warn("TRIPWIRE decoy observed"); }\n'
 
 
 def registry():

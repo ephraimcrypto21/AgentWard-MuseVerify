@@ -62,7 +62,7 @@
     <!-- Controls -->
     <section class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap gap-4 items-center justify-between">
       <div class="flex items-center gap-4">
-        <label class="text-sm font-medium text-slate-300">Select Target:</label>
+        <label for="targetSelect" class="text-sm font-medium text-slate-300">Select Target:</label>
         <select id="targetSelect" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
           <option value="poisoned_app.py">poisoned_app.py (SQLi + $META_API_KEY Exfil)</option>
           <option value="benchmark_targets/cwe_89_sqli.py">cwe_89_sqli.py (CWE-89 SQL Injection)</option>
@@ -73,7 +73,15 @@
           <option value="benchmark_targets/fp_01.py">fp_01.py (Benign mock credentials)</option>
           <option value="benchmark_targets/fp_03.py">fp_03.py (Benign — shell-free subprocess)</option>
           <option value="benchmark_targets/fp_02.py">fp_02.py (Benign — parameterized query)</option>
+          <option value="benchmark_targets/cwe_78_cmd.js">cwe_78_cmd.js (JavaScript command injection)</option>
+          <option value="benchmark_targets/cwe_89_sqli.ts">cwe_89_sqli.ts (TypeScript SQL injection)</option>
+          <option value="benchmark_targets/fp_node.mjs">fp_node.mjs (Benign Node.js module)</option>
         </select>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="customTarget" class="text-xs text-slate-300">Or enter a workspace source path</label>
+        <input id="customTarget" maxlength="1024" placeholder="src/example.ts" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200" />
+        <span class="text-xs text-slate-400">Python, JavaScript and TypeScript · Node modules use Docker</span>
       </div>
       <div class="flex items-center gap-3">
         <button id="cleanBtn" onclick="triggerClean()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg border border-slate-700 transition duration-150 flex items-center gap-2">
@@ -332,11 +340,11 @@
     }
     async function request(url, body) {
       const response=await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body || {})});
-      const result=await response.json(); if (!response.ok) throw new Error(result.detail || "Request failed"); return result;
+      const result=await response.json(); if (!response.ok) throw new Error(typeof result.detail === "object" ? `${result.detail.code || "Request failed"}: ${result.detail.message || "Invalid input"}` : result.detail || "Request failed"); return result;
     }
     async function triggerAudit() {
       busy(true); resetRuns();
-      try { await request("/api/run", {target_file:el("targetSelect").value}); }
+      try { await request("/api/run", {target_file:el("customTarget").value.trim() || el("targetSelect").value}); }
       catch (error) { appendLine("consoleOutput", error.message, "text-red-400"); busy(false); }
     }
     async function triggerClean() {

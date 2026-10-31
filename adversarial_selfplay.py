@@ -147,6 +147,11 @@ def safe_command(payload):
 
 async def run_selfplay(target_file, patched_code, vulnerable_code='', sqli_payloads=None,
                        cmd_payload=None, on_event=None, allow_test_backend=False):
+    from language_adapters import adapter_for
+    if adapter_for(target_file).name != 'python':
+        from ecmascript_harness import run_selfplay as run_node_selfplay
+        return await run_node_selfplay(target_file, patched_code, vulnerable_code, sqli_payloads,
+                                       cmd_payload, on_event, allow_test_backend)
     sqli_payloads = sqli_payloads or stage2.default_sqli_payloads()
     cmd_payload = cmd_payload or stage2.DEFAULT_CMD_PAYLOAD
     mutated = await generate_mutations(target_file, vulnerable_code, sqli_payloads, cmd_payload)

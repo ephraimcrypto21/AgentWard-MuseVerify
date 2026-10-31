@@ -22,6 +22,7 @@ import urllib.request
 import urllib.error
 from sandbox_protocol import EVIDENCE_VERSION
 from service_security import node_headers, node_urlopen
+from language_adapters import adapter_for
 
 PROMPT_GUARD_URL = os.environ.get(
     "AGENTWARD_INGRESS_URL", "http://127.0.0.1:18000/scan-ingress"
@@ -30,7 +31,7 @@ LIGHTSAIL_SANDBOX_URL = os.environ.get(
     "AGENTWARD_SANDBOX_URL", "http://127.0.0.1:18001/execute"
 )
 
-HARNESS_FILES = {"test_harness.py", "verify_test.py", "run_test.py", "agentward_runner.py"}
+HARNESS_FILES = {"test_harness.py", "verify_test.py", "verify_test.mjs", "run_test.py", "agentward_runner.py"}
 
 def clean_worktrees(
     vuln_id: str | None = None,
@@ -318,7 +319,7 @@ main()
 # Syscalls an honest harness should stay inside; anything else is worth a look.
 BENIGN_EXEC_BASENAMES = {
     "sh", "dash", "bash", "python3", "python", "strace", "env",
-    "ls", "cat", "grep", "id", "whoami", "uname", "echo", "ping",
+    "ls", "cat", "grep", "id", "whoami", "uname", "echo", "ping", "node", "printf",
 }
 REQUIRED_EXPLOIT_MARKERS = ("AGENTWARD_SQLI", "AGENTWARD_CMD")
 
@@ -347,6 +348,9 @@ def synthesize_verification_harness(
     longer depends on the process exit code (which a polymorphic payload can fake).
     Payload lists are injectable so Stage 4.5 can re-run mutated variants.
     """
+    if adapter_for(target_file).name != 'python':
+        from ecmascript_harness import synthesize
+        return synthesize(target_file, content, sqli_payloads, cmd_payload)
     print("[MuseVerify Stage-2] Generating execution harness with live sycall probes...")
     target_name = os.path.basename(target_file)
     resolved_sqli = sqli_payloads or default_sqli_payloads()
@@ -633,12 +637,14 @@ def _remote_is_instrumented(data: dict) -> bool:
 
 
 def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
+    adapter = adapter_for(target_file)
     payload = json.dumps({
         "vuln_id": vuln_id,
         "target_file": os.path.basename(target_file),
         "code_content": code_content,
         "test_code": test_code,
         "capture_mode": "auto",
+        "language": adapter.name,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -657,6 +663,8 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
         raise RuntimeError('Docker and strace evidence required; verification denied')
     if data.get('evidence_version') != EVIDENCE_VERSION or data.get('trace_protected') is not True:
         raise RuntimeError('Protected trace evidence required; upgrade the sandbox node')
+    if data.get('language') != adapter.name or data.get('runtime') != adapter.runtime or data.get('target_filename') != os.path.basename(target_file):
+        raise RuntimeError('Sandbox language/runtime/filename evidence mismatch')
     if data.get('source_sha256') != hashlib.sha256(code_content.encode()).hexdigest() or data.get('harness_sha256') != hashlib.sha256(test_code.encode()).hexdigest():
         raise RuntimeError('Sandbox evidence does not match the submitted source and harness')
     return data
@@ -665,6 +673,8 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
 def run_sandboxed(vuln_id: str, target_file: str, code_content: str, test_code: str, *, allow_test_backend=False) -> dict:
     """Production always requires Docker. Host execution is explicit test-only."""
     if os.environ.get("AGENTWARD_FORCE_LOCAL") == "1":
+        if adapter_for(target_file).name != 'python':
+            raise RuntimeError('JavaScript/TypeScript require Docker, including in dry-run mode')
         if not allow_test_backend or os.getenv("AGENTWARD_REQUIRE_DOCKER") == "1":
             raise RuntimeError("Local execution is disabled by production policy")
         return _local_execute(vuln_id, target_file, code_content, test_code)

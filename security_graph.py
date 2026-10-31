@@ -7,8 +7,9 @@ import ast
 import os
 from collections import deque
 from pathlib import Path
+from language_adapters import SUPPORTED_EXTENSIONS, adapter_for
 
-EXCLUDED = {".git", "venv", ".venv", "worktrees", "patches", "reports", "tests", "__pycache__"}
+EXCLUDED = {".git", "venv", ".venv", "worktrees", "patches", "reports", "tests", "__pycache__", "node_modules", "dist", "build"}
 MAX_FILES = 80
 MAX_BYTES = 160000
 
@@ -21,13 +22,13 @@ def dotted(node):
     return ""
 
 
-def collect_sources(root, overrides=None):
+def collect_sources(root, overrides=None, extensions=None):
     root = Path(root).resolve()
     sources, limits = {}, []
     candidates = []
     for directory, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(d for d in dirs if d not in EXCLUDED and not (Path(directory)/d).is_symlink())
-        candidates.extend(Path(directory)/f for f in sorted(files) if f.endswith('.py'))
+        candidates.extend(Path(directory)/f for f in sorted(files) if Path(f).suffix in (extensions or SUPPORTED_EXTENSIONS))
     candidates.sort()
     for path in candidates[:MAX_FILES]:
         if path.is_symlink() or not path.resolve().is_relative_to(root):
@@ -44,6 +45,19 @@ def collect_sources(root, overrides=None):
 
 
 def analyze_sources(sources):
+    python = {f: s for f, s in sources.items() if Path(f).suffix == '.py'}
+    javascript = {f: s for f, s in sources.items() if Path(f).suffix in SUPPORTED_EXTENSIONS - {'.py'}}
+    result = _analyze_python_sources(python)
+    if javascript:
+        from ecmascript import analyze_sources as analyze_ecmascript
+        other = analyze_ecmascript(javascript)
+        for key in ('functions', 'edges', 'findings', 'assumptions', 'coverage_limits'):
+            result[key].extend(other[key])
+        result['files_scanned'] += other['files_scanned']
+    return result
+
+
+def _analyze_python_sources(sources):
     functions, aliases, modules, findings, edges, limits = {}, {}, {}, [], [], []
     assumptions = []
     def assumption(file, node, gap, assertion):
@@ -264,7 +278,9 @@ def patch_context(target_file, original, patched=None):
     path = Path(target_file).resolve()
     root = path.parent.parent if path.parent.name == 'benchmark_targets' else path.parent
     rel = str(path.relative_to(root))
-    sources, limits = collect_sources(root)
+    adapter = adapter_for(target_file)
+    extensions = {'.py'} if adapter.name == 'python' else SUPPORTED_EXTENSIONS - {'.py'}
+    sources, limits = collect_sources(root, extensions=extensions)
     sources[rel] = original
     before = analyze_sources(sources)
     after = analyze_sources({**sources, rel: patched}) if patched is not None else before
@@ -276,7 +292,7 @@ def patch_context(target_file, original, patched=None):
     # connect otherwise unrelated application modules. Traverse resolved local
     # function edges in both directions, preserving real callers and helpers.
     context_edges = [e for e in before['edges'] + after['edges'] if e['resolved']]
-    module = rel.removesuffix('.py').replace('/', '.').removesuffix('.__init__')
+    module = str(Path(rel).with_suffix('')).replace('/', '.').removesuffix('.__init__')
     queue = deque(name for name in set(before['functions'] + after['functions']) if name.startswith(module + '.'))
     visited = set()
     while queue:
@@ -288,9 +304,13 @@ def patch_context(target_file, original, patched=None):
             if e['caller'] == current or e['callee'] == current:
                 related.add(e['file'])
                 queue.extend(x for x in (e['caller'], e['callee']) if x not in visited)
-    for file, module in ((f, f.removesuffix('.py').replace('/', '.')) for f in sources):
+    for file, module in ((f, str(Path(f).with_suffix('')).replace('/', '.')) for f in sources):
         if any(name.startswith(module + '.') for name in visited):
             related.add(file)
-    return {"target": rel, "sources": {f: sources[f] for f in sorted(related)},
+    if adapter.name != 'python':
+        # Provide full bounded sibling context to reviewers; Node graph resolution
+        # is intraprocedural and cannot otherwise select imported source safely.
+        related = set(sources)
+    return {"target": rel, "language": adapter.name, "sources": {f: sources[f] for f in sorted(related)},
             "before": before, "after": after, "introduced": introduced,
             "coverage_limits": limits + after['coverage_limits']}

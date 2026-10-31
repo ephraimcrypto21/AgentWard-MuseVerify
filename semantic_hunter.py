@@ -21,6 +21,7 @@ import os
 import re
 import sys
 from security_graph import collect_sources, analyze_sources
+from language_adapters import adapter_for, SUPPORTED_EXTENSIONS
 
 # Root-cause families keep a lexical fallback alive when the model is offline.
 ROOT_CAUSE_FAMILIES = {
@@ -93,14 +94,15 @@ async def extract_root_cause(target_file: str, vulnerable_code: str, patched_cod
                  "remediation", "RUNNING", "violet",
                  "Extracting semantic root cause of the vulnerability")
 
+    language = adapter_for(target_file).name
     prompt = (
         "You are a vulnerability taxonomist. A file was vulnerable and has now been "
         "patched. Describe the *semantic* root cause so that a sibling file written in a "
         "completely different style can still be recognized as the same bug.\n\n"
         "Ignore naming, formatting and library choice. Capture: taint source, sink, and "
         "the missing control.\n\n"
-        f"VULNERABLE:\n```python\n{vulnerable_code[:2500]}\n```\n\n"
-        f"PATCHED:\n```python\n{patched_code[:2500]}\n```\n\n"
+        f"VULNERABLE ({language}):\n```{language}\n{vulnerable_code[:2500]}\n```\n\n"
+        f"PATCHED:\n```{language}\n{patched_code[:2500]}\n```\n\n"
         "Reply with ONLY JSON: "
         '{"family": "sqli|cmd|crypto|secrets|other", "root_cause": string, '
         '"semantic_signature": string, "indicators": [string]}'
@@ -145,7 +147,8 @@ async def hunt_variants(root_cause: dict, corpus_dir: str, exclude_file: str = "
     """Scan `corpus_dir` for structurally different, semantically identical bugs."""
     from ai_provider import query_ensemble, emit_vote
 
-    sources, coverage_limits = await asyncio.to_thread(collect_sources, corpus_dir)
+    extensions = None if not exclude_file else {'.py'} if adapter_for(exclude_file).name == 'python' else SUPPORTED_EXTENSIONS - {'.py'}
+    sources, coverage_limits = await asyncio.to_thread(collect_sources, corpus_dir, extensions=extensions)
     graph = precomputed_graph or await asyncio.to_thread(analyze_sources, sources)
     exclude_rel = os.path.relpath(exclude_file, corpus_dir) if exclude_file else ""
     corpus = {p: code for p, code in sources.items() if p != exclude_rel}
