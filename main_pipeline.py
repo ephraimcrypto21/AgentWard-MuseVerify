@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Shared seven-phase CLI/dashboard orchestrator, including terminal-path reports."""
 import asyncio
+import hashlib
 import inspect
 import json
 from pathlib import Path
@@ -214,8 +215,23 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
                 record['executive_commentary'] = await synthesize_executive_commentary(record)
                 return record
             await phase(4, 'Validating', 'Meta synthesis + independent consensus + CodeShield')
+            patch_observations = {
+                'verification_mode': report.mode, 'run_id': run_id,
+                'original_source_sha256': hashlib.sha256(code.encode('utf-8')).hexdigest(),
+                'ingress': {k: s1.get(k) for k in ('status', 'evidence_verified', 'classifier_contract')},
+                'original_sandbox': {
+                    'evidence_verified': pre.get('evidence_verified', False), 'verdict': pre['verdict'],
+                    'artifacts': [{k: evidence.get(k) for k in (
+                        'engine', 'trace_backend', 'trace_complete', 'trace_protected', 'evidence_version',
+                        'language', 'runtime', 'target_filename', 'source_sha256', 'harness_sha256')}
+                        for evidence in record['sandbox_evidence']],
+                },
+                'runtime_policy': {'allowed': audit['allowed'], 'revision': audit.get('policy_revision')},
+                'pending_candidate_gates': ['independent_review', 'CodeShield', 'adversarial_replay', 'regression'],
+            }
             s4 = await synthesize_and_gate_patch(str(target_file), source_code=code,
-                                                patch_dir=str(Path('patches') / '.candidates' / run_id), policy=policy, precomputed_context=context)
+                                                patch_dir=str(Path('patches') / '.candidates' / run_id), policy=policy,
+                                                precomputed_context=context, verification_context=patch_observations)
             record.update(codeshield_status=s4['status'], tripwire=s4.get('tripwire'), gate_issues=s4.get('issues_found', []))
             record['patch_attempts'] = s4.get('attempts', [])
             await phase(4, s4['status'], s4.get('tripwire_summary') or '; '.join(s4.get('issues_found', [])), True)

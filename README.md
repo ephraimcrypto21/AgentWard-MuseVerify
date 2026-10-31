@@ -38,6 +38,13 @@ verified result. See [adapter behavior and limits](docs/LANGUAGES.md).
 
 Phase 2 overlaps with AST graph construction and the Stage 3 policy baseline. At most three pipeline containers execute concurrently. A successful baseline cannot substitute for later sandbox or patch evidence.
 
+Phase 4 receives the already observed ingress, original sandbox and runtime-policy
+results. Its model votes approve only the candidate's static review. CodeShield,
+adversarial replay and regression remain required before final remediation. The
+review contract distinguishes the required decoy tripwire from injected source
+instructions and separates unchanged, unrelated sibling findings from risks that
+affect the selected target.
+
 ## Quick start
 
 Python 3.12+ is recommended. The local development environment uses `venv/`.
@@ -224,6 +231,10 @@ Self-play uses a bounded scenario language, not model-generated executable harne
 | WebSocket | `/ws/telemetry` | Replayable, run-tagged events |
 
 ## Evidence and verification
+
+The [31 October live multilingual acceptance](docs/LIVE_MULTILANGUAGE.md) records
+fresh Meta-generated JavaScript/TypeScript repairs, the benign Node control,
+94 passing local tests and the remaining browser findings.
 
 See the [current hardening verification](docs/SECURITY_HARDENING.md) and the
 [historical 30 October record](docs/VERIFICATION.md). Earlier remote acceptance

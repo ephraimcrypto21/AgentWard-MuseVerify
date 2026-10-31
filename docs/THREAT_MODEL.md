@@ -81,6 +81,16 @@ still data from an untrusted process. Positive controls, independent reviews,
 CodeShield, semantic checks and regression gates remain necessary. An accepted
 repair is evidence for the supported tests, not a formal proof of all behavior.
 
+Phase 4 receives a summary of the orchestrator's observed original-source evidence,
+including its SHA-256 and sandbox artifact identities. It preserves the verification
+mode, so fixture evidence cannot be presented as live verification. Model votes
+have `approval_scope: phase4_candidate`: they approve only static candidate review,
+not execution or final remediation. Evidence from subsequent gates remains pending;
+the orchestrator still requires CodeShield, adversarial replay and regression.
+Feedback from a rejected candidate cannot waive those gates or redefine the
+application's required decoy tripwire. Unchanged independent sibling findings
+remain reportable; connected risks and newly introduced hazards still block review.
+
 ## Ownership and review triggers
 
 The project maintainer owns application controls, release verification, the skill

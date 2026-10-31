@@ -1,9 +1,11 @@
 import asyncio
+import hashlib
 import json
 import os
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch, AsyncMock
 
 from fastapi.testclient import TestClient
@@ -19,6 +21,23 @@ from tests.fixtures import fake_query, patch_for, ROOT, offline_models
 
 
 class RouterTests(unittest.IsolatedAsyncioTestCase):
+    async def test_candidate_review_cannot_waive_codeshield(self):
+        candidate = patch_for('poisoned_app.py')
+        response = {'provider': 'meta', 'model': 'muse-wonder-1.0', 'latency_ms': 1,
+                    'error': None, 'content': json.dumps({'approve': True, 'fixes_vulnerability': True,
+                    'introduces_new_risk': False, 'reason': 'Candidate static review passed'})}
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(stage4, 'request_muse_patch', AsyncMock(return_value=candidate)), \
+             patch.object(stage4, 'query_ensemble', AsyncMock(return_value=[response])), \
+             patch.object(stage4, 'scan_python', AsyncMock(return_value=SimpleNamespace(
+                 is_insecure=True, issues_found=['scanner veto']))) as scanner:
+            result = await stage4._synthesize_and_gate_patch_once(str(ROOT / 'poisoned_app.py'), patch_dir=tmp)
+            self.assertEqual(result['status'], 'REJECTED')
+            self.assertIsNone(result['patch_path'])
+            self.assertIn('scanner veto', result['issues_found'])
+            scanner.assert_awaited_once()
+            self.assertFalse((Path(tmp) / 'poisoned_app_patched.py').exists())
+
     async def test_codeshield_engine_error_blocks(self):
         import logging
         from types import SimpleNamespace
@@ -82,6 +101,25 @@ class SecurityTests(unittest.TestCase):
 
 
 class PipelineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_patch_review_receives_observed_evidence_without_promoting_simulation(self):
+        with offline_models(), tempfile.TemporaryDirectory() as tmp, \
+             patch.dict(os.environ, {'AGENTWARD_FORCE_LOCAL': '1'}), \
+             patch('main_pipeline.synthesize_and_gate_patch', AsyncMock(return_value={
+                 'status': 'REJECTED', 'issues_found': ['review fixture stopped here']})) as gate:
+            record = await run_unified_pipeline('poisoned_app.py', report=RunReport(tmp, mode='dry_run'))
+        call = gate.await_args.kwargs
+        observed = call['verification_context']
+        self.assertEqual(observed['original_source_sha256'], hashlib.sha256(call['source_code'].encode()).hexdigest())
+        self.assertNotIn('curl', call['source_code'])
+        self.assertEqual(observed['verification_mode'], 'dry_run')
+        self.assertFalse(observed['original_sandbox']['evidence_verified'])
+        self.assertEqual(observed['original_sandbox']['verdict'], 'EXPLOITABLE')
+        self.assertTrue(observed['runtime_policy']['allowed'])
+        self.assertIn('regression', observed['pending_candidate_gates'])
+        self.assertEqual(record['outcome'], 'PATCH_REJECTED')
+        self.assertFalse(record['regression_verified_fixed'])
+        self.assertNotIn('patch_location', record)
+
     async def test_three_targets_real_sandbox_and_codeshield(self):
         with offline_models(), tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, {'AGENTWARD_FORCE_LOCAL': '1'}), patch.object(ai_provider, 'query_ai', fake_query), patch.object(stage4, 'query_ai', fake_query):
             report = RunReport(tmp, mode='dry_run')
