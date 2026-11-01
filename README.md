@@ -330,11 +330,11 @@ python tools/manage_cybersecurity_skills.py verify
 
 [docs/INGRESS_GUARD.md](docs/INGRESS_GUARD.md#reproduce-validation) lists all three real-model corpora needed to reproduce the 78 classifier cases. `python -m tests.run_e2e --live --base http://127.0.0.1:8080` exercises the live dashboard against its configured services. Unit fixtures and offline demonstrations remain explicitly labeled; Node source always requires Docker.
 
-The maintained [guide generator](tools/build_project_guide.py) builds a PDF and HTML companion from the same reviewed content without contacting providers. Install its optional dependency once, then generate both files in the repository root:
+The maintained [guide generator](tools/build_project_guide.py) builds a PDF and HTML companion from the same reviewed content without contacting providers. Install its optional dependency once, then update both published files in `output/pdf/`:
 
 ```bash
 python -m pip install -r requirements-docs.txt
-python tools/build_project_guide.py --output AgentWard_MuseVerify_Project_Guide.pdf
+python tools/build_project_guide.py
 ```
 
-The second command writes `AgentWard_MuseVerify_Project_Guide.pdf` and `AgentWard_MuseVerify_Project_Guide.html`. Running it without `--output` updates the published copies in `output/pdf/`. See [the guide build record](output/pdf/README.md) for the evidence snapshot, layout review and reproducibility limits.
+The second command writes `output/pdf/AgentWard_MuseVerify_Project_Guide.pdf` and `output/pdf/AgentWard_MuseVerify_Project_Guide.html`. Use `--output path/to/guide.pdf` when a separate destination is needed. See [the guide build record](output/pdf/README.md) for the evidence snapshot, layout review and reproducibility limits.
