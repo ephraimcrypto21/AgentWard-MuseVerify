@@ -16,11 +16,17 @@ The current probes require a single scalar argument and a serializable return
 value. All exported functions must be compatible SQL/command entry points, at
 most eight per target; partial or ambiguous probe coverage is rejected.
 
-The following files demonstrate the supported paths:
+The corpus covers all six Node extensions: eight vulnerable command/SQL targets,
+four benign controls, and a weak-randomness target with a supported SQL entry
+point. It includes aliased shell calls, SQL `LIKE` and authentication queries,
+bound parameters, safe argument arrays, interfaces, generics and type assertions.
+See the complete [1 November corpus acceptance](CORPUS_ACCEPTANCE_2026-11-01.md).
 
-- `benchmark_targets/cwe_78_cmd.js`: vulnerable CommonJS command execution.
-- `benchmark_targets/cwe_89_sqli.ts`: vulnerable TypeScript using built-in SQLite.
-- `benchmark_targets/fp_node.mjs`: safe ES module using an argument array.
+Every export must return successfully for `agentward_normal` inside the
+network-disabled sandbox. `cwe_78_cmd_ping.cts` retains its `pingHost` API and
+intentional shell interpolation but echoes the diagnostic host with `printf`;
+it requires neither a `ping` executable nor DNS/network access. This keeps its
+normal baseline reproducible without removing the vulnerability.
 
 Choose a benchmark in the dashboard or enter another source path within the
 workspace. CLI and `POST /api/run` use the same adapters. Batch mode includes all
@@ -36,7 +42,13 @@ supported extensions. `GET /api/languages` reports the registry and scope.
 2. Deterministic Node harnesses import the source only inside Docker. They check
    normal returns and fire SQL or command-injection probes. Exceptions, absent
    exports and missing normal results cannot establish successful execution.
+   Harness metadata identifies the covered CWEs. When these probes find no
+   exploit, a static finding outside their CWE coverage remains `INCONCLUSIVE`
+   and is retained in `unverified_findings`. In particular, safe SQL execution
+   cannot dismiss a `Math.random()` token finding (CWE-338).
 3. Existing runtime policy and independent model reviewers remain mandatory.
+   Benign controls finish as `FALSE_POSITIVE` after the Phase 2 result and
+   mandatory Phase 3 policy review; patch synthesis and Phases 4–5.1 are skipped.
 4. Patch gates preserve exported parameter/type and sync/async signatures, require
    an AST-recognized equality guard and `console.warn`/`console.error` tripwire,
    review static findings, and run CodeShield's JavaScript rules. TypeScript's
@@ -92,19 +104,27 @@ bootstrap drops UID/GID/groups before either language executes submitted source.
 
 ## Validation
 
-Local acceptance: **81 tests passed with no skips**: the 80-test full suite,
+Current corpus acceptance, **1 November 2026**: **99 tests passed with no skips**,
+including real Docker suites. All 13 Node targets parsed and received real
+classifier `ALLOW`; all six TypeScript targets passed erasure and JavaScript
+scanning. Live Meta/remote Docker runs produced eight verified repairs, four
+false-positive controls and one correctly retained inconclusive CWE-338 case.
+The [acceptance record](CORPUS_ACCEPTANCE_2026-11-01.md) documents retries,
+artifacts, scope and remaining limits.
+
+Historical adapter acceptance, **31 October 2026**: **81 tests passed with no skips**: the 80-test full suite,
 including both real Docker suites, plus an additional `.cjs`/`.cts`/`.mts`
 module-extension acceptance test. Browser acceptance completed JavaScript and TypeScript runs through the
 source-path field, confirmed the unsupported-language error, and reported zero
 page errors. Ruff, dependency consistency and deployment-script syntax checks passed.
 
-Run the ordinary suite plus both real Docker suites:
+Run the ordinary suite plus the real Docker and corpus suites:
 
 ```bash
 python -m unittest discover -v
 docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
 AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:multilang-v3 \
-  python -m unittest tests.test_docker_security tests.test_multilanguage_docker -v
+  python -m unittest tests.test_docker_security tests.test_multilanguage_docker tests.test_benchmark_corpus -v
 ```
 
 The new tests cover parsing/sanitization, TypeScript erasure, module contracts,

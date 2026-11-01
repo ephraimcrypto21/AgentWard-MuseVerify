@@ -232,7 +232,12 @@ Self-play uses a bounded scenario language, not model-generated executable harne
 
 ## Evidence and verification
 
-The [31 October live multilingual acceptance](docs/LIVE_MULTILANGUAGE.md) records
+The [1 November corpus acceptance](docs/CORPUS_ACCEPTANCE_2026-11-01.md) covers
+all 13 JavaScript/TypeScript benchmarks and all six Node extensions: eight live
+verified repairs, four false-positive controls, and one inconclusive weak-token
+finding retained for review. All 99 tests passed with real Docker and no skips.
+
+The historical [31 October live multilingual acceptance](docs/LIVE_MULTILANGUAGE.md) records
 fresh Meta-generated JavaScript/TypeScript repairs, the benign Node control,
 94 passing local tests and the remaining browser findings.
 
@@ -261,7 +266,7 @@ Run the real Docker security checks separately (also enforced in CI):
 ```bash
 docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
 AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:multilang-v3 \
-  python -m unittest tests.test_docker_security tests.test_multilanguage_docker -v
+  python -m unittest tests.test_docker_security tests.test_multilanguage_docker tests.test_benchmark_corpus -v
 python3 tools/manage_cybersecurity_skills.py verify
 ```
 

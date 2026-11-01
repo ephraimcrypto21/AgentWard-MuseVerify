@@ -22,7 +22,7 @@ jobs:
       - run: ruff check --select E9,F63,F7,F82,F401 . --exclude venv,worktrees,patches,reports
       - run: python -m pip check
       - run: docker build -t agentward-sandbox:ci -f security/Dockerfile.sandbox .
-      - run: python -m unittest tests.test_docker_security tests.test_multilanguage_docker -v
+      - run: python -m unittest tests.test_docker_security tests.test_multilanguage_docker tests.test_benchmark_corpus -v
         env:
           AGENTWARD_TEST_DOCKER: '1'
           SANDBOX_IMAGE: agentward-sandbox:ci

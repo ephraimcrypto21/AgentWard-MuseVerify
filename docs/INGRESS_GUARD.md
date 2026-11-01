@@ -39,6 +39,21 @@ requires an exact match plus language and original/sanitized hashes. Old
 unchanged. A classified attack reports `BLOCKED`; unavailable or mismatched
 evidence reports `UNVERIFIED`.
 
+## Bounded capacity retries
+
+The workstation retries only HTTP 429 responses from a busy classifier, using
+the identical source request, for at most three requests in total. It honors
+integer `Retry-After` values of 0–2 seconds (minimum delay 0.1 seconds); a missing
+header defaults to one second. Longer or malformed delays, authentication
+failures and other HTTP errors are not retried. Exhausted requests remain
+unverified and cannot admit source to a live run.
+
+This is a transport change: the pinned model, parser context, 0.40 threshold,
+classification policy and version-2 evidence validation are unchanged. Tests
+cover bounded retries and rejection of a mismatched source hash after a retry.
+The [1 November corpus acceptance](CORPUS_ACCEPTANCE_2026-11-01.md) records real
+429 saturation, successful reruns and a three-request concurrency check.
+
 ## Reproduce validation
 
 Install `requirements-node.txt` in the node environment, then provision the model:

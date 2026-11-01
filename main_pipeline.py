@@ -211,7 +211,13 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
                 record['outcome'] = 'POLICY_BLOCKED'
                 return record
             if not pre['confirmed']:
-                record['outcome'] = ('SIMULATED_FALSE_POSITIVE' if report.mode == 'dry_run' else 'FALSE_POSITIVE') if pre['safe'] else 'INCONCLUSIVE'
+                # A successful SQL/command probe cannot dismiss an unrelated
+                # static weakness, such as Node Math.random used for a token.
+                uncovered = [f for f in target_findings if f['rule_id'] not in triage.get('covered_cwes', [])] if adapter.name != 'python' else []
+                if uncovered:
+                    record['unverified_findings'] = uncovered
+                    record['coverage_limits'].append('Static findings lack matching runtime probes: ' + ', '.join(sorted({f['rule_id'] for f in uncovered})))
+                record['outcome'] = ('SIMULATED_FALSE_POSITIVE' if report.mode == 'dry_run' else 'FALSE_POSITIVE') if pre['safe'] and not uncovered else 'INCONCLUSIVE'
                 record['executive_commentary'] = await synthesize_executive_commentary(record)
                 return record
             await phase(4, 'Validating', 'Meta synthesis + independent consensus + CodeShield')

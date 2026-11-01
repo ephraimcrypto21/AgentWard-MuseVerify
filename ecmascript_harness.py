@@ -4,6 +4,8 @@ from pathlib import Path
 
 from ecmascript import inventory, parameters, walk, builtin_bindings, resolved_call
 
+PROBE_CWES = {'sqli': 'CWE-89', 'cmd': 'CWE-78'}
+
 
 def probe_entries(target_file, code):
     language = 'typescript' if Path(target_file).suffix in ('.ts', '.mts', '.cts') else 'javascript'
@@ -85,6 +87,7 @@ def synthesize(target_file, code, sqli_payloads=None, cmd_payload=None, *, entri
     config = {'target': Path(target_file).name, 'entries': entries, 'sqli': sql, 'cmd': cmd, 'replay': replay}
     return {'verification_test_code': TEMPLATE.replace('CONFIG', json.dumps(config), 1),
             'sqli_payloads': sql, 'cmd_payload': cmd, 'supported': supported, 'entries': entries,
+            'covered_cwes': sorted({PROBE_CWES[entry['family']] for entry in entries}),
             'coverage_limits': ['Node probes require all exported functions to be single-argument SQL/command entries, at most eight, with built-in dependencies.']}
 
 

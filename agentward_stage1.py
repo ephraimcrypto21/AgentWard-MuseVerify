@@ -5,6 +5,8 @@ import hashlib
 import os
 from pathlib import Path
 import sys
+import time
+import urllib.error
 import urllib.request
 from dotenv import load_dotenv
 from language_adapters import adapter_for, UnsupportedLanguage
@@ -16,6 +18,23 @@ PROMPT_GUARD_URL = os.getenv('AGENTWARD_INGRESS_URL', 'http://127.0.0.1:18000/sc
 LIGHTSAIL_SANDBOX_URL = os.getenv('AGENTWARD_SANDBOX_URL', 'http://127.0.0.1:18001/execute')
 
 
+def request_classification(request):
+    """Honor short node saturation delays without accepting missing evidence."""
+    for attempt in range(3):
+        try:
+            with node_urlopen(request, timeout=30) as response:
+                return json.loads(response.read())
+        except urllib.error.HTTPError as exc:
+            retry_after = exc.headers.get('Retry-After', '1').strip()
+            exc.close()
+            if exc.code != 429 or attempt == 2 or not retry_after.isdecimal() or len(retry_after) > 2:
+                raise
+            delay = int(retry_after)
+            if delay > 2:
+                raise
+            time.sleep(max(0.1, delay))
+
+
 def check_prompt_guard(file_path, content):
     adapter = adapter_for(file_path)
     local = adapter.sanitize(content)
@@ -25,8 +44,7 @@ def check_prompt_guard(file_path, content):
             data=json.dumps({'file_path': file_path, 'content': content, 'language': adapter.name}).encode(),
             headers=node_headers(), method='POST')
         try:
-            with node_urlopen(request, timeout=30) as response:
-                data = json.loads(response.read())
+            data = request_classification(request)
         except Exception:
             pass
     label = str(data.get('label', data.get('verdict', 'benign'))).lower()
