@@ -13,3 +13,7 @@ reports/
 .coverage
 htmlcov/
 .ruff_cache/
+
+# Root-level convenience copies; published guide artifacts live in output/pdf/.
+/AgentWard_MuseVerify_Project_Guide.pdf
+/AgentWard_MuseVerify_Project_Guide.html

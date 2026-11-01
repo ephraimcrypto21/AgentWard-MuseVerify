@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>AgentWard + MuseVerify — Project Guide</title>
+<style>
+:root{color-scheme:light;--navy:#112a3a;--ink:#203747;--teal:#087e8b;--light:#edf5f6;--rule:#d9e4e9}
+*{box-sizing:border-box}body{margin:0;background:#eef2f5;color:var(--ink);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}
+a{color:#08717d;text-underline-offset:3px}a:focus-visible{outline:3px solid #087e8b;outline-offset:4px}
+main{max-width:980px;margin:36px auto}section{background:white;padding:42px 54px;margin-bottom:24px;scroll-margin-top:20px;border-top:4px solid var(--teal)}
+h1,h2,h3{line-height:1.2;color:var(--navy)}h1{font-size:clamp(34px,7vw,60px);margin:12px 0 22px}h2{font-size:30px;margin:0 0 22px}h3{font-size:20px;margin:26px 0 12px;color:var(--teal)}
+p{margin:0 0 16px}.small{font-size:14px}.kicker{font-size:12px;letter-spacing:1.5px;font-weight:700;color:var(--teal)}
+section.cover{background:var(--navy);color:white;padding-top:60px;padding-bottom:60px}.cover h1{color:white}.coverdeck{font-size:25px;line-height:1.35;color:#bddfe5}.coverbody{max-width:740px}
+.cover-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;background:#23495b;padding:22px;margin:30px 0}.cover-metrics strong{font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:18px 0 24px}th,td{padding:12px 14px;text-align:left;vertical-align:top;overflow-wrap:anywhere;border-bottom:1px solid var(--rule)}
+th{background:var(--navy);color:white;font-weight:650}tbody tr:nth-child(odd){background:var(--light)}.table-scroll{overflow-x:auto}
+aside{border-left:4px solid var(--teal);background:var(--light);padding:18px 22px;margin:24px 0}aside p{margin:8px 0 0}
+pre{white-space:pre;overflow-x:auto;border:1px solid var(--rule);background:var(--light);padding:18px;font:13px/1.6 ui-monospace,DejaVu Sans Mono,monospace}
+.architecture{margin:24px 0;padding:22px;border:1px solid var(--rule);background:#f8fafb;font-size:13px;text-align:center}.architecture figcaption{font-size:17px;font-weight:700;margin-bottom:22px}
+.arch-row{display:flex;gap:12px;align-items:center;justify-content:center;margin:16px 0}.arch-row>div{flex:1;padding:14px 10px;border-radius:6px;background:var(--navy);color:white}.arch-row>span{color:var(--teal);font-size:24px}
+.arch-boundary{border:2px dashed var(--teal);padding:16px;margin:20px 0}.architecture p{margin:14px 0}.arch-boundary>.arch-row>div{background:var(--light);color:var(--ink)}
+nav{max-width:980px;margin:20px auto;padding:0 18px;display:flex;gap:20px;flex-wrap:wrap;font-size:14px}.edition{text-align:center;color:#536b79;font-size:13px;margin:24px 18px}
+@media(max-width:650px){main{margin:0}section{padding:30px 22px}h2{font-size:25px}.cover-metrics{grid-template-columns:1fr}.arch-row{flex-direction:column}.arch-row>div{width:100%}.arch-row>span{transform:rotate(90deg)}th,td{padding:10px}pre{font-size:12px}}
+@media print{@page{size:A4;margin:16mm}body{background:white;font-size:10pt}nav{display:none}main{margin:0;max-width:none}section{padding:0;margin:0;border:0;break-before:page}section:first-child{break-before:auto}section.cover{padding:24mm 12mm;print-color-adjust:exact}h2{font-size:22pt}h3{font-size:13pt}table{font-size:9pt}tr,aside,pre{break-inside:avoid}.table-scroll,pre{overflow:visible}pre{white-space:pre-wrap;font-size:8pt}.edition{font-size:8pt}}
+</style></head><body><nav aria-label="Guide navigation"><a href="#definition">Overview</a><a href="#architecture">Architecture</a><a href="#quickstart">Quick start</a><a href="#corpus">Live results</a><a href="#references">Sources</a></nav><main><section class="cover" id="cover">
+<h1 class="cover">AGENTWARD<br/>+ MUSEVERIFY</h1>
+<p class="coverdeck">Evidence-driven security<br/>for Python, JavaScript and TypeScript</p>
+<p class="coverbody">Project guide / current-stage edition</p>
+<p class="coverbody">A Meta-primary harness that inspects source, reproduces supported vulnerabilities in Docker, proposes repairs and requires independent verification before accepting them.</p>
+<div class="cover-metrics"><div><strong>99 tests</strong><br/>Passed; no skips</div><div><strong>13 live Node targets</strong><br/>8 verified repairs</div><div><strong>24 self-play scenarios</strong><br/>Neutralized; 0 survivors</div></div>
+<p class="coverbody"><b>Current release</b><br/>Seven-phase verification for Python, JavaScript and TypeScript. Meta Spark and Wonder are mandatory; optional providers extend the review quorum.</p>
+<p class="coverbody"><b>Evidence snapshot</b><br/>Live Node corpus: 8 REMEDIATED, 4 FALSE_POSITIVE, 1 INCONCLUSIVE. Historical checks: 78 classifier cases and 25 remote acceptance groups. Scope and dates appear on pages 17-18.</p>
+<p class="coverbody">Application snapshot <b>2d52f29</b><br/>1 November 2026</p>
+</section><section id="definition">
+<p class="kicker">01 / PROJECT GUIDE</p>
+<h2>Problem and core value</h2>
+<p class="body">Candidate alerts need evidence before repair. Coding agents need containment when they inspect untrusted source or propose changes.</p>
+<h3 class="sub">Two problems, one controlled workflow</h3>
+<p class="body">Automated findings can consume maintainer time without proving a reachable bug. A model-generated patch can also change behavior or introduce a new weakness. Meanwhile, comments and literals can carry indirect instructions aimed at credential access, destructive actions or fabricated audit results.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Area</th><th scope="col">Current stage</th></tr></thead><tbody><tr><td>AgentWard</td><td>Source-aware ingress, proposed-tool-action policy, additive operator restrictions and checkpoint rewind. It protects the controlled workflow.</td></tr><tr><td>MuseVerify</td><td>Isolated exploit reproduction, Meta-led repair, independent review, CodeShield, AST tripwires, self-play and functional regression.</td></tr><tr><td>Core rule</td><td>Model advice can propose a repair. Only the orchestrator can accept it after all required evidence gates pass. Model judgments cannot waive deterministic controls.</td></tr><tr><td>Evidence</td><td>Protected Docker traces and artifact hashes identify tested behavior. Static findings, fixture modes and live verified repairs stay distinct.</td></tr></tbody></table></div>
+<h3 class="sub">Read this guide by task</h3>
+<div class="table-scroll"><table><thead><tr><th scope="col">Task</th><th scope="col">Pages</th></tr></thead><tbody><tr><td>Understand the architecture and supported inputs</td><td><a href="#architecture">3-5</a></td></tr><tr><td>Understand detection, policy and repair acceptance</td><td><a href="#ingress">6-9</a></td></tr><tr><td>Run and operate the system</td><td><a href="#providers">10-15</a></td></tr><tr><td>Review implementation, results and coverage limits</td><td><a href="#repository">16-20</a></td></tr></tbody></table></div>
+</section><section id="architecture">
+<p class="kicker">02 / PROJECT GUIDE</p>
+<h2>Architecture and trust boundaries</h2>
+<p class="body">The workstation coordinates policy and verification. Submitted source and model output remain untrusted throughout the workflow.</p>
+<figure class="architecture"><figcaption>Execution and evidence boundaries</figcaption>
+<div class="arch-row"><div>Operator + source</div><span aria-hidden="true">→</span><div>Orchestrator<br/>Policy, adapters and gates</div><span aria-hidden="true">↔</span><div>Meta primary<br/>Optional reviewers</div></div>
+<p>Authenticated calls over loopback, SSH or a private tailnet</p>
+<div class="arch-boundary"><strong>Verification node</strong><div class="arch-row"><div>Ingress service<br/>Classifier contract v2</div><div>Sandbox service<br/>Trusted tracer and bootstrap</div><span aria-hidden="true">→</span><div>Submitted payload<br/>Docker / UID 65534</div></div><p>Protected strace + source/harness hashes + language/runtime binding · Protocol v3</p></div>
+<p>Required gates → accepted candidates, exact diffs, metrics and SARIF</p></figure>
+<h3 class="sub">What must be trusted</h3>
+<p class="body">The operator configuration, application services, selected provider identities, Docker host and kernel, runtime image, bootstrap and tracer form the trusted base. A compromised host or service can undermine the evidence it produces.</p>
+<h3 class="sub">What evidence establishes</h3>
+<p class="body">Authentication controls who can request work. Hashes bind results to particular source and harness artifacts. Protected kernel traces record selected execution behavior. The orchestrator combines that evidence with positive controls, reviews and regression results.</p>
+<aside><strong>Two different contracts</strong><p><b>Classifier contract v2</b> binds model, policy, language and source hashes. <b>Sandbox protocol v3</b> binds protected runtime evidence, artifact hashes, language, runtime and filename. Both must match the workstation.</p></aside>
+</section><section id="pipeline">
+<p class="kicker">03 / PROJECT GUIDE</p>
+<h2>The seven-phase workflow</h2>
+<p class="body">Every supported language uses the same orchestrator. A failed or unavailable required gate prevents a verified repair.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Phase</th><th scope="col">Work performed</th><th scope="col">Acceptance evidence</th></tr></thead><tbody><tr><td><b>1 / Ingress Shield</b></td><td>Classify complete source and sanitize injected instructions.</td><td>Full coverage, rescan after changes, exact model/policy contract and source hashes.</td></tr><tr><td><b>2 / Syscall Sandbox</b></td><td>Reproduce supported exploits with deterministic probes in Docker.</td><td>Protected strace evidence, artifact identity and completed behavioral probes.</td></tr><tr><td><b>3 / Runtime Hooks</b></td><td>Apply screening, ensemble policy checks and trajectory monitoring.</td><td>Valid unanimous votes and the current operator policy revision; violations trigger rewind.</td></tr><tr><td><b>4 / Patch Verification</b></td><td>Synthesize a repair; inspect contracts, static paths, reviews, CodeShield and tripwires.</td><td>All applicable structural, scanner and independent-review gates pass.</td></tr><tr><td><b>4.5 / Adversarial Self-Play</b></td><td>Replay bounded mutated and multi-step scenarios.</td><td>Original-code positive controls succeed; no surviving exploit in the candidate; valid evidence.</td></tr><tr><td><b>5 / Regression</b></td><td>Replay exploits, normal inputs and decoy probes.</td><td>Normal result preserved; exploit blocked; decoy triggers the logger, normal probe does not.</td></tr><tr><td><b>5.1 / Semantic Hunter</b></td><td>Inspect related modules and semantic paths with Wonder-led analysis.</td><td>Static findings and unresolved assumptions remain visible, separate from runtime proof.</td></tr></tbody></table></div>
+<h3 class="sub">Concurrency and reporting</h3>
+<p class="body">Phase 2 overlaps with graph construction and the initial policy baseline. The pipeline runs at most three containers concurrently. Passing that baseline cannot replace the later sandbox, patch or regression evidence.</p>
+<p class="small">A valid Phase 2 BENIGN result still requires Phase 3 policy review before FALSE_POSITIVE. For Node, static findings outside SQL/command probe coverage remain INCONCLUSIVE. Benign controls skip patch synthesis and later repair stages.</p>
+</section><section id="languages">
+<p class="kicker">04 / PROJECT GUIDE</p>
+<h2>Supported languages and targets</h2>
+<p class="body">Language support means a defined parser, execution harness and verification contract. It does not imply arbitrary project builds.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Language</th><th scope="col">Files</th><th scope="col">Supported verification scope</th></tr></thead><tbody><tr><td>Python</td><td>.py</td><td>Existing Python parsing, graph analysis and benchmark probes.</td></tr><tr><td>JavaScript</td><td>.js / .mjs / .cjs</td><td>Single-file Node ES/CommonJS modules with compatible exported SQL/command functions.</td></tr><tr><td>TypeScript</td><td>.ts / .mts / .cts</td><td>The same Node probes with erasable syntax. Original source executes in Node 24; scanning uses AST-based type erasure.</td></tr></tbody></table></div>
+<h3 class="sub">Node target contract</h3>
+<p class="body">Node targets support named top-level functions and arrow functions in ES/CommonJS exports. All exports (maximum eight) must accept a single scalar SQL/command probe argument and return serializable results. Ambiguous or partial probe coverage is rejected.</p>
+<p class="body">Execution uses built-in dependencies such as node:sqlite and node:child_process. Every export must return successfully for <b>agentward_normal</b>; other business contracts need additional probes. Node always runs in Docker.</p>
+<h3 class="sub">TypeScript behavior</h3>
+<p class="body">Tree-sitter parses without execution. Type-only nodes are erased and reparsed as JavaScript for CodeShield. Original TypeScript executes in Docker. Supported syntax includes annotations, interfaces, type aliases, generics and as-assertions; there is no type checking.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Result</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td>UNSUPPORTED_LANGUAGE</td><td>Extension outside the registry: for example Go, Java, Rust, JSX or TSX.</td></tr><tr><td>INVALID_SOURCE</td><td>Syntax is invalid for the selected language.</td></tr><tr><td>UNSUPPORTED_TARGET</td><td>The supported language has no fully compatible Node probe surface.</td></tr></tbody></table></div>
+<aside><strong>Outside the current target contract</strong><p>Browser apps, npm dependencies, multi-file execution, constructed classes and project compiler plugins are unsupported. TypeScript enums, namespaces, decorators and unsupported transformations cannot pass the complete chain.</p></aside>
+</section><section id="ingress">
+<p class="kicker">05 / PROJECT GUIDE</p>
+<h2>Ingress: detection with context</h2>
+<p class="body">The ingress guard detects instructions aimed at manipulating the audit. It is a separate task from finding vulnerabilities in the program.</p>
+<h3 class="sub">How the current guard works</h3>
+<p class="body">The <b>Horizon-Labs/prompt-injection-guard-small</b> model, pinned at revision <b>5ed691c</b> under Apache-2.0, receives bounded parser facts followed by the complete source. The prefix describes language, declared names and syntax-node kinds; it never declares the source safe. Valid syntax and filenames cannot bypass classification.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Control</th><th scope="col">Current behavior</th></tr></thead><tbody><tr><td>Coverage</td><td>512-token windows with 128-token overlap; the highest injection score controls the decision. Risk threshold: 0.40.</td></tr><tr><td>Work bound</td><td>At most 256 windows per original or sanitized input. Over-limit or incomplete coverage is denied, without silently truncating source.</td></tr><tr><td>Sanitization</td><td>Recognizes explicit role-directed bypass or fabricated-audit instructions in comments/literals, including decoded base64. Modified source receives a full rescan.</td></tr><tr><td>Model integrity</td><td>Five artifacts are pinned and SHA-256 verified. Safetensors, no remote code, no inference-time downloads; provisioning is explicit.</td></tr><tr><td>Evidence</td><td>Contract v2 binds the model revision and policy identity, language and original/sanitized hashes. Stale or mismatched responses cannot authorize a live run.</td></tr></tbody></table></div>
+<aside><strong>What “detection remains probabilistic” means</strong><p>The model assigns a learned risk score. It can occasionally flag harmless code or miss an unfamiliar instruction attack. <b>78 of 78 regression cases passed</b> means those specific cases behaved as expected; it does not mean every future input will be classified correctly.</p></aside>
+<p class="small">The 0.40 threshold is a decision setting, not a measured 40% chance that a program is unsafe. Ingress ALLOW means the file can proceed to the next checks; a vulnerable SQL or command function may correctly pass ingress and then fail sandbox verification.</p>
+<p class="small">Short HTTP 429 capacity delays allow at most three identical client requests; exhausted retries remain unverified. All 13 current Node corpus files received unchanged-source ALLOW, with a maximum measured injection score of 0.017127.</p>
+</section><section id="sandbox">
+<p class="kicker">06 / PROJECT GUIDE</p>
+<h2>Protected runtime evidence</h2>
+<p class="body">The remote sandbox executes submitted code under a fixed, constrained runtime and keeps the evidence outside the payload’s control.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Boundary</th><th scope="col">Enforced control</th></tr></thead><tbody><tr><td>Identity</td><td>Bearer authentication and bounded request schemas. Protocol v3 binds source/harness SHA-256, language, runtime and target filename.</td></tr><tr><td>Privileges</td><td>Trusted root tracer and immutable bootstrap start first. Payload UID/GID: 65534; supplementary groups cleared; effective/permitted capabilities empty.</td></tr><tr><td>Filesystem / network</td><td>No container network. Read-only root, source inputs and bootstrap; bounded 64 MiB workspace and 16 MiB temporary storage.</td></tr><tr><td>Trace protection</td><td>Root-owned kernel trace in a POSIX-ACL-protected directory. Payloads cannot read, overwrite, unlink or replace host-backed evidence.</td></tr><tr><td>Resources</td><td>256 MiB memory/swap ceilings, CPU/PID limits and bounds on time, output, trace bytes and event counts. Overflow and timeout deny evidence and trigger cleanup.</td></tr><tr><td>Runtime choice</td><td>Fixed python3/node allowlist. Python isolated startup; Node loader environment variables cleared. No arbitrary caller-selected interpreter.</td></tr></tbody></table></div>
+<h3 class="sub">Conditions for accepted execution evidence</h3>
+<p class="body">The client requires matching protocol and artifact identity plus complete protected traces and valid behavioral results. Missing traces, tampering, truncation, abnormal completion and unsupported ownership/ACL setup deny evidence. Docker failure cannot trigger production host execution.</p>
+<aside><strong>Deployment requirements</strong><p>The supported node uses rootful Linux Docker without user-namespace remapping and an ACL-capable temporary filesystem. Rootless or remapped configurations are not validated.</p></aside>
+<p class="small">Evidence is authenticated and hash-bound, not digitally signed. Selected syscalls and payload-produced probe lines cannot prove all possible behavior; the other acceptance gates remain necessary.</p>
+</section><section id="runtime">
+<p class="kicker">07 / PROJECT GUIDE</p>
+<h2>Runtime policy and workspace rewind</h2>
+<p class="body">Phase 3 reviews the controlled tool workflow using the completed ingress and original sandbox evidence.</p>
+<h3 class="sub">Screen actions before authorizing continuation</h3>
+<p class="body">agentward_stage3.py checks proposed action text for destructive commands, secret-exfiltration patterns and high-entropy strings, and tracks an estimated token budget. Known credential values are redacted from action text. Meta Spark leads concurrent policy and trajectory reviews with the selected independent auditors.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Mechanism</th><th scope="col">Scope</th></tr></thead><tbody><tr><td>Tool hook</td><td>enforce_permissions.py evaluates command-bearing JSON arguments for a PreToolUse integration. These are application hooks, not kernel syscall interception.</td></tr><tr><td>Policy baseline</td><td>A checklist may be prepared during Phase 2. Final Phase 3 authorization requires the observed Docker evidence; preparation is not permission.</td></tr><tr><td>Checkpoint / rewind</td><td>The guard copies top-level workspace files and writes SHA-256 manifest entries. trigger_rewind restores copies and removes new top-level files.</td></tr><tr><td>Trajectory monitor</td><td>Drift, forbidden actions, missing review or stale policy can deny continuation. Detected violations can halt the session and trigger rewind.</td></tr></tbody></table></div>
+<h3 class="sub">Add operator restrictions during a run</h3>
+<pre><code>POST /api/steer
+{"constraint":"Forbid subprocess calls"}</code></pre>
+<p class="body">Restrictions are additive and shared across dashboard batch workers. Each revision invalidates older in-flight approval. Recognized rules also have AST checks; broader natural-language rules depend on model review.</p>
+<aside><strong>What rewind does not promise</strong><p>The checkpoint covers the disposable workspace, not arbitrary host effects, nested files or Git history. strace observes submitted code inside Docker. The tool hook must be integrated to mediate another agent’s actions.</p></aside>
+</section><section id="repairs">
+<p class="kicker">08 / PROJECT GUIDE</p>
+<h2>How a repair earns acceptance</h2>
+<p class="body">A proposed patch stays a candidate until independent checks agree with the observed behavior.</p>
+<h3 class="sub">Preserve the public contract</h3>
+<p class="body">Patch checks preserve relevant function interfaces and sync/async behavior. Node checks also compare exported parameters and type signatures. Model-generated text cannot waive structural rules, scanning or current operator restrictions.</p>
+<h3 class="sub">Use independent evidence at each step</h3>
+<div class="table-scroll"><table><thead><tr><th scope="col">Gate</th><th scope="col">What it contributes</th></tr></thead><tbody><tr><td>Policy and review</td><td>Valid votes from the selected reviewers, bound to current additive operator constraints. Missing or malformed reviewer output denies approval.</td></tr><tr><td>Static checks and CodeShield</td><td>Contract inspection, call/taint findings and scanner results. TypeScript is erased and reparsed for JavaScript rules; execution uses the original source.</td></tr><tr><td>Structural tripwire</td><td>A reachable AST decoy equality guard calls a logger such as _tripwire(). A comment mentioning a canary cannot satisfy this check.</td></tr><tr><td>Adversarial replay</td><td>Deterministic mutations and bounded scenarios run against original and candidate code. Original-code positive controls must reproduce the relevant behavior.</td></tr><tr><td>Regression</td><td>The original exploit is blocked, tested normal results are preserved, and the tripwire fires only for decoy probes.</td></tr></tbody></table></div>
+<h3 class="sub">Bounded self-play</h3>
+<p class="body">Node tests three deterministic scenarios: syntax mutation, stored-value replay and URL-encoding replay. All three must be neutralized with valid evidence and successful original-code controls. Python also supports bounded model-proposed scenarios executed by deterministic harnesses.</p>
+<p class="small">Zero surviving mutations alone is insufficient. Unsupported or unproven scenarios are not counted as neutralized. Storage adapters test replay robustness, not arbitrary native persistence.</p>
+<aside><strong>Review the exact diff before integration</strong><p>Accepted files and diffs go to <b>patches/&lt;run-id&gt;/</b>. Run <b>git apply --check</b> against the unchanged source before applying a diff; this is an integration step, not an automatic pipeline gate. Corpus acceptance applied all eight diffs in temporary directories and matched the saved patch hashes.</p></aside>
+</section><section id="providers">
+<p class="kicker">09 / PROJECT GUIDE</p>
+<h2>Providers and operator control</h2>
+<p class="body">Meta remains mandatory for every live run. Optional providers add independent review when they pass pre-flight.</p>
+<p class="body"><b>muse-spark-1.3</b> leads runtime policy and patch synthesis. <b>muse-wonder-1.0</b> leads deeper semantic analysis. In Meta-only operation, the two native models cross-check each other.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Mode</th><th scope="col">Selected participants</th></tr></thead><tbody><tr><td>auto</td><td>Meta primary plus every healthy secondary.</td></tr><tr><td>all_three</td><td>Meta, Anti-Gravity and Custom; notices identify unavailable secondary providers.</td></tr><tr><td>meta_plus_agy</td><td>Meta plus verified Anti-Gravity.</td></tr><tr><td>meta_plus_custom</td><td>Meta plus verified Custom BYOK.</td></tr><tr><td>meta_only</td><td>Spark and Wonder cross-check each other.</td></tr></tbody></table></div>
+<p class="body">When no requested secondary passes pre-flight, Meta’s other native model supplies the independent review. If Meta is offline, a live run cannot proceed. A selected reviewer that later fails cannot silently become an approval.</p>
+<h3 class="sub">Pre-flight and configuration</h3>
+<p class="body">Provider discovery runs concurrently and caches dashboard status for 60 seconds. A forced refresh reloads .env. Each run retains its successful discovery snapshot while configuration is unchanged; task failures still deny approval. Configure META_API_KEY, ENSEMBLE_MODE and optional Anti-Gravity or Custom endpoint/model credentials locally.</p>
+<h3 class="sub">Optional high-end co-auditors</h3>
+<p class="body">Anti-Gravity tries a supported selected model, then a deduplicated cascade: gemini-4-argon, claude-opus-5-5, claude-sonnet-5.5 and gemini-3.8. Quota failures are recorded during pre-flight. Custom BYOK supports compatible Responses and Chat Completions endpoints, including a /v1 base.</p>
+<aside><strong>Requested topology versus verified participation</strong><p>all_three requests all three providers but excludes an unhealthy secondary with an explicit notice. It does not waive the required independent review. A selected reviewer failure cannot silently become approval.</p></aside>
+</section><section id="configuration">
+<p class="kicker">10 / PROJECT GUIDE</p>
+<h2>Configure providers and node access</h2>
+<p class="body">Use .env.example as the schema. Provider credentials stay on the workstation; the verification node uses its separate shared bearer token.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Configuration</th><th scope="col">Purpose</th></tr></thead><tbody><tr><td>META_API_KEY<br/>META_API_BASE_URL</td><td>Mandatory Meta key; default API base https://api.meta.ai/v1.</td></tr><tr><td>ENSEMBLE_MODE</td><td>auto, all_three, meta_plus_agy, meta_plus_custom or meta_only.</td></tr><tr><td>AGY_BIN<br/>AGY_SELECTED_MODEL</td><td>Optional CLI path and preferred supported model; default gemini-4-argon.</td></tr><tr><td>CUSTOM_API_URL<br/>CUSTOM_API_KEY<br/>CUSTOM_MODEL_NAME</td><td>Compatible HTTP endpoint, BYOK credential and a model identifier supported by that endpoint.</td></tr><tr><td>CUSTOM_REASONING_EFFORT<br/>CUSTOM_SERVICE_TIER</td><td>Optional model/endpoint features. Effort defaults to medium; service tier is empty unless configured.</td></tr><tr><td>AI_TIMEOUT_S<br/>AGY_TIMEOUT_S</td><td>Task deadlines default to 120 / 180 seconds. Custom pre-flight has a five-second deadline.</td></tr><tr><td>AGENTWARD_NODE_TOKEN</td><td>Same random token as the node configuration, at least 32 characters.</td></tr><tr><td>AGENTWARD_INGRESS_URL<br/>AGENTWARD_SANDBOX_URL</td><td>Authenticated /scan-ingress and /execute endpoints over loopback, SSH or private tailnet access.</td></tr></tbody></table></div>
+<h3 class="sub">Provider readiness is measured</h3>
+<p class="body">GET /api/providers reports availability and topology without credential values. Meta pre-flight tests both native models. Custom requires HTTP 200 with nonempty, complete content; placeholder keys, auth errors, timeouts and missing endpoints exclude it.</p>
+<aside><strong>Configuration changes require fresh evidence</strong><p>Use GET /api/providers?force_refresh=true after editing provider configuration. Restart the dashboard after node endpoint changes. Unknown model pricing remains unknown; token telemetry is not an invoice or a promised cost reduction.</p></aside>
+</section><section id="quickstart">
+<p class="kicker">11 / PROJECT GUIDE</p>
+<h2>Start a supported audit</h2>
+<p class="body">Use the local dashboard or CLI after configuring the providers and authenticated verification-node endpoints.</p>
+<h3 class="sub">1 / Prepare the workstation</h3>
+<pre><code>python3 -m venv venv
+. venv/bin/activate
+python -m pip install -r requirements-dev.txt
+cp -n .env.example .env</code></pre>
+<p class="small">Python 3.12+ is recommended. Populate the local .env with Meta credentials, the shared AGENTWARD_NODE_TOKEN, and AGENTWARD_INGRESS_URL / AGENTWARD_SANDBOX_URL. Keep secrets out of Git. The deployed private-node setup is described on the next page.</p>
+<h3 class="sub">2 / Start the dashboard</h3>
+<pre><code>python -m uvicorn dashboard:app --host 127.0.0.1 \
+  --port 8080 --ws-max-size 1024 --ws-max-queue 4</code></pre>
+<p class="small">Open <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>. Inspect the real provider pre-flight matrix, select an ensemble and choose a benchmark or a source path within the workspace. Retest credentials when configuration changes.</p>
+<h3 class="sub">3 / Run a known target</h3>
+<pre><code>python main_pipeline.py benchmark_targets/cwe_78_cmd.js
+python main_pipeline.py benchmark_targets/cwe_89_sqli.ts
+python main_pipeline.py benchmark_targets/fp_node.mjs
+python main_pipeline.py benchmark_targets</code></pre>
+<p class="small">The final command aggregates the supported Python and Node corpus. Single-file CLI runs replace the latest canonical report; a shared RunReport aggregates a custom subset. Inspect the exact diff and evidence before integration.</p>
+<aside><strong>A useful first comparison</strong><p><b>cwe_78_cmd.js</b> and <b>cwe_89_sqli.ts</b> exercise vulnerable command/SQL paths. <b>fp_node.mjs</b> is the benign Node control. Passing ingress is expected for all three: the sandbox then distinguishes the tested runtime behavior.</p></aside>
+<p class="small">Fixture-mode demonstrations have SIMULATED labels and cannot export verified SARIF fixes. Any permitted Python host execution is test-only; Node still requires Docker. See README.md for the explicit offline-demo commands.</p>
+</section><section id="operations">
+<p class="kicker">12 / PROJECT GUIDE</p>
+<h2>Deploy to a supported Linux host</h2>
+<p class="body">AWS Lightsail is optional. Use a local Linux host or a VM from another provider with the same Docker, filesystem and service-account requirements.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Requirement</th><th scope="col">Operational contract</th></tr></thead><tbody><tr><td>Host and account</td><td>Rootful Linux Docker without user-namespace remapping; ACL-capable temporary filesystem; service account with Docker access.</td></tr><tr><td>Bundled installer</td><td>Ubuntu/systemd recipe. USER_NAME is ubuntu; APP_DIR is /home/ubuntu/agentward-node. Adapt these settings for another account or distribution.</td></tr><tr><td>Sandbox image</td><td>agentward-sandbox:multilang-v3. Recorded: Node 24.22.2 and Python 3.12.16. Dockerfile follows major/minor tags; rebuilds may change patch versions.</td></tr><tr><td>Authentication</td><td>Random shared AGENTWARD_NODE_TOKEN in root-owned mode-0600 /etc/agentward/node.env and the ignored workstation .env.</td></tr></tbody></table></div>
+<h3 class="sub">Install from the full checkout</h3>
+<p class="small">Prepare Docker Engine, git, Python venv/pip, curl and ACL support first. On an Ubuntu node as its service account:</p>
+<pre><code>cd /home/ubuntu
+git clone https://github.com/ephraimcrypto21/AgentWard-MuseVerify.git agentward-node
+cd agentward-node
+sudo docker build -t agentward-sandbox:multilang-v3 \
+  -f security/Dockerfile.sandbox .
+sudo bash deploy_remote_services.sh</code></pre>
+<p class="small">The script installs node requirements, provisions the pinned classifier and restarts both services on loopback ports 8000/8001. It preserves an existing token and reuses an existing image tag. For upgrades, update the checkout and explicitly rebuild the image before deploying.</p>
+<aside><strong>Coordinate versions and verify health</strong><p>Keep the workstation, services, model contract and image compatible. Check both /health endpoints, then authenticated functional controls. A missing/short node token produces 503; incorrect authorization produces 401. Health alone does not establish live acceptance.</p></aside>
+</section><section id="connectivity">
+<p class="kicker">13 / PROJECT GUIDE</p>
+<h2>Connect the workstation and node</h2>
+<p class="body">Choose SSH forwarding or persistent private Tailscale Serve. Services on the same Linux workstation can use loopback ports directly.</p>
+<h3 class="sub">Option A / SSH forwarding</h3>
+<pre><code>ssh -N -L 18000:127.0.0.1:8000 \
+  -L 18001:127.0.0.1:8001 ubuntu@YOUR_HOST</code></pre>
+<p class="small">Keep that connection open. Configure these workstation .env values and securely provision the same node token:</p>
+<pre><code>AGENTWARD_INGRESS_URL=http://127.0.0.1:18000/scan-ingress
+AGENTWARD_SANDBOX_URL=http://127.0.0.1:18001/execute</code></pre>
+<h3 class="sub">Option B / Tailscale Serve within one tailnet</h3>
+<p class="small">Install Tailscale on both hosts, join the same tailnet and run on the node:</p>
+<pre><code>tailscale ip -4
+sudo tailscale serve --bg --tcp=8000 tcp://127.0.0.1:8000
+sudo tailscale serve --bg --tcp=8001 tcp://127.0.0.1:8001
+tailscale serve status</code></pre>
+<p class="small">Use the private address printed above or an enabled MagicDNS name:</p>
+<pre><code>AGENTWARD_INGRESS_URL=http://&lt;NODE_IP&gt;:8000/scan-ingress
+AGENTWARD_SANDBOX_URL=http://&lt;NODE_IP&gt;:8001/execute</code></pre>
+<aside><strong>Preserve the private transport boundary</strong><p>Tailscale carries HTTP inside its encrypted network. Restrict tailnet access and retain node bearer authentication; Serve is not public Funnel exposure. For a same-host setup use 127.0.0.1:8000/8001. Restart the dashboard after endpoint changes.</p></aside>
+</section><section id="interface">
+<p class="kicker">14 / PROJECT GUIDE</p>
+<h2>Dashboard, API and artifacts</h2>
+<p class="body">The interface exposes progress and evidence without allowing advisory text to override a verified outcome.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Interface</th><th scope="col">Operator use</th></tr></thead><tbody><tr><td>GET /api/health<br/>GET /api/languages</td><td>Inspect running state, phase identifiers, language extensions and adapter scope.</td></tr><tr><td>GET /api/providers<br/>POST /api/providers/mode</td><td>Inspect pre-flight and select an ensemble. force_refresh=true retests provider configuration.</td></tr><tr><td>POST /api/run<br/>POST /api/batch</td><td>Audit a supported workspace source path or run a bounded benchmark batch.</td></tr><tr><td>POST /api/steer<br/>POST /api/clean</td><td>Add a session restriction; prune temporary workspaces only when idle.</td></tr><tr><td>GET /api/metrics<br/>GET /api/executive-brief</td><td>Read outcomes, usage and timing, plus evidence, assumptions and graphs.</td></tr><tr><td>GET /api/sarif<br/>WebSocket /ws/telemetry</td><td>Export SARIF v2.1.0 or consume replayable events tagged by run.</td></tr></tbody></table></div>
+<h3 class="sub">Review surfaces</h3>
+<p class="body">The dashboard includes seven phase cards, replayable telemetry, a unified/side-by-side diff viewer, an executive brief and a cross-file call/taint map. Advisory model commentary is labeled and cannot change the outcome established by the gates.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Artifact</th><th scope="col">Contents</th></tr></thead><tbody><tr><td>patches/&lt;run-id&gt;/</td><td>Accepted candidates and exact diffs; original benchmarks stay unchanged.</td></tr><tr><td>reports/benchmark_metrics.json</td><td>Per-file results, reviewer votes, pre-flight state, usage and latency.</td></tr><tr><td>reports/agentward_sarif_report.sarif</td><td>Findings and eligible verified fixes in SARIF format.</td></tr><tr><td>reports/executive_brief.md / .html</td><td>Evidence-derived assessment with unresolved assumptions and coverage limits.</td></tr></tbody></table></div>
+<p class="small">Reports are written atomically and archived per run. Runtime reports, local workspaces and credentials are excluded from Git. They are operator-writable records, not a signed append-only audit log.</p>
+</section><section id="repository">
+<p class="kicker">15 / PROJECT GUIDE</p>
+<h2>Codebase and skill integration</h2>
+<p class="body">The implementation separates orchestration, model access, language rules, service security and evidence contracts.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Module / area</th><th scope="col">Responsibility</th></tr></thead><tbody><tr><td>main_pipeline.py / dashboard.py</td><td>Orchestration, CLI, session state, API and live telemetry.</td></tr><tr><td>ai_provider.py / agentward_stage3.py</td><td>Provider discovery, routing, runtime policy and trajectory checks.</td></tr><tr><td>language_adapters.py<br/>ecmascript_harness.py</td><td>Language registry, parsers, contracts, sanitization hooks and deterministic Node probes.</td></tr><tr><td>agentward_stage1.py / ingress_server.py<br/>ingress_guard.py / ingress_sanitizer.py</td><td>Ingress client/service, source-aware inference, sanitization and classifier evidence.</td></tr><tr><td>sandbox_server.py / sandbox_protocol.py<br/>service_security.py</td><td>Constrained execution, protected trace protocol, authentication and bounded schemas.</td></tr><tr><td>museverify_stage4.py / security_graph.py<br/>semantic_hunter.py / reporting.py</td><td>Patch gates, static paths, semantic findings and evidence-derived outputs.</td></tr><tr><td>security/ / systemd/ / tests/ / docs/</td><td>Pins, Dockerfile, service units, regression corpora, tests and architecture records.</td></tr></tbody></table></div>
+<h3 class="sub">818 pinned community cybersecurity skills</h3>
+<p class="body">All skills from the requested independent community repository are installed locally for Codex. security/skills.lock.json pins source revision <b>54a7988</b> and full-tree hashes. Per-skill licenses and supporting material are preserved. The collection is not affiliated with Anthropic.</p>
+<p class="small">Tool-invocation security, container hardening, WebSocket testing, host-header testing and threat-modeling skills informed the controls documented here. This does not claim that every skill was executed or that its procedures establish compliance.</p>
+<pre><code>python3 tools/manage_cybersecurity_skills.py install
+python3 tools/manage_cybersecurity_skills.py verify</code></pre>
+<aside><strong>Guidance has a defined role</strong><p>The application does not load all 818 skills as runtime instructions or execute their scripts automatically. Installing them does not add language adapters or authorize testing outside the operator’s requested scope.</p></aside>
+</section><section id="validation">
+<p class="kicker">16 / PROJECT GUIDE</p>
+<h2>What has been verified</h2>
+<p class="body">Application snapshot 2d52f29; evidence reviewed 1 November 2026. Each result has a specific date, mode and coverage.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Evidence set</th><th scope="col">Recorded result</th><th scope="col">What the result supports</th></tr></thead><tbody><tr><td>Test suite<br/>1 November</td><td><b>99 passed</b><br/>Zero skips</td><td>Includes real Docker and corpus suites. Unit model fixtures do not constitute live-provider evidence.</td></tr><tr><td>Live Node corpus<br/>1 November</td><td><b>13 targets</b><br/>8 / 4 / 1 outcomes</td><td>Real classifier, Meta Spark/Wonder and authenticated remote Docker: eight repairs, four false positives, one inconclusive weakness.</td></tr><tr><td>Adapter and baseline checks</td><td><b>6 TS transforms</b><br/><b>17 exports</b></td><td>All 13 targets parse and pass ingress unchanged. Six TypeScript sources erase/reparse/scan; every export returns normally in Docker.</td></tr><tr><td>Classifier regression<br/>31 October</td><td><b>78 / 78</b><br/>45 benign + 33 malicious</td><td>Real pinned-model inference. Benign cases unchanged; malicious cases blocked or sanitized and rescanned. Development regression sets.</td></tr><tr><td>Remote deployment<br/>31 October</td><td><b>25 groups</b></td><td>Auth, language/hash binding, all seven extensions and isolation. Repair controls in this historical record used fixtures.</td></tr><tr><td>Skill integrity</td><td><b>818 pinned trees</b></td><td>Installed collection matches the source revision and full-tree hashes; this is not an audit of every procedure.</td></tr></tbody></table></div>
+<h3 class="sub">How to read the classifier result</h3>
+<p class="body">The 78 cases include the reported false positives, normal object literals and exports, multilingual instructions, base64, long inputs, fake metadata and repeated documentation. These corpora were used during policy development. The result is regression evidence, not an accuracy estimate from an untouched holdout population.</p>
+<aside><strong>Current live evidence and historical checks</strong><p>The latest corpus repairs were generated by live Meta Spark and independently reviewed by live Meta Wonder. Optional providers are covered by router tests, not claimed as participants in this live run. Historical fixture and browser records retain their original scope.</p></aside>
+<p class="small">All reported counts come from the repository acceptance records and retained local evidence. They do not estimate industry-wide alert backlogs, model failure rates or general detection accuracy.</p>
+</section><section id="corpus">
+<p class="kicker">17 / PROJECT GUIDE</p>
+<h2>Live Node corpus: every outcome</h2>
+<p class="body">All six Node extensions were checked. Detailed run IDs, source hashes, initial failures and accepted patch paths are in the dated corpus acceptance record.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Target under benchmark_targets/</th><th scope="col">Final live outcome</th></tr></thead><tbody><tr><td>cwe_78_cmd.js</td><td>REMEDIATED</td></tr><tr><td>cwe_78_cmd_mjs.mjs</td><td>REMEDIATED</td></tr><tr><td>cwe_78_cmd_alias.js</td><td>REMEDIATED</td></tr><tr><td>cwe_78_cmd_ping.cts</td><td>REMEDIATED</td></tr><tr><td>cwe_89_sqli.ts</td><td>REMEDIATED</td></tr><tr><td>cwe_89_sqli_cjs.cts</td><td>REMEDIATED</td></tr><tr><td>cwe_89_sqli_like.cjs</td><td>REMEDIATED</td></tr><tr><td>cwe_89_sqli_login.mts</td><td>REMEDIATED</td></tr><tr><td>fp_node.mjs</td><td>FALSE_POSITIVE</td></tr><tr><td>fp_node_cjs.cjs</td><td>FALSE_POSITIVE</td></tr><tr><td>fp_typescript_safe.ts</td><td>FALSE_POSITIVE</td></tr><tr><td>fp_typescript_safe.mts</td><td>FALSE_POSITIVE</td></tr><tr><td>cwe_338_weak_token.cjs</td><td>INCONCLUSIVE</td></tr></tbody></table></div>
+<p class="small">Eight repairs neutralized 24 self-play scenarios with zero survivors. Saved patches preserve extensions and signatures, match protected regression hashes, and appear as eight verified SARIF fixes. All four benign controls made zero patch-synthesis or patch-verification calls.</p>
+<p class="small">The diagnostic CTS target now uses printf instead of network-dependent ping, preserving its command-injection defect. Two initial classifier-capacity failures remain archived; both targets passed reruns after bounded HTTP 429 retry handling.</p>
+<aside><strong>Retain the untested weakness</strong><p>SQL probes do not verify Math.random token unpredictability. The weak-token case retains CWE-338, has no verified fix and remains INCONCLUSIVE. The combined SARIF invocation therefore reports executionSuccessful=false.</p></aside>
+</section><section id="limits">
+<p class="kicker">18 / PROJECT GUIDE</p>
+<h2>Interpreting results and limits</h2>
+<p class="body">Use each outcome as evidence for the behavior and coverage actually checked. A completed run is not a formal proof of program safety.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Result or signal</th><th scope="col">Interpretation</th></tr></thead><tbody><tr><td>Ingress ALLOW / SANITIZED</td><td>The source may continue to the remaining gates. This is not a vulnerability verdict.</td></tr><tr><td>Ingress BLOCKED / UNVERIFIED</td><td>A classified attack was denied, or required evidence was absent/stale. The pipeline records an ingress-blocked outcome when live ingress cannot pass.</td></tr><tr><td>REMEDIATED</td><td>Applicable gates and tested repair behavior passed with production evidence. Review the diff and stated assumptions before integrating it.</td></tr><tr><td>FALSE_POSITIVE</td><td>Safe-path evidence and Phase 3 policy passed; patch synthesis was skipped. Node also requires no static finding outside its probe CWEs. This differs from an ingress classifier false positive.</td></tr><tr><td>SIMULATED_*</td><td>Fixture-based demonstration. It cannot establish a production repair or export a verified SARIF fix.</td></tr><tr><td>INCONCLUSIVE / rejected / failed</td><td>Evidence, policy, repair or regression requirements were not satisfied. Missing evidence is never an implicit pass.</td></tr></tbody></table></div>
+<h3 class="sub">Coverage that remains bounded</h3>
+<p class="body"><b>Detection:</b> unfamiliar instructions can evade the learned model; benign code can still be misclassified. New regressions should expand the corpus and trigger review of the pinned policy and model.</p>
+<p class="body"><b>Program analysis:</b> Python propagation is bounded; Node taint analysis is intraprocedural. Reflection, closures, dynamic dispatch, external libraries and Node cross-file flows need additional review. CodeShield coverage is narrower than a complete security audit.</p>
+<p class="body"><b>Runtime and operations:</b> selected probes and syscall traces cover observed behavior. The kernel, daemon, service, tracer and operator remain trusted. The shared token identifies an authorized workstation, not an individual user; provider data handling remains an operator decision.</p>
+<aside><strong>A useful next validation step</strong><p>For a new production target, add representative functional probes and run the full live pipeline with fresh provider pre-flight. Expand adapters explicitly for new languages, application shapes and vulnerability families. These are extension directions, not shipped capabilities.</p></aside>
+</section><section id="references">
+<p class="kicker">19 / PROJECT GUIDE</p>
+<h2>References and reproducibility</h2>
+<p class="body">The PDF is a reviewed snapshot. Versioned repository documents and their implementation provide the detailed source of each claim.</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">Reference</th><th scope="col">Use it for</th></tr></thead><tbody><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/README.md">README.md</a></td><td>Setup, provider configuration, API routes and complete verification commands.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/INGRESS_GUARD.md">docs/INGRESS_GUARD.md</a></td><td>Classifier policy, model pin, regression evaluation and deployment.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/THREAT_MODEL.md">docs/THREAT_MODEL.md</a></td><td>Trust boundaries, threat inventory and residual limits.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/LANGUAGES.md">docs/LANGUAGES.md</a></td><td>Adapter contracts, syntax and execution limits.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/DEPLOYMENT_V3.md">docs/DEPLOYMENT_V3.md</a></td><td>Recorded remote acceptance and coordinated rollback.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/CORPUS_ACCEPTANCE_2026-11-01.md">1 November corpus acceptance</a></td><td>All 13 live results, 99-test record, retries and artifact verification.</td></tr><tr><td><a href="https://github.com/ephraimcrypto21/AgentWard-MuseVerify/blob/2d52f29a585abf5c4dc241bdda118b5834c63126/docs/SKILLS.md">docs/SKILLS.md</a></td><td>Community provenance, exact pin and applied skills.</td></tr></tbody></table></div>
+<p class="small">Detailed live acceptance JSON remains in ignored local reports. The published documents summarize the evidence without embedding credentials, private endpoints or provider transcripts.</p>
+<h3 class="sub">Reproduce checks and rebuild this guide</h3>
+<pre><code>AGENTWARD_TEST_DOCKER=1 \
+  SANDBOX_IMAGE=agentward-sandbox:multilang-v3 \
+  python -m unittest discover -v
+python -m pip check
+python -m pip install -r requirements-docs.txt
+python tools/build_project_guide.py \
+  --output AgentWard_MuseVerify_Project_Guide.pdf</code></pre>
+<p class="small">The generator writes the PDF and same-stem HTML companion from one reviewed source. Without --output it updates output/pdf/. No browser, live provider or node call is needed to build the guide.</p>
+<p class="small">README.md lists real Docker and live E2E checks. docs/INGRESS_GUARD.md lists all three classifier regression corpora; those commands need the provisioned node dependencies and pinned model. Rebuilding this guide does not revalidate a deployment.</p>
+<p class="small"><b>Terms:</b> AST: abstract syntax tree. BYOK: bring your own API key. CWE: Common Weakness Enumeration. SARIF: Static Analysis Results Interchange Format. Positive control: an original-code test that must reproduce the expected vulnerable behavior.</p>
+<p class="small"><b>Application revision:</b> 2d52f29a585abf5c4dc241bdda118b5834c63126</p></section></main><p class="edition">Reviewed 1 November 2026 · Application 2d52f29 · Generated by tools/build_project_guide.py</p></body></html>

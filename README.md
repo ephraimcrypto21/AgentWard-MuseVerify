@@ -1,161 +1,284 @@
 # AgentWard + MuseVerify
 
-A Meta-primary security harness for evidence-driven repair of Python and single-file JavaScript/TypeScript Node modules. It inspects poisoned source, reproduces benchmark vulnerabilities in an authenticated Docker/strace sandbox, generates candidate repairs, and verifies them through independent model review, CodeShield, adversarial replay and regression tests.
+**Reproduce the vulnerability. Verify the repair. Keep the evidence.**
 
-**Meta remains mandatory on every live run.** `muse-spark-1.3` leads runtime policy checks and patch synthesis; `muse-wonder-1.0` leads deep semantic analysis. Verified Anti-Gravity and custom BYOK models can join as independent reviewers. Missing security evidence produces a blocked, rejected or inconclusive result.
+AgentWard + MuseVerify is a Meta-primary security harness for Python and single-file JavaScript/TypeScript Node modules. It addresses two connected problems: candidate vulnerability alerts need evidence before maintainers spend time fixing them, and coding agents need containment when they read untrusted source or propose changes.
 
-The architecture now separates operator controls, model advice, untrusted payloads,
-and protected verification evidence. The [threat model](docs/THREAT_MODEL.md)
-defines those boundaries and their limits. All **818 cybersecurity skills** from
-the requested community collection are installed locally and pinned with full-tree
-hashes; see [skill provenance and usage](docs/SKILLS.md). The skills guide engineering
-reviews while the application enforces its own mandatory runtime gates.
+**AgentWard** controls source ingress, tool-action policy, operator restrictions and workspace rewind. **MuseVerify** reproduces supported exploits in Docker, generates candidate repairs, checks them with independent reviewers and Purple Llama CodeShield, and tests them against adversarial replay and regression probes.
 
-## Supported languages
+> Model advice can propose a repair. Only the orchestrator can accept it, after the required policy, AST, scanner and runtime evidence gates pass. No model response can waive a gate.
 
-| Language | Extensions | Verification scope |
-| --- | --- | --- |
-| Python | `.py` | Existing Python parsing, graph analysis and benchmark probes |
-| JavaScript | `.js`, `.mjs`, `.cjs` | Node.js CommonJS/ES modules; exported single-argument SQL/command functions |
-| TypeScript | `.ts`, `.mts`, `.cts` | Same Node probes; erasable TypeScript syntax, AST type erasure for scanning, original source executed by Node 24 |
+Meta is mandatory for live runs: **`muse-spark-1.3`** leads policy checks and patch synthesis; **`muse-wonder-1.0`** leads semantic root-cause analysis and variant hunting. Healthy Anti-Gravity and Custom BYOK models can join the review quorum. The acceptance rule is enforced in code; model judgments within that rule remain probabilistic.
 
-Other extensions return `UNSUPPORTED_LANGUAGE`. A supported language with no
-compatible probe entry points returns `UNSUPPORTED_TARGET`; syntax errors return
-`INVALID_SOURCE`. Missing dependencies or execution evidence cannot become a
-verified result. See [adapter behavior and limits](docs/LANGUAGES.md).
+**Recorded acceptance, 1 November 2026:** 99 tests passed with real Docker and no skips. Live execution of all 13 Node corpus targets produced **8 `REMEDIATED`, 4 `FALSE_POSITIVE`, and 1 `INCONCLUSIVE`**, with 24 self-play scenarios neutralized and no survivors. These are results for the tested corpus, not a general detection-accuracy claim.
 
-## Seven phases
+[Acceptance record](docs/CORPUS_ACCEPTANCE_2026-11-01.md) · [PDF project guide](output/pdf/AgentWard_MuseVerify_Project_Guide.pdf) · [HTML project guide](output/pdf/AgentWard_MuseVerify_Project_Guide.html) · [Threat model](docs/THREAT_MODEL.md)
 
-| Phase | Responsibility | Required evidence |
-| --- | --- | --- |
-| 1 — Ingress Shield | Classify complete source with the pinned ingress model and parser context; sanitize injected instructions | Full source coverage, sanitizer rescan, model/policy identity and artifact hashes |
-| 2 — Syscall Sandbox | Execute deterministic exploit probes in an isolated workspace | Docker execution, kernel strace events and completed behavioral probes |
-| 3 — Runtime Hooks | Regex/entropy screening, unanimous ensemble policy review and trajectory monitoring | Valid votes; current operator policy; denial triggers workspace rewind |
-| 4 — Patch Verification | Spark synthesis, API-contract checks, cross-file analysis, independent reviewers, CodeShield and structural tripwire validation | Every applicable gate passes |
-| 4.5 — Adversarial Self-Play | Replay mutated and multi-step scenarios against original and candidate code | Positive controls on original code, no surviving exploit and valid sandbox evidence |
-| 5 — Regression | Replay original exploit, normal inputs and decoy guards | Exploit blocked, functional checks pass, tripwire fires only for decoy probes |
-| 5.1 — Semantic Hunter | Wonder-led multi-provider analysis of imported helpers and related modules | Static paths, model findings and coverage limits reported separately from runtime proof |
+## Why the two systems belong together
 
-Phase 2 overlaps with AST graph construction and the Stage 3 policy baseline. At most three pipeline containers execute concurrently. A successful baseline cannot substitute for later sandbox or patch evidence.
+An alert is a candidate finding, and an AI-generated patch is a candidate repair. Treating either as proof creates unnecessary triage work or accepts changes that have not preserved the original behavior. At the same time, instructions hidden in comments and literals can try to redirect an agent toward credential access, destructive actions or fabricated audit results.
 
-Phase 4 receives the already observed ingress, original sandbox and runtime-policy
-results. Its model votes approve only the candidate's static review. CodeShield,
-adversarial replay and regression remain required before final remediation. The
-review contract distinguishes the required decoy tripwire from injected source
-instructions and separates unchanged, unrelated sibling findings from risks that
-affect the selected target.
+The project separates those decisions. Ingress checks instruction risk; the sandbox checks supported exploit behavior; runtime policy controls the permitted workflow; independent review and regression determine whether a candidate earns a verified result. Incomplete evidence stays blocked, rejected or inconclusive. Accepted patches remain separate from the intentionally vulnerable benchmarks so an engineer can inspect the exact diff and its evidence before integration.
 
-## Quick start
+## Architecture and the seven-phase verification chain
 
-Python 3.12+ is recommended. The local development environment uses `venv/`.
+The CLI and dashboard share [main_pipeline.py](main_pipeline.py). Language adapters, policy state and evidence checks are the same in both entry points.
+
+```mermaid
+flowchart TB
+    Operator["Operator: CLI / local dashboard"] --> Pipeline["Orchestrator: adapters, policy and mandatory gates"]
+    Source["Untrusted source"] --> Pipeline
+    Pipeline --> Ingress
+    Pipeline -->|"Phases 2, 4.5 and 5"| Sandbox
+    subgraph Node["Verification node: authenticated loopback services"]
+        Ingress["Phase 1: ingress classifier"]
+        Sandbox["Sandbox service"]
+        Sandbox --> Tracer["Trusted tracer + immutable bootstrap"]
+        subgraph Container["Docker container: network none"]
+            Tracer --> Payload["Python / Node payload: UID 65534"]
+        end
+        Tracer --> Evidence["Root-owned strace in ACL-protected storage"]
+    end
+    Ingress -->|"Classifier contract v2 + source hashes"| Pipeline
+    Evidence -->|"Protocol v3 + artifact identity"| Pipeline
+    Pipeline -->|"Scoped prompts and observed evidence"| Models["Meta Spark / Wonder + verified optional reviewers"]
+    Models -->|"Candidates and review votes"| Pipeline
+    Pipeline -->|"Required gates pass"| Artifacts["Accepted patch, exact diff, metrics and SARIF"]
+    Pipeline -->|"Phase 5.1"| Hunt["Semantic variants and static review leads"]
+```
+
+The node authenticates requests and binds returned evidence to the submitted artifacts. Its host kernel, Docker daemon, service, image, tracer and bootstrap remain trusted dependencies. Hashes bind content; they are not signatures or a proof of semantic correctness. See the [threat model](docs/THREAT_MODEL.md) for the complete boundary inventory.
+
+### Phase 1 — Source-aware ingress shield
+
+[agentward_stage1.py](agentward_stage1.py) requires the exact classifier contract from [ingress_guard.py](ingress_guard.py). The pinned model is `Horizon-Labs/prompt-injection-guard-small` at revision `5ed691c28fc37db51f4e80fb81311b7d2b5d4646`; [security/ingress-model.lock.json](security/ingress-model.lock.json) records SHA-256 hashes for all five loaded artifacts. Loading uses safetensors, disables remote model code and performs no inference-time downloads.
+
+Bounded parser facts precede the complete source. Inference uses **512-token windows, 128-token overlap, a 0.40 risk threshold, and at most 256 windows per original or sanitized input**. The sanitizer recognizes instruction patterns in supported comments/literals, including decoded base64; modified source must receive a complete rescan. Valid syntax or a familiar filename never grants automatic approval.
+
+Contract v2 binds model/policy identity, language, source hashes and complete coverage. Classified attacks return `BLOCKED`; unavailable or mismatched evidence returns `UNVERIFIED`. Short HTTP 429 capacity delays permit at most three identical client requests; retries never bypass validation. [Ingress details and regression evidence](docs/INGRESS_GUARD.md).
+
+### Phase 2 — Multi-language Docker and strace triage
+
+[museverify_stage2.py](museverify_stage2.py) creates a disposable source workspace and sends deterministic probes to [sandbox_server.py](sandbox_server.py). These directories are isolated copies under `worktrees/`, not Git worktree checkouts. Production requires `agentward-sandbox:multilang-v3` and protected evidence protocol v3; there is no production host-execution fallback.
+
+The Docker node uses `--network none`, a read-only root filesystem, 256 MiB memory/swap ceilings, PID/CPU limits and a 64 MiB writable workspace. A trusted tracer starts before the submitted code. An immutable bootstrap clears supplementary groups and drops the payload to **UID/GID 65534 with empty effective/permitted capabilities**. The root-owned strace output lives in a separate POSIX-ACL-protected directory. Protocol v3 binds the source/harness SHA-256 digests, filename, language and runtime.
+
+The recorded image contains **Python 3.12.16 and Node 24.22.2**; the [Dockerfile](security/Dockerfile.sandbox) follows Python 3.12 and Node 24 image tags, so future rebuilds may contain newer patch releases. The node requires rootful Linux Docker without user-namespace remapping and an ACL-capable temporary filesystem.
+
+Phase 2 distinguishes reproduced exploits from valid executions with no observed exploit. **Benign controls become `FALSE_POSITIVE` after mandatory Phase 3 policy review**, then skip patch synthesis and later repair stages. Missing execution evidence remains `INCONCLUSIVE`. For Node, static findings outside SQL/command probe coverage also remain `INCONCLUSIVE`; safe SQL probes cannot dismiss a weak-randomness finding.
+
+### Phase 3 — Runtime policy, steering and rewind
+
+[agentward_stage3.py](agentward_stage3.py) screens proposed tool actions using command patterns, high-entropy-string checks and an estimated token budget, then runs concurrent ensemble policy and trajectory reviews. Spark leads the live policy/secret-exfiltration assessment; known credential values are redacted from action text. [enforce_permissions.py](enforce_permissions.py) also provides a JSON `PreToolUse` hook for command-bearing arguments.
+
+These are **application tool-action hooks**, not a kernel syscall interceptor. In the pipeline, final Phase 3 authorization consumes the completed Phase 2 evidence before candidate synthesis; an earlier policy checklist is preparation only. `strace` supplies observations inside Docker.
+
+The guard checkpoints top-level workspace files with a SHA-256 manifest. `trigger_rewind` restores checkpoint copies and removes newly created top-level files on denial. It does not roll back arbitrary host effects or Git history. `POST /api/steer` adds session restrictions; a changed policy revision invalidates in-flight approval. Recognized subprocess/path restrictions have AST enforcement, while broader natural-language restrictions also depend on model review.
+
+### Phase 4 — Patch synthesis, type erasure, CodeShield and tripwires
+
+In [museverify_stage4.py](museverify_stage4.py), Spark proposes a repair that preserves public signatures and sync/async contracts. The AST must contain a reachable decoy equality guard and a logger, such as `_tripwire()` emitting `TRIPWIRE`. A comment mentioning a canary is insufficient.
+
+The gate checks static source-to-sink paths and introduced hazards, gathers valid independent votes from the selected co-auditors concurrently, and runs Purple Llama CodeShield. For TypeScript, Tree-sitter erases supported type-only syntax and reparses the result as JavaScript **before CodeShield scans the JavaScript source**. Docker always tests the original TypeScript candidate through Node 24's native loader. Scanner errors fail closed.
+
+Python analysis includes bounded import-aware taint, call/return propagation and concurrency/TOCTOU review leads. Node taint is intraprocedural; multi-file Node execution and cross-file taint propagation are not established capabilities. A clean static scan supplements runtime evidence. Reviewers approve only the Phase 4 candidate; they cannot declare later regression complete.
+
+### Phase 4.5 — Bounded adversarial self-play
+
+[adversarial_selfplay.py](adversarial_selfplay.py) and [ecmascript_harness.py](ecmascript_harness.py) replay variants against both original and patched source in the sandbox. Node uses three deterministic scenarios: SQL/command syntax mutation, stored-value replay and URL-encoding replay. Python also supports bounded model-proposed scenarios executed by deterministic harnesses.
+
+Zero surviving mutations is necessary but insufficient: required evidence and original-code positive controls must also succeed. Every Node scenario must be neutralized; unsupported or unproven scenarios are never counted as neutralized. Replay adapters test the supplied behavior, not arbitrary persistence or all second-order vulnerabilities.
+
+### Phase 5 — Three-part regression and accepted artifacts
+
+The [orchestrator](main_pipeline.py) replays the candidate in Docker and requires the tested normal behavior to be preserved, the exploit to be blocked, and the AST-recognized tripwire to fire for its decoy while staying silent on the tested normal input. Node normal regression compares the original return value for `agentward_normal`.
+
+Only then are the patched file and unified diff published under `patches/<run-id>/`. Review a generated diff against the unchanged source before integrating it:
 
 ```bash
+# Replace this value with diff.diff_path from your completed run record.
+AGENTWARD_PATCH_DIFF='patches/<run-id>/<stem>_patched.diff'
+git apply --check "$AGENTWARD_PATCH_DIFF"
+```
+
+`git apply --check` is an integration check, not an automatic runtime gate in the current pipeline. The recorded corpus acceptance went further: each accepted diff was applied in a temporary directory and the result matched the saved patch exactly. A verified repair establishes the tested behavior, not production-wide correctness.
+
+### Phase 5.1 — Semantic variant hunting
+
+[semantic_hunter.py](semantic_hunter.py) uses Wonder to extract the root cause and review related sources with the active ensemble. Python's bounded import/call graph supports multi-hop analysis; Node siblings receive static and model review with explicit coverage limits. Variants, concurrency concerns and unsupported assumptions are review leads, not additional runtime-verified repairs.
+
+Phase 2 overlaps with graph construction and the policy baseline. The pipeline caps concurrent sandbox work at three containers. [Detailed language and verification rules](docs/LANGUAGES.md).
+
+## Multi-language support matrix
+
+| Language | Extensions | Supported execution and analysis |
+| --- | --- | --- |
+| Python | `.py` | Python AST, bounded cross-file analysis and existing benchmark probes |
+| JavaScript | `.js`, `.mjs`, `.cjs` | Single-file CommonJS/ES modules; exported SQL/command functions executed in Node 24 |
+| TypeScript | `.ts`, `.mts`, `.cts` | Same Node contract; erasable annotations, interfaces, aliases, generics and assertions; JavaScript preparation for scanning |
+
+Node targets must expose **one scalar argument per probed function**, a serializable return value and complete compatible coverage of all exports, up to eight. The corpus uses built-in modules such as `node:sqlite` and `node:child_process`. Every export must succeed for `agentward_normal` inside the network-disabled sandbox. `cwe_78_cmd_ping.cts` therefore echoes a diagnostic host with `printf` while preserving its intentional shell-injection defect.
+
+This is support for defined target contracts, not arbitrary applications. npm dependencies, project builds, TSX/JSX, classes requiring construction and non-erasable TypeScript transformations are outside this scope. The adapter does not perform TypeScript type checking.
+
+| Result | Meaning |
+| --- | --- |
+| `UNSUPPORTED_LANGUAGE` | Extension outside the registry |
+| `INVALID_SOURCE` | Source cannot parse for the selected language |
+| `UNSUPPORTED_TARGET` | Language is recognized but complete compatible Node probes cannot be constructed |
+| `INCONCLUSIVE` | Execution/evidence is incomplete, or a Node static weakness lacks matching runtime coverage |
+
+See [language_adapters.py](language_adapters.py), [ecmascript_harness.py](ecmascript_harness.py) and [docs/LANGUAGES.md](docs/LANGUAGES.md).
+
+## Meta-primary ensemble and configuration
+
+[ai_provider.py](ai_provider.py) discovers Meta, Anti-Gravity and Custom providers concurrently. Both Meta models must pass pre-flight. Dashboard discovery is cached for 60 seconds; `GET /api/providers?force_refresh=true` reloads configuration and retests it. An active run retains its successful snapshot while configuration remains unchanged.
+
+| `ENSEMBLE_MODE` | Requested participants |
+| --- | --- |
+| `auto` | Meta primary plus every healthy secondary |
+| `all_three` | Meta, Anti-Gravity and Custom; unavailable secondaries are explicitly excluded |
+| `meta_plus_agy` | Meta plus verified Anti-Gravity |
+| `meta_plus_custom` | Meta plus verified Custom BYOK |
+| `meta_only` | Spark and Wonder cross-checking each other |
+
+If no requested secondary is healthy, the other native Meta model supplies independent review. `all_three` is a routing preference, not a requirement that three providers always participate. Missing Meta blocks a live run. Once a reviewer is selected, a failed or malformed response cannot become an implicit approval.
+
+Start from [.env.example](.env.example); keep the populated `.env` local:
+
+| Variable | Purpose / default |
+| --- | --- |
+| `META_API_KEY` | Required Meta credential |
+| `META_API_BASE_URL` | `https://api.meta.ai/v1` |
+| `ENSEMBLE_MODE` | `auto` |
+| `AGY_BIN` | Optional CLI path; otherwise PATH or `~/.local/bin/agy` |
+| `AGY_SELECTED_MODEL` | Preferred high-end model, default `gemini-4-argon` |
+| `AGY_PREFLIGHT_TIMEOUT_S` | Per-model probe deadline, capped at 30 seconds |
+| `CUSTOM_API_URL` | Compatible Responses/Chat Completions endpoint or `/v1` base |
+| `CUSTOM_API_KEY`, `CUSTOM_MODEL_NAME` | BYOK credential and endpoint-supported model identifier |
+| `CUSTOM_REASONING_EFFORT` | Default `medium`, for models/endpoints supporting the parameter |
+| `CUSTOM_SERVICE_TIER` | Optional `fast` / `ultrafast`, where supported |
+| `AI_TIMEOUT_S`, `AGY_TIMEOUT_S` | Task deadlines; defaults 120 / 180 seconds |
+| `AGENTWARD_INGRESS_URL` | Authenticated node's `/scan-ingress` URL |
+| `AGENTWARD_SANDBOX_URL` | Authenticated node's `/execute` URL |
+| `AGENTWARD_NODE_TOKEN` | Shared random node secret, at least 32 characters |
+
+Anti-Gravity tries the selected supported high-end model, then the deduplicated cascade `gemini-4-argon`, `claude-opus-5-5`, `claude-sonnet-5.5`, `gemini-3.8`. Quota failures are recorded during pre-flight. CLI probes are bounded; permission-bypass flags are not used. A later task failure denies that task's review.
+
+Custom BYOK supports the implemented OpenAI-compatible HTTP shapes, not every provider-specific protocol. Its five-second pre-flight requires HTTP 200 and nonempty, complete content. Placeholder keys, authentication errors, timeouts and missing endpoints exclude it. `/api/providers` returns status and topology without credential values.
+
+## Verified results and security hardening
+
+| Evidence | Recorded result | Scope |
+| --- | --- | --- |
+| Full test suite, 1 November | **99 passed, zero skipped** | Includes opt-in real Docker tests; model fixtures in unit tests are not live-provider proof |
+| Live Node corpus, 1 November | **13 targets: 8 repaired, 4 false positives, 1 inconclusive** | Real classifier, Meta Spark/Wonder and authenticated remote Docker |
+| Static/normal contracts | **13 parse; 6 TypeScript transforms/scans; 17 exports execute normally** | All six Node extensions; no unsupported/invalid corpus targets |
+| Corpus ingress | **13 unchanged-source `ALLOW`** | Highest measured injection score 0.017127, below 0.40 |
+| Node self-play and artifacts | **24 neutralized, 0 survivors; 8 verified SARIF fixes** | Patch hashes match regression evidence; all diffs reconstruct saved patches |
+| Classifier regression, 31 October | **78/78: 45 benign + 33 malicious cases** | Real pinned-model inference; development regression corpora, not untouched holdout accuracy |
+| Protocol-v3 deployment, 31 October | **25 acceptance groups** | Auth, all seven extensions, artifact binding and isolation; repair controls in that record used fixtures |
+| Community skill inventory | **818 pinned skill trees** | Installation integrity and provenance; engineering guidance, not runtime instructions or compliance certification |
+
+The current corpus has eight command/SQL vulnerabilities and four benign Node controls. Each benign control skipped patch synthesis and patch verification after Phase 2 and mandatory Phase 3 policy review. The extra `cwe_338_weak_token.cjs` remains **`INCONCLUSIVE`** because SQL probes cannot validate token unpredictability; its static CWE-338 warning has no verified fix. Two targets initially encountered classifier capacity failures; their preserved attempts and successful reruns are documented in the [acceptance record](docs/CORPUS_ACCEPTANCE_2026-11-01.md).
+
+Hardening includes authenticated execution/classification aliases, exact browser Host/Origin validation, bounded requests and WebSocket queues, protected traces, resource limits, hash/language binding, no production host fallback, and node HTTP clients that reject redirects and ambient proxies. The [threat model](docs/THREAT_MODEL.md) and [security record](docs/SECURITY_HARDENING.md) distinguish enforced controls from residual risks. The older [deployment](docs/DEPLOYMENT_V3.md) and [live multilingual](docs/LIVE_MULTILANGUAGE.md) records retain their dates and scope.
+
+The independent community [skill collection](https://github.com/mukul975/Anthropic-Cybersecurity-Skills) is pinned in [security/skills.lock.json](security/skills.lock.json). It is not affiliated with Anthropic. See [docs/SKILLS.md](docs/SKILLS.md) for provenance, applied skills and installation/verification commands.
+
+### Canonical artifacts
+
+| Local path | Contents |
+| --- | --- |
+| `patches/<run-id>/` | Accepted patched sources and exact `.diff` files |
+| `reports/benchmark_metrics.json` | Per-file outcomes, votes, provider pre-flight, usage and timing |
+| `reports/agentward_sarif_report.sarif` | SARIF 2.1.0 findings and eligible verified fixes |
+| `reports/executive_brief.md` / `.html` | Evidence table, assumptions, coverage limits and labeled advisory commentary |
+| `reports/runs/` | Per-report archives, separate from the latest canonical outputs |
+
+These runtime files are generated locally and excluded from Git; the published acceptance documents summarize their evidence. Repeated single-file CLI invocations replace the latest canonical report, while batch runs aggregate targets. The [Node-only corpus recipe](docs/CORPUS_ACCEPTANCE_2026-11-01.md#reproduce) uses a shared `RunReport` for all 13 files. The extra inconclusive finding keeps the corpus SARIF invocation's `executionSuccessful` field false.
+
+`SIMULATED_REMEDIATION` / `SIMULATED_FALSE_POSITIVE` label fixture demonstrations. They never export verified SARIF fixes. A CodeShield clean scan, a model statement and a runtime-verified repair are separate forms of evidence. Unknown provider prices remain unknown rather than becoming invented cost savings.
+
+## Quick start and live dashboard
+
+Use Python 3.12+ and a configured verification node. The workstation and node may share a supported Linux machine or run on separate hosts. The node needs rootful Docker and the additional [node requirements](requirements-node.txt); the dashboard alone does not provide live sandbox or classifier execution.
+
+```bash
+git clone https://github.com/ephraimcrypto21/AgentWard-MuseVerify.git
+cd AgentWard-MuseVerify
 python3 -m venv venv
 . venv/bin/activate
 python -m pip install -r requirements-dev.txt
-cp .env.example .env
-# Populate Meta credentials and any optional providers in .env.
-python -m uvicorn dashboard:app --host 127.0.0.1 --port 8080 --ws-max-size 1024 --ws-max-queue 4
+cp -n .env.example .env
 ```
 
-Open [the dashboard](http://127.0.0.1:8080). The header shows the real provider pre-flight matrix. Select an ensemble, retest credentials, launch an audit, or add an operator restriction while a run is in progress.
-
-The dashboard includes all seven phase cards, replayable WebSocket telemetry, a unified/side-by-side verified diff viewer, the executive brief, a cross-file call/taint map and SARIF export. HTTP and WebSocket routes validate exact allowed hosts and browser origins before serving data or replaying telemetry. Defaults accept `localhost`, `127.0.0.1`, and `::1`; set `DASHBOARD_ALLOWED_HOSTS` to a comma-separated list of exact names for an authenticated reverse proxy. Keep the dashboard on loopback or behind authenticated access controls. Native clients may omit Origin; these browser controls do not replace network access restrictions.
-
-CLI entry points use the same orchestrator:
+Populate `.env` with Meta credentials, the shared node token and the endpoint URLs described below. Configure optional reviewers if needed. Then start the WebSocket command center:
 
 ```bash
-python main_pipeline.py poisoned_app.py
+python -m uvicorn dashboard:app --host 127.0.0.1 --port 8080 \
+  --ws-max-size 1024 --ws-max-queue 4
+```
+
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Check the provider matrix, select an ensemble and launch a known vulnerable target or benign control. The dashboard shows seven phase cards, syscall observations, self-play results, verified unified/side-by-side diffs, an executive brief, a call/taint map and SARIF export.
+
+From another activated terminal, the same pipeline runs through the CLI:
+
+```bash
 python main_pipeline.py benchmark_targets/cwe_78_cmd.js
 python main_pipeline.py benchmark_targets/cwe_89_sqli.ts
+python main_pipeline.py benchmark_targets/fp_node.mjs
 python main_pipeline.py benchmark_targets
 ```
 
-Original benchmark targets remain intentionally vulnerable. Accepted candidate patches and exact diffs are written under `patches/<run-id>/`; the harness does not silently overwrite the benchmark corpus.
+The final command runs the supported Python and Node benchmark corpus as one batch. Keep intentionally vulnerable inputs unchanged; inspect accepted candidates and their reports before applying a patch to an application.
 
-## Providers and ensembles
+## Verification-node deployment: Linux, on any cloud or local host
 
-| Mode | Participants |
-| --- | --- |
-| `auto` (default) | Meta primary + every healthy secondary |
-| `all_three` | Meta + Anti-Gravity + Custom; explicit notices if a secondary is unavailable |
-| `meta_plus_agy` | Meta + verified Anti-Gravity |
-| `meta_plus_custom` | Meta + verified Custom BYOK |
-| `meta_only` | Spark + Wonder cross-checking each other |
+AWS Lightsail is optional. The services need a supported Linux host, rootful Docker without user-namespace remapping, POSIX ACL support and a service account that can access Docker. The bundled [deploy_remote_services.sh](deploy_remote_services.sh) is an **Ubuntu/systemd recipe** with `USER_NAME=ubuntu` and `APP_DIR=/home/ubuntu/agentward-node`; adapt those settings and prerequisites for another account or distribution. It is not an OS-independent installer.
 
-When no requested secondary passes pre-flight, Meta's other native model supplies the independent review. If Meta is offline, the run cannot proceed. Once selected, an unavailable or malformed reviewer response denies that review rather than becoming an implicit approval.
+### Install or update the node
 
-`discover_and_verify_providers(force_refresh=False)` probes providers concurrently, shares in-flight discovery requests and caches dashboard results for 60 seconds. Each run retains its successful pre-flight snapshot while credentials/configuration remain unchanged; task errors still deny approval. A forced refresh reloads `.env`.
+On an Ubuntu node with [Docker Engine](https://docs.docker.com/engine/install/ubuntu/) installed and available to its `ubuntu` service account:
 
-| Configuration | Purpose |
-| --- | --- |
-| `META_API_KEY` | Required Meta credential |
-| `META_API_BASE_URL` | Defaults to `https://api.meta.ai/v1` |
-| `ENSEMBLE_MODE` | One of the five modes above |
-| `AGY_BIN` | Optional explicit CLI path; otherwise PATH and `~/.local/bin/agy` |
-| `AGY_SELECTED_MODEL` | Preferred high-end model, default `gemini-4-argon` |
-| `AGY_PREFLIGHT_TIMEOUT_S` | Per-model probe deadline, capped at 30 seconds |
-| `CUSTOM_API_URL` | Full Responses or Chat Completions endpoint, or `/v1` base |
-| `CUSTOM_API_KEY` | Optional BYOK credential; empty/placeholder values never receive pipeline tasks |
-| `CUSTOM_MODEL_NAME` | Model identifier supported by your chosen BYOK endpoint |
-| `CUSTOM_REASONING_EFFORT` | Optional model-specific reasoning setting, where supported; default `medium` |
-| `CUSTOM_SERVICE_TIER` | Optional `fast` / `ultrafast`, only where the endpoint supports it |
-| `AI_TIMEOUT_S`, `AGY_TIMEOUT_S` | Bounded task deadlines |
+```bash
+sudo apt-get update
+sudo apt-get install -y git python3-venv python3-pip curl acl
+git clone https://github.com/ephraimcrypto21/AgentWard-MuseVerify.git /home/ubuntu/agentward-node
+cd /home/ubuntu/agentward-node
+sudo docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
+sudo bash deploy_remote_services.sh
+sudo systemctl is-active agentward-ingress.service museverify-sandbox.service
+curl --fail --max-time 20 http://127.0.0.1:8000/health
+curl --fail --max-time 20 http://127.0.0.1:8001/health
+```
 
-Anti-Gravity tries the selected high-end model, then the deduplicated cascade `gemini-4-argon`, `claude-opus-5-5`, `claude-sonnet-5.5`, `gemini-3.8`. Quota failures are recorded. CLIs with `--max-turns` use a one-turn probe; this deployment's CLI instead uses bounded single-print mode. No permission-bypass flags are used.
+For an existing checkout, update it before the build with `git pull --ff-only` instead of cloning again. The script installs node dependencies, provisions the pinned model, and installs/restarts both services on loopback. It **reuses an existing image tag**, so explicitly rebuild the image when upgrading its runtime. Review health for protocol v3 and trace capability; connectivity alone does not establish full acceptance.
 
-Custom pre-flight has a five-second deadline and requires HTTP 200 with nonempty, complete content. Authentication failures, missing endpoints, timeouts and placeholder configuration exclude the provider without breaking discovery. Credentials are never returned by `/api/providers`.
+First installation creates a random `AGENTWARD_NODE_TOKEN` in root-owned mode-0600 `/etc/agentward/node.env`; subsequent deployments preserve it. Securely provision the same value into the workstation's `.env`. A missing/short service token returns 503; missing or incorrect request authorization returns 401. Do not place provider keys on the node merely to run its classifier or sandbox.
 
-## Remote ingress guard and sandbox node
+Keep workstation contracts, both services, model artifacts and the sandbox image coordinated. Restart the dashboard after endpoint or contract changes. A stale v2 response cannot satisfy protocol v3.
 
-Use an Ubuntu host with Docker and the dependencies in `requirements-node.txt`.
-Ingress uses the pinned `Horizon-Labs/prompt-injection-guard-small` model with
-bounded parser context and complete source coverage. The model runs locally;
-its five artifacts are hash-verified before loading. Unavailable or changed
-weights fail closed. See [ingress guard validation](docs/INGRESS_GUARD.md).
+### Connect with SSH forwarding
 
-Deploy the full checkout to `/home/ubuntu/agentward-node/`, then run the deployment script there with sudo. Include `ingress_guard.py`, `security/ingress-model.lock.json` and the shared language, protocol, security and sanitizer modules. The script installs node dependencies, provisions and verifies the pinned model, builds `agentward-sandbox:multilang-v3` with Python, Node 24 and strace, and installs both systemd services. Both bind to `127.0.0.1`. The sandbox requires rootful Linux Docker without user-namespace remapping and a temporary filesystem supporting POSIX ACLs.
-
-The deployment script creates `/etc/agentward/node.env` with a random token and
-root-only permissions on first installation; subsequent deployments preserve it.
-Securely copy the same `AGENTWARD_NODE_TOKEN` value into the workstation `.env`,
-then restart the dashboard. A missing/short node token returns HTTP 503; an absent
-or incorrect bearer token returns 401. All classifier and execution aliases
-require authentication. Health routes remain available for connectivity checks.
-
-**Upgrade the workstation, both node services and the sandbox image together.**
-The [protocol-v3 deployment record](docs/DEPLOYMENT_V3.md) documents the completed
-upgrade, live node acceptance and rollback location. The subsequent
-[ingress guard update](docs/INGRESS_GUARD.md) addresses the reported classifier false positives.
-Protocol v3 binds protected traces to the language, runtime and target filename
-as well as the source/harness hashes. Ingress results bind the language and
-original/sanitized hashes plus the pinned model and classification-policy identity.
-A stale node blocks live verification. See the
-[language verification record](docs/LANGUAGES.md) and earlier
-[31 October security record](docs/SECURITY_HARDENING.md).
-
-Choose SSH forwarding or private Tailscale endpoints to connect the workstation to the node.
-
-### Connect through SSH
-
-Forward the service ports from your workstation:
+Run this from the workstation and keep the connection open:
 
 ```bash
 ssh -N -L 18000:127.0.0.1:8000 -L 18001:127.0.0.1:8001 ubuntu@YOUR_HOST
 ```
 
-Set these values in the workstation's `.env`:
+Workstation `.env`:
 
 ```dotenv
 AGENTWARD_INGRESS_URL=http://127.0.0.1:18000/scan-ingress
 AGENTWARD_SANDBOX_URL=http://127.0.0.1:18001/execute
 ```
 
-Check `/health` on each forwarded service.
+For services on the same Linux workstation, use loopback ports 8000 and 8001 directly; forwarding is unnecessary.
 
-### Use Tailscale endpoints
+### Or connect with private Tailscale Serve
 
-Install [Tailscale](https://tailscale.com/download) on the workstation and the remote node, and connect both to the same tailnet. Tailscale Serve can forward the node's private Tailscale ports to the existing loopback services. On the remote node, run:
+Install [Tailscale](https://tailscale.com/download) on both hosts and join the same tailnet. On the node:
 
 ```bash
 tailscale ip -4
@@ -164,119 +287,54 @@ sudo tailscale serve --bg --tcp=8001 tcp://127.0.0.1:8001
 tailscale serve status
 ```
 
-Replace `<NODE_TAILSCALE_IP>` below with the address printed by `tailscale ip -4`. You can also use the node's MagicDNS name when MagicDNS is enabled. Set the workstation's `.env` to:
+Use the printed private address or enabled MagicDNS name in workstation `.env`:
 
 ```dotenv
 AGENTWARD_INGRESS_URL=http://<NODE_TAILSCALE_IP>:8000/scan-ingress
 AGENTWARD_SANDBOX_URL=http://<NODE_TAILSCALE_IP>:8001/execute
 ```
 
-Verify connectivity from the workstation:
+These TCP forwards remain within the tailnet and carry HTTP inside Tailscale's encrypted network. Restrict access with tailnet grants/ACLs and retain node bearer authentication. Public exposure requires an appropriate authenticated TLS boundary. The recorded deployment uses persistent Serve forwarding and does not depend on an SSH session.
 
-```bash
-curl --fail "http://<NODE_TAILSCALE_IP>:8000/health"
-curl --fail "http://<NODE_TAILSCALE_IP>:8001/health"
-```
+## Dashboard API and operator steering
 
-The HTTP traffic travels inside Tailscale's encrypted network, and Serve exposes these ports only within the tailnet. Restrict access to authorized operators using tailnet grants or ACLs. This setup uses the Tailscale address directly and needs no SSH port forward. Restart the dashboard after changing these endpoint URLs so it loads the new configuration.
-
-Docker containers disable networking and use a read-only root filesystem and
-inputs, 256 MiB memory/swap ceilings, CPU/PID limits, and bounded writable tmpfs.
-A trusted root tracer writes evidence into a separate ACL-protected directory;
-the immutable bootstrap drops to UID/GID 65534 with no effective/permitted
-capabilities before loading source. Payloads cannot alter evidence or write
-host-backed files. Output, trace, event-count and execution-time limits fail
-closed, and containers are reaped on failure. Docker failure never triggers host
-execution on the remote server. The client requires protected protocol-v3 traces
-and source/harness SHA-256 matches. Node requests disable redirects and ambient
-HTTP proxies so bearer credentials cannot be forwarded unexpectedly.
-
-Bodies are limited to 2 MB at the nodes and 32 KiB at the dashboard before JSON
-parsing. Source/harness fields are capped at 200,000 characters. The nodes reject
-new work when their two classifier or three sandbox slots are occupied, with
-HTTP 429 and `Retry-After`. WebSocket telemetry has a 32-connection cap and bounded
-replay writes. Additional transport-level protection belongs at the network edge.
-
-## Steering and security boundaries
-
-`POST /api/steer` accepts additive restrictions such as:
-
-```json
-{"constraint":"Forbid subprocess calls; enforce pathlib commonpath"}
-```
-
-The active dashboard session shares a monotonically increasing policy revision across batch workers. Runtime checks and patch reviewers receive the current constraints. A changed revision invalidates an in-flight approval; stale approvals cannot commit a remediation. Recognized subprocess/path restrictions also have AST enforcement. Broader natural-language constraints are assessed by the ensemble and are not claimed to be a complete formal policy language.
-
-The monitor inspects each tool trajectory for drift, attempts to bypass review, covert environment inspection and forbidden actions. A detected violation halts the session and rewinds affected workspaces. Restarting the dashboard starts a new session; no UI control can waive a mandatory gate.
-
-Static cross-file analysis resolves imports, function/method calls, keyword arguments and return propagation to a bounded fixed point. Decorators, upstream sanitization assumptions, environment integrity and SQLite thread-sharing assumptions become explicit remediation assertions. Reflection, dynamic dispatch and external libraries remain coverage limits.
-
-Self-play uses a bounded scenario language, not model-generated executable harnesses. Storage/replay, URL decode/replay, cleanup-entry and deterministic symlink interleaving scenarios run only inside the sandbox. A storage adapter demonstrates replay robustness, not necessarily a native persistence vulnerability. Unsupported scenarios and failed positive controls are not counted as neutralized.
-
-## API
-
-| Method | Route | Result |
+| Method | Route | Purpose |
 | --- | --- | --- |
-| GET | `/api/health` | Running state and phase identifiers |
-| GET | `/api/languages` | Supported extensions, runtimes and adapter scope |
-| GET | `/api/providers` | Pre-flight status and selected topology; `?force_refresh=true` retests |
-| POST | `/api/providers/mode` | `{"mode":"all_three"}` changes subsequent ensemble selection |
-| POST | `/api/steer` | Add a session restriction |
-| POST | `/api/run` | `{"target_file":"poisoned_app.py"}` or a supported JavaScript/TypeScript workspace path |
-| POST | `/api/batch` | Run the benchmark corpus with concurrency capped at three |
-| POST | `/api/clean` | Prune temporary workspaces when idle |
-| GET | `/api/metrics` | Token, cost, outcome and timing metrics |
-| GET | `/api/executive-brief` | Escaped HTML, Markdown, evidence, assumptions and graph |
-| GET | `/api/sarif` | Download SARIF v2.1.0 |
-| WebSocket | `/ws/telemetry` | Replayable, run-tagged events |
+| GET | `/api/health`, `/api/languages` | Running state and adapter scope |
+| GET | `/api/providers` | Provider health/topology; `?force_refresh=true` retests |
+| POST | `/api/providers/mode` | Select routing with `{"mode":"meta_only"}` |
+| POST | `/api/run` | Audit `{"target_file":"benchmark_targets/cwe_78_cmd.js"}` |
+| POST | `/api/batch` | Run the benchmark corpus with bounded concurrency |
+| POST | `/api/steer` | Add `{"constraint":"Forbid subprocess calls"}` |
+| POST | `/api/clean` | Prune temporary workspaces while idle |
+| GET | `/api/metrics`, `/api/executive-brief`, `/api/sarif` | Inspect or export evidence |
+| WebSocket | `/ws/telemetry` | Replayable events with run identifiers |
 
-## Evidence and verification
+HTTP and WebSocket routes validate exact allowed hosts and browser origins before serving data. `DASHBOARD_ALLOWED_HOSTS` defaults to `127.0.0.1,localhost,::1`; configure exact names for an authenticated proxy. Keep the dashboard on loopback or behind authenticated access: native clients may omit Origin, so browser checks are not user authentication.
 
-The [1 November corpus acceptance](docs/CORPUS_ACCEPTANCE_2026-11-01.md) covers
-all 13 JavaScript/TypeScript benchmarks and all six Node extensions: eight live
-verified repairs, four false-positive controls, and one inconclusive weak-token
-finding retained for review. All 99 tests passed with real Docker and no skips.
+Steering is additive within a dashboard session and shared across its batch workers. No UI action can waive a mandatory gate. Restarting the dashboard starts a new policy session. Requests are bounded to 32 KiB at the dashboard and 2 MB at the nodes; source/harness fields are capped at 200,000 characters. Nodes have two classifier and three sandbox slots, and WebSocket telemetry has a 32-connection cap.
 
-The historical [31 October live multilingual acceptance](docs/LIVE_MULTILANGUAGE.md) records
-fresh Meta-generated JavaScript/TypeScript repairs, the benign Node control,
-94 passing local tests and the remaining browser findings.
+## Reproduce checks and build the project guide
 
-See the [current hardening verification](docs/SECURITY_HARDENING.md) and the
-[historical 30 October record](docs/VERIFICATION.md). Earlier remote acceptance
-does not certify a newly deployed node or the current protocol.
-
-Reports are written atomically under `reports/`, with separate per-run archives:
-
-- `benchmark_metrics.json`: per-file outcomes, votes, pre-flight state, usage and latency.
-- `agentward_sarif_report.sarif`: findings and verified fixes in SARIF v2.1.0.
-- `executive_brief.md` / `.html`: evidence-derived executive assessment and unresolved assertions.
-- `live_e2e_verification.json` / `live_e2e_telemetry.json`: live acceptance results when the E2E driver runs.
-
-Model executive commentary is labeled advisory and cannot change verified outcomes. Dry-run results use `SIMULATED_REMEDIATION` / `SIMULATED_FALSE_POSITIVE`, never production `REMEDIATED` / `FALSE_POSITIVE`, and export no verified SARIF fixes.
+These checks use the local environment; live classifier evaluation additionally requires the provisioned node environment and pinned artifacts.
 
 ```bash
 . venv/bin/activate
-python -m unittest discover -v
-ruff check --select E9,F63,F7,F82,F401 . --exclude venv,worktrees,patches,reports
-python -m tests.run_e2e --live --base http://127.0.0.1:8080
-```
-
-Run the real Docker security checks separately (also enforced in CI):
-
-```bash
 docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
 AGENTWARD_TEST_DOCKER=1 SANDBOX_IMAGE=agentward-sandbox:multilang-v3 \
-  python -m unittest tests.test_docker_security tests.test_multilanguage_docker tests.test_benchmark_corpus -v
-python3 tools/manage_cybersecurity_skills.py verify
+  python -m unittest discover -v
+ruff check --select E9,F63,F7,F82,F401 . --exclude venv,worktrees,patches,reports
+python -m pip check
+python tools/manage_cybersecurity_skills.py verify
 ```
 
-The test suite covers all ensemble modes, quota cascade, invalid credentials, Responses/Chat Completions payloads, reasoning/cache stability, usage costs, steering, misalignment denial and rewind, cross-module taint, CodeShield failures, multi-step controls and simulation/production evidence separation.
+[docs/INGRESS_GUARD.md](docs/INGRESS_GUARD.md#reproduce-validation) lists all three real-model corpora needed to reproduce the 78 classifier cases. `python -m tests.run_e2e --live --base http://127.0.0.1:8080` exercises the live dashboard against its configured services. Unit fixtures and offline demonstrations remain explicitly labeled; Node source always requires Docker.
 
-For an explicit offline demonstration using deterministic model fixtures and known test targets:
+The maintained [guide generator](tools/build_project_guide.py) builds a PDF and HTML companion from the same reviewed content without contacting providers. Install its optional dependency once, then generate both files in the repository root:
 
 ```bash
-AGENTWARD_FORCE_LOCAL=1 python -m tests.dry_run_dashboard
-python -m tests.run_e2e --base http://127.0.0.1:18081
+python -m pip install -r requirements-docs.txt
+python tools/build_project_guide.py --output AgentWard_MuseVerify_Project_Guide.pdf
 ```
 
-Host execution is test-only and never yields verified production evidence. Never direct that demonstration at untrusted external source.
+The second command writes `AgentWard_MuseVerify_Project_Guide.pdf` and `AgentWard_MuseVerify_Project_Guide.html`. Running it without `--output` updates the published copies in `output/pdf/`. See [the guide build record](output/pdf/README.md) for the evidence snapshot, layout review and reproducibility limits.

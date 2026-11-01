@@ -1,0 +1,2 @@
+# Generated PDFs must not undergo text conversion, whitespace checks or merges.
+*.pdf binary

@@ -1,24 +1,36 @@
-# Current-stage project guide
+# Project guide: reviewed 1 November 2026
 
-[AgentWard_MuseVerify_Project_Guide.pdf](AgentWard_MuseVerify_Project_Guide.pdf)
-is the 16-page edition reviewed on **31 October 2026**, describing application
-release **59f8c1dac5cfde863d4e9ed62303b9f9e09ffc73**. It replaces the older
-Python-only guide based on snapshot 99ac51a.
+[PDF guide](AgentWard_MuseVerify_Project_Guide.pdf) · [HTML companion](AgentWard_MuseVerify_Project_Guide.html)
 
-It covers the deployed architecture, seven phases, Python/JavaScript/TypeScript
-target contracts, source-aware ingress guard, protected protocol-v3 runtime
-evidence, provider modes, operator workflow, APIs, skill integration and
-verification limits. Page 6 explains probabilistic detection in plain language;
-page 14 distinguishes real classifier checks, remote Docker acceptance,
-fixture repairs and historical live-provider results.
+The **20-page PDF** and HTML companion explain application snapshot
+**`2d52f29a585abf5c4dc241bdda118b5834c63126`**. This edition replaces the
+31 October guide and includes the completed live Node corpus acceptance.
+Both formats are generated from the same reviewed content in
+[tools/build_project_guide.py](../../tools/build_project_guide.py).
 
-The guide is a fixed evidence snapshot. Rebuilding it does not query services,
-revalidate providers or establish new live acceptance. The 78 classifier cases
-were used during policy development; they are regression evidence rather than
-an untouched holdout accuracy estimate. The latest deployment checks did not
-repeat full live model-generated seven-phase remediation.
+The guide covers the problem and core rule, architecture and trust boundaries,
+all seven phases, Python/JavaScript/TypeScript contracts, runtime policy and
+rewind, Meta-primary ensembles, BYOK configuration, Linux deployment, SSH and
+Tailscale connectivity, the dashboard API, artifacts, skill provenance and
+verification limits. Pages 17–18 separate current live results from historical
+classifier and protocol checks and list all 13 Node outcomes.
 
-## Rebuild
+## Evidence scope
+
+The 1 November application acceptance records **99 tests passed with no skips**,
+**8 live remediations**, **4 false-positive controls**, **1 inconclusive CWE-338
+finding**, and **24 neutralized Node self-play scenarios with zero survivors**.
+The latest live repairs used Meta Spark and Wonder, real ingress and authenticated
+remote Docker. The 78/78 classifier cases and 25 remote acceptance groups retain
+their earlier dates and scope; the classifier sets were used during development,
+and the older remote repair controls used fixtures.
+
+The guide does not claim industry-wide triage rates, universal detection
+accuracy, kernel interception by the application policy hook, whole-project
+TypeScript support or production-wide proof from finite regression probes.
+Model votes are required but cannot waive deterministic evidence checks.
+
+## Rebuild both formats
 
 From the repository root, in a Python environment of your choice:
 
@@ -27,27 +39,43 @@ python -m pip install -r requirements-docs.txt
 python tools/build_project_guide.py
 ```
 
-An alternate path can be supplied with `--output /path/to/guide.pdf`.
-The generator uses embedded Lato and DejaVu Sans Mono when their standard Linux
-font files are available, with standard PDF fonts as a fallback. Identical
-dependencies and fonts produce deterministic output; fallback fonts may require
-layout review. A page-count check prevents publishing an unexpected layout and
-the final PDF is replaced only after a successful build.
+The default command updates the published PDF and HTML files in `output/pdf/`.
+To produce the requested convenience copies in the repository root with one
+command after installing the optional dependency:
 
-The maintained content and vector architecture diagram are in
-[`tools/build_project_guide.py`](../../tools/build_project_guide.py). Review the
-source documents and evidence ledger when changing its date or application
-revision; do not simply stamp a newer Git revision onto old results. The PDF
-contains outline bookmarks, an internal reading map and versioned source links.
-No credentials, deployment addresses or private runtime reports are embedded.
+```bash
+python tools/build_project_guide.py --output AgentWard_MuseVerify_Project_Guide.pdf
+```
+
+`--output` must name a `.pdf`; the companion uses the same stem with `.html`.
+The root copies are ignored by Git to avoid duplicating the published artifacts.
+No browser, TeX installation, provider connection or verification-node call is
+needed to build the files.
+
+ReportLab uses embedded Lato and DejaVu Sans Mono when their standard Linux font
+files are available, with standard PDF fonts as a fallback. Matching fonts and
+dependencies produce deterministic output. A page-count check requires layout
+review if content or fonts change; outputs are staged before replacing the
+published files. Rebuilding documents does not establish fresh live acceptance.
 
 ## Review performed for this edition
 
-- Rendered all 16 pages and checked typography, wrapping, diagram labels,
-  footer spacing and page numbering.
-- Checked extracted text, metadata, PDF links and evidence claims against the
-  versioned docs and locally retained acceptance records.
-- Documentation-change checks: the 92-test discovery suite completed with
-  82 passed and 10 opt-in Docker tests skipped; Ruff correctness checks and
-  `pip check` passed. These checks do not replace the prior real-Docker release
-  acceptance described in the guide.
+- Rendered all 20 PDF pages and inspected typography, diagram labels, tables,
+  code wrapping, footer spacing and page numbering.
+- Checked PDF text and metadata, all 19 outline destinations, versioned source
+  links and text bounds. Root and published copies match byte-for-byte after
+  separate builds.
+- Loaded the HTML in Chromium at 1440-pixel desktop and 390-pixel phone widths:
+  20 sections, no page errors, no broken internal links and no horizontal page
+  overflow. Checked navigation to the architecture section.
+- Validated README local links and Bash example syntax against the repository.
+- Ran the 99-test discovery suite with real Docker: **99 passed, zero skipped**
+  in 73.120 seconds. Ruff correctness checks, dependency consistency and the
+  **818-skill integrity check** passed. These documentation checks do not replace
+  the separately recorded live-provider corpus acceptance.
+
+The PDF contains searchable text, outline bookmarks, an internal reading map and
+versioned source links. The HTML provides semantic sections, table headers and
+responsive layouts. No credentials, private deployment addresses or provider
+transcripts are embedded. PDF files are marked binary in `.gitattributes` so
+Git does not treat PDF format whitespace as source-code defects.
