@@ -84,6 +84,7 @@ class LanguageAdapterTests(unittest.TestCase):
             local.assert_not_called()
 
     def test_language_runtime_and_filename_evidence_cannot_be_swapped(self):
+        self.enterContext(patch.object(sandbox, 'sandbox_endpoint', return_value='http://sandbox.example.test:8001/execute'))
         digest = hashlib.sha256(b'code').hexdigest()
         valid = {'engine': 'docker', 'trace_backend': 'strace', 'trace_complete': True, 'trace_protected': True,
                  'evidence_version': EVIDENCE_VERSION, 'language': 'typescript', 'runtime': 'node', 'target_filename': 'x.ts',

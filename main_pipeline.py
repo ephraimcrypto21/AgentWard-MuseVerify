@@ -11,7 +11,7 @@ import uuid
 
 from agentward_stage1 import inspect_file_before_muse
 from museverify_stage2 import (create_isolated_worktree, synthesize_verification_harness,
-    run_sandboxed, triage_sandbox_result_async, describe_syscall_trail, clean_worktrees)
+    run_sandboxed, triage_sandbox_result_async, describe_syscall_trail, clean_worktrees, check_sandbox_health)
 from agentward_stage3 import AgentWardRuntimeGuard
 from museverify_stage4 import synthesize_and_gate_patch
 from adversarial_selfplay import run_selfplay
@@ -162,6 +162,8 @@ async def run_unified_pipeline(target_file: str, vuln_id: str = 'VULN-001', *, o
             if triage.get('supported') is False:
                 record.update(outcome='UNSUPPORTED_TARGET', coverage_limits=triage['coverage_limits'])
                 return record
+            if report.mode != 'dry_run':
+                record['sandbox_preflight'] = await asyncio.to_thread(check_sandbox_health)
             providers = await discover_and_verify_providers()
             record['provider_preflight'] = providers
             record['ensemble'] = select_ensemble(providers)

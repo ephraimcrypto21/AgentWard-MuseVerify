@@ -57,6 +57,7 @@ class EvidenceTests(unittest.IsolatedAsyncioTestCase):
                         await ai._http_data('https://example.com/v1/responses','fixture',{},5)
 
     def test_remote_requires_complete_kernel_trace(self):
+        self.enterContext(patch.object(sandbox, 'sandbox_endpoint', return_value='http://sandbox.example.test:8001/execute'))
         import hashlib
         digest=hashlib.sha256(b'pass').hexdigest()
         valid={'evidence_version':3,'language':'python','runtime':'python3','target_filename':'x.py','trace_protected':True,'source_sha256':digest,'harness_sha256':digest,'engine':'docker','trace_backend':'strace','trace_complete':True,'syscall_events':[{'source':'strace'}]}

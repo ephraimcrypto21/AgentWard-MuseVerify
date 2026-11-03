@@ -13,7 +13,6 @@ Binds explicitly to 127.0.0.1:8000 by default for SSH tunnel forwarding.
 """
 import argparse
 import json
-import os
 import urllib.error
 import urllib.request
 import threading
@@ -21,6 +20,7 @@ import hashlib
 from language_adapters import adapter_for
 from sandbox_protocol import SandboxRequest
 from service_security import BodyLimitMiddleware, node_headers, node_urlopen, require_node_token
+from runtime_config import sandbox_endpoint
 
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException
@@ -31,9 +31,6 @@ app = FastAPI(title="AgentWard + MuseVerify Node (Stage 1 & 2)")
 app.add_middleware(BodyLimitMiddleware)
 
 MODEL_ID = MODEL_LOCK['model_id']
-LEGACY_SANDBOX_URL = os.environ.get(
-    "AGENTWARD_SANDBOX_PROXY_URL", "http://127.0.0.1:8001/run-sandbox-test"
-)
 model = None
 _model_lock = threading.Lock()
 _model_error = None
@@ -76,6 +73,10 @@ SandboxTestRequest = SandboxRequest
 @app.get("/")
 @app.get("/health")
 def health_check():
+    try:
+        proxy, config_error = sandbox_endpoint('/run-sandbox-test'), None
+    except RuntimeError as exc:
+        proxy, config_error = None, str(exc)
     return {
         "status": "ok",
         "service": "AgentWard + MuseVerify Node (Stage 1 & 2)",
@@ -83,7 +84,8 @@ def health_check():
         "model_loaded": model is not None,
         "model_error": _model_error,
         "classifier_contract": contract(),
-        "legacy_sandbox_proxy": LEGACY_SANDBOX_URL,
+        "legacy_sandbox_proxy": proxy,
+        "sandbox_config_error": config_error,
         "bind": "127.0.0.1:8000",
     }
 
@@ -131,9 +133,13 @@ def _scan_ingress(req: ScanRequest):
 @app.post("/run-sandbox-test", dependencies=[Depends(require_node_token)])
 @app.post("/run-poc-sandbox", dependencies=[Depends(require_node_token)])
 def run_sandbox_test(req: SandboxTestRequest):
+    try:
+        endpoint = sandbox_endpoint('/run-sandbox-test')
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
     payload = req.model_dump_json().encode('utf-8')
     request = urllib.request.Request(
-        LEGACY_SANDBOX_URL,
+        endpoint,
         data=payload,
         headers=node_headers(),
         method="POST",

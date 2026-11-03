@@ -15,20 +15,16 @@ import shutil
 import itertools
 import re
 import tempfile
-from dotenv import load_dotenv
-load_dotenv()
 import subprocess
 import urllib.request
 import urllib.error
 from sandbox_protocol import EVIDENCE_VERSION
 from service_security import node_headers, node_urlopen
 from language_adapters import adapter_for
+from runtime_config import sandbox_endpoint
 
 PROMPT_GUARD_URL = os.environ.get(
     "AGENTWARD_INGRESS_URL", "http://127.0.0.1:18000/scan-ingress"
-)
-LIGHTSAIL_SANDBOX_URL = os.environ.get(
-    "AGENTWARD_SANDBOX_URL", "http://127.0.0.1:18001/execute"
 )
 
 HARNESS_FILES = {"test_harness.py", "verify_test.py", "verify_test.mjs", "run_test.py", "agentward_runner.py"}
@@ -636,6 +632,29 @@ def _remote_is_instrumented(data: dict) -> bool:
     return "trace_backend" in data or bool(data.get("syscall_events"))
 
 
+def check_sandbox_health():
+    """Check configured routing/capabilities before spending provider tokens.
+
+    This advertisement never substitutes for protected per-execution evidence.
+    """
+    endpoint = sandbox_endpoint('/health')
+    request = urllib.request.Request(endpoint, headers=node_headers())
+    try:
+        with node_urlopen(request, timeout=25) as response:
+            data = json.load(response)
+    except Exception as exc:
+        status = f'HTTP {exc.code}' if isinstance(exc, urllib.error.HTTPError) else type(exc).__name__
+        if isinstance(exc, urllib.error.HTTPError):
+            exc.close()
+        raise RuntimeError(f'Remote Docker sandbox health unavailable at {endpoint} ({status}); verification denied') from exc
+    if (not isinstance(data, dict) or data.get('status') != 'ok'
+            or data.get('docker') is not True or data.get('trace_capable') is not True
+            or data.get('evidence_version') != EVIDENCE_VERSION):
+        raise RuntimeError('Remote sandbox must advertise Docker, protected tracing and protocol v3; verification denied')
+    return {'endpoint': endpoint, **{key: data.get(key) for key in
+            ('status', 'docker', 'trace_capable', 'evidence_version', 'sandbox_image', 'syscall_telemetry')}}
+
+
 def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str, test_code: str) -> dict:
     adapter = adapter_for(target_file)
     payload = json.dumps({
@@ -647,8 +666,9 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
         "language": adapter.name,
     }).encode("utf-8")
 
+    endpoint = sandbox_endpoint('/execute')
     req = urllib.request.Request(
-        LIGHTSAIL_SANDBOX_URL,
+        endpoint,
         data=payload,
         headers=node_headers(),
         method="POST"
@@ -658,7 +678,10 @@ def execute_test_on_lightsail(vuln_id: str, target_file: str, code_content: str,
         with node_urlopen(req, timeout=25) as resp:
             data = json.loads(resp.read().decode())
     except Exception as exc:
-        raise RuntimeError('Remote Docker sandbox unavailable; verification denied') from exc
+        status = f'HTTP {exc.code}' if isinstance(exc, urllib.error.HTTPError) else type(exc).__name__
+        if isinstance(exc, urllib.error.HTTPError):
+            exc.close()
+        raise RuntimeError(f'Remote Docker sandbox unavailable at {endpoint} ({status}); verification denied') from exc
     if data.get('engine') != 'docker' or data.get('trace_backend') != 'strace' or not data.get('syscall_events') or data.get('trace_complete') is not True:
         raise RuntimeError('Docker and strace evidence required; verification denied')
     if data.get('evidence_version') != EVIDENCE_VERSION or data.get('trace_protected') is not True:

@@ -14,9 +14,8 @@ import time
 from urllib.parse import urlsplit
 
 import httpx
-from dotenv import load_dotenv
+from runtime_config import load_environment, meta_only_required
 
-load_dotenv()
 META_MODELS = ('muse-spark-1.3', 'muse-wonder-1.0')
 AGY_CASCADE = ('gemini-4-argon', 'claude-opus-5-5', 'claude-sonnet-5.5', 'gemini-3.8')
 MODES = {'auto', 'all_three', 'meta_plus_agy', 'meta_plus_custom', 'meta_only'}
@@ -58,11 +57,15 @@ def configuration():
         'AGY_BIN': '', 'AGY_SELECTED_MODEL': AGY_CASCADE[0],
         'CUSTOM_API_URL': '', 'CUSTOM_API_KEY': '', 'CUSTOM_MODEL_NAME': '',
         'CUSTOM_REASONING_EFFORT': 'medium', 'CUSTOM_SERVICE_TIER': '',
-    }.items()}
+    }.items()} | {'AGENTWARD_META_ONLY': '1' if meta_only_required() else '0'}
 
 
 def configuration_update(*, ensemble_mode=None):
     global _mode
+    if meta_only_required():
+        if ensemble_mode not in (None, 'meta_only'):
+            raise ValueError('AGENTWARD_META_ONLY=1 permits only meta_only mode')
+        return 'meta_only'
     if ensemble_mode is not None:
         if ensemble_mode not in MODES:
             raise ValueError('Unknown ensemble mode')
@@ -246,6 +249,8 @@ def _placeholder(value, min_length=1):
 async def _probe_provider(provider, cfg):
     start = time.perf_counter()
     row = {'provider': provider, 'online': False, 'status': 'OFFLINE', 'model': '', 'reason': '', 'attempts': []}
+    if cfg['AGENTWARD_META_ONLY'] == '1' and provider != 'meta':
+        return {**row, 'status': 'DISABLED', 'reason': 'AGENTWARD_META_ONLY=1', 'latency_ms': 0}
     try:
         if provider == 'antigravity':
             binary = cfg['AGY_BIN'] or shutil.which('agy') or os.path.expanduser('~/.local/bin/agy')
@@ -305,7 +310,7 @@ async def _probe_provider(provider, cfg):
 async def discover_and_verify_providers(force_refresh: bool = False) -> dict:
     global _registry, _registry_key, _registry_at, _discovery_task, _discovery_key
     if force_refresh:
-        load_dotenv(override=True)
+        load_environment(override=True)
     cfg = configuration()
     key = hashlib.sha256(json.dumps(cfg, sort_keys=True).encode()).hexdigest()
     state = _SCOPE.get()
@@ -325,7 +330,11 @@ async def discover_and_verify_providers(force_refresh: bool = False) -> dict:
         return remember(await asyncio.shield(_discovery_task))
     async def discover():
         global _registry, _registry_key, _registry_at
-        rows = await asyncio.gather(*(_probe_provider(p, cfg) for p in ('meta', 'antigravity', 'custom')))
+        enabled = ('meta',) if cfg['AGENTWARD_META_ONLY'] == '1' else ('meta', 'antigravity', 'custom')
+        rows = list(await asyncio.gather(*(_probe_provider(p, cfg) for p in enabled)))
+        rows.extend({'provider': p, 'online': False, 'status': 'DISABLED', 'model': '',
+                     'reason': 'AGENTWARD_META_ONLY=1', 'attempts': [], 'latency_ms': 0}
+                    for p in ('antigravity', 'custom') if p not in enabled)
         _registry = {'providers': {r['provider']: r for r in rows}, 'checked_at': time.time(), 'mode': configuration_update()}
         _registry_key, _registry_at = key, time.monotonic()
         return _registry
@@ -335,6 +344,8 @@ async def discover_and_verify_providers(force_refresh: bool = False) -> dict:
 
 
 def select_ensemble(registry, mode=None, task='policy_check'):
+    if meta_only_required() and mode not in (None, 'meta_only'):
+        raise ProviderUnavailable('AGENTWARD_META_ONLY=1 forbids optional provider ensembles')
     mode = mode or configuration_update()
     if mode not in MODES:
         raise ValueError('Unknown ensemble mode')
@@ -372,6 +383,8 @@ async def query_ai(prompt: str, system_prompt: str = '', provider=None, model=No
     if target not in {'meta', 'antigravity', 'custom'}:
         raise ValueError('Unknown AI provider')
     cfg = configuration()
+    if cfg['AGENTWARD_META_ONLY'] == '1' and (target != 'meta' or model not in (None, *META_MODELS)):
+        raise ProviderUnavailable('AGENTWARD_META_ONLY=1 permits only Meta Spark and Wonder')
     registry = await discover_and_verify_providers()
     if cfg != configuration():
         raise ProviderUnavailable('Configuration changed during preflight; re-test required')

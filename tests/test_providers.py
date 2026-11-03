@@ -11,6 +11,8 @@ from tests.fixtures import registry
 
 class ProviderTests(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        self.enterContext(patch.object(ai, 'meta_only_required', return_value=False))
+        self.enterContext(patch.dict(os.environ, {'ENSEMBLE_MODE': 'auto'}))
         ai._registry = None
         ai._registry_key = None
         ai._discovery_task = None

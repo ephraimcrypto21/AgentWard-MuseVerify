@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import tempfile
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -45,7 +46,10 @@ class PolicyTests(unittest.IsolatedAsyncioTestCase):
             self.assertFalse(result['allowed'])
 
     def test_steering_and_provider_routes(self):
-        with patch.object(dashboard,'session_policy',SessionPolicy()), offline_models(), TestClient(dashboard.app, base_url='http://localhost') as client:
+        with patch.object(dashboard,'session_policy',SessionPolicy()), \
+             patch('ai_provider.meta_only_required', return_value=False), \
+             patch.dict(os.environ, {'ENSEMBLE_MODE': 'auto'}), \
+             offline_models(), TestClient(dashboard.app, base_url='http://localhost') as client:
             result=client.post('/api/steer',json={'constraint':'Forbid subprocess calls; enforce pathlib commonpath'})
             self.assertEqual(result.status_code,200)
             self.assertEqual(result.json()['revision'],1)

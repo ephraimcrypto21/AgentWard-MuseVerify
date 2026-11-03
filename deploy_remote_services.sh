@@ -96,6 +96,10 @@ sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" -m pip install -r "${APP_DIR}/req
 sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" -m pip check
 sudo -u ${USER_NAME} "${VENV_PATH}/bin/python" "${APP_DIR}/tools/manage_ingress_model.py" install
 
+# Fail before restarting if the explicit project sandbox destination is missing.
+SANDBOX_HEALTH_URL="$(sudo -u "${USER_NAME}" "${VENV_PATH}/bin/python" -c \
+    'import sys; sys.path.insert(0, sys.argv[1]); from runtime_config import sandbox_endpoint; print(sandbox_endpoint("/health"))' "${APP_DIR}")"
+
 # ------------------------------------------------------------------------------
 # 1. /etc/systemd/system/agentward-ingress.service (Port 8000)
 # ------------------------------------------------------------------------------
@@ -113,7 +117,7 @@ WorkingDirectory=${APP_DIR}
 Environment="PATH=${VENV_PATH}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 EnvironmentFile=/etc/agentward/node.env
-Environment="AGENTWARD_SANDBOX_PROXY_URL=http://127.0.0.1:8001/run-sandbox-test"
+# AGENTWARD_SANDBOX_URL is required in the application's .env.
 ExecStart=${UVICORN_BIN} ingress_server:app --host 127.0.0.1 --port 8000 --workers 1
 Restart=always
 RestartSec=5
@@ -182,15 +186,13 @@ systemctl is-active --quiet museverify-sandbox.service && \
 
 echo ""
 echo "[*] Verifying the sandbox actually streams syscall telemetry..."
-HEALTH="$(curl -s -m 20 http://127.0.0.1:8001/health || true)"
-if [[ "${HEALTH}" == *"syscall_telemetry"* && "${HEALTH}" != *'"trace_capable":false'* ]]; then
-    echo "  [✓] /health advertises kernel-level syscall telemetry"
-elif [[ "${HEALTH}" == *"syscall_telemetry"* ]]; then
-    echo "  [!] /health reports trace_capable=false — audit-hook only. Rebuild ${SANDBOX_IMAGE}."
-else
-    echo "  [✗] /health has no syscall_telemetry field — node is still stale."
-    echo "      Check: journalctl -u museverify-sandbox.service -n 50"
+HEALTH="$(curl --noproxy '*' --fail --silent --show-error --max-time 20 "${SANDBOX_HEALTH_URL}")"
+if ! printf '%s' "${HEALTH}" | "${VENV_PATH}/bin/python" -c \
+    'import json, sys; h = json.load(sys.stdin); sys.exit(not (isinstance(h, dict) and h.get("status") == "ok" and h.get("docker") is True and h.get("trace_capable") is True and h.get("evidence_version") == 3))'; then
+    echo "  [✗] Configured sandbox does not advertise Docker, tracing and protocol v3."
+    exit 1
 fi
+echo "  [✓] Configured /health advertises Docker and protocol-v3 tracing"
 
 echo ""
 echo "======================================================================"

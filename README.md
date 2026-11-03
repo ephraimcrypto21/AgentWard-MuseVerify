@@ -8,7 +8,7 @@ AgentWard + MuseVerify is a Meta-primary security harness for Python and single-
 
 > Model advice can propose a repair. Only the orchestrator can accept it, after the required policy, AST, scanner and runtime evidence gates pass. No model response can waive a gate.
 
-Meta is mandatory for live runs: **`muse-spark-1.3`** leads policy checks and patch synthesis; **`muse-wonder-1.0`** leads semantic root-cause analysis and variant hunting. Healthy Anti-Gravity and Custom BYOK models can join the review quorum. The acceptance rule is enforced in code; model judgments within that rule remain probabilistic.
+Meta is mandatory for live runs: **`muse-spark-1.3`** leads policy checks and patch synthesis; **`muse-wonder-1.0`** leads semantic root-cause analysis and variant hunting. The supplied configuration restricts all provider calls to these two models. Anti-Gravity and Custom BYOK reviewers require explicit operator configuration. The acceptance rule is enforced in code; model judgments within that rule remain probabilistic.
 
 **Recorded acceptance, 1 November 2026:** 99 tests passed with real Docker and no skips. Live execution of all 13 Node corpus targets produced **8 `REMEDIATED`, 4 `FALSE_POSITIVE`, and 1 `INCONCLUSIVE`**, with 24 self-play scenarios neutralized and no survivors. These are results for the tested corpus, not a general detection-accuracy claim.
 
@@ -132,7 +132,9 @@ See [language_adapters.py](language_adapters.py), [ecmascript_harness.py](ecmasc
 
 ## Meta-primary ensemble and configuration
 
-[ai_provider.py](ai_provider.py) discovers Meta, Anti-Gravity and Custom providers concurrently. Both Meta models must pass pre-flight. Dashboard discovery is cached for 60 seconds; `GET /api/providers?force_refresh=true` reloads configuration and retests it. An active run retains its successful snapshot while configuration remains unchanged.
+[ai_provider.py](ai_provider.py) requires both Meta models to pass pre-flight. The supplied configuration sets `AGENTWARD_META_ONLY=1` and `ENSEMBLE_MODE=meta_only`: only `muse-spark-1.3` and `muse-wonder-1.0` may receive requests. Anti-Gravity and Custom are marked `DISABLED` without connectivity probes. Direct calls and dashboard mode changes cannot override this file-level restriction.
+
+Dashboard discovery is cached for 60 seconds; `GET /api/providers?force_refresh=true` reloads configuration and retests it. An active run retains its successful snapshot while configuration remains unchanged. Provider-policy changes invalidate the cached snapshot. An operator must explicitly set `AGENTWARD_META_ONLY=0` in `.env` to enable the optional routing modes below.
 
 | `ENSEMBLE_MODE` | Requested participants |
 | --- | --- |
@@ -150,7 +152,8 @@ Start from [.env.example](.env.example); keep the populated `.env` local:
 | --- | --- |
 | `META_API_KEY` | Required Meta credential |
 | `META_API_BASE_URL` | `https://api.meta.ai/v1` |
-| `ENSEMBLE_MODE` | `auto` |
+| `AGENTWARD_META_ONLY` | `.env` policy: `1` restricts pre-flight, routing and calls to the two Meta models; supplied example uses `1` |
+| `ENSEMBLE_MODE` | Supplied example uses `meta_only`; optional modes require `AGENTWARD_META_ONLY=0` |
 | `AGY_BIN` | Optional CLI path; otherwise PATH or `~/.local/bin/agy` |
 | `AGY_SELECTED_MODEL` | Preferred high-end model, default `gemini-4-argon` |
 | `AGY_PREFLIGHT_TIMEOUT_S` | Per-model probe deadline, capped at 30 seconds |
@@ -160,17 +163,21 @@ Start from [.env.example](.env.example); keep the populated `.env` local:
 | `CUSTOM_SERVICE_TIER` | Optional `fast` / `ultrafast`, where supported |
 | `AI_TIMEOUT_S`, `AGY_TIMEOUT_S` | Task deadlines; defaults 120 / 180 seconds |
 | `AGENTWARD_INGRESS_URL` | Authenticated node's `/scan-ingress` URL |
-| `AGENTWARD_SANDBOX_URL` | Authenticated node's `/execute` URL |
+| `AGENTWARD_SANDBOX_URL` | Required sandbox origin in the project's `.env`; no localhost/environment fallback |
 | `AGENTWARD_NODE_TOKEN` | Shared random node secret, at least 32 characters |
 
-Anti-Gravity tries the selected supported high-end model, then the deduplicated cascade `gemini-4-argon`, `claude-opus-5-5`, `claude-sonnet-5.5`, `gemini-3.8`. Quota failures are recorded during pre-flight. CLI probes are bounded; permission-bypass flags are not used. A later task failure denies that task's review.
+When optional providers are explicitly enabled, Anti-Gravity tries the selected supported high-end model, then the deduplicated cascade `gemini-4-argon`, `claude-opus-5-5`, `claude-sonnet-5.5`, `gemini-3.8`. Quota failures are recorded during pre-flight. CLI probes are bounded; permission-bypass flags are not used. A later task failure denies that task's review.
 
 Custom BYOK supports the implemented OpenAI-compatible HTTP shapes, not every provider-specific protocol. Its five-second pre-flight requires HTTP 200 and nonempty, complete content. Placeholder keys, authentication errors, timeouts and missing endpoints exclude it. `/api/providers` returns status and topology without credential values.
+
+[runtime_config.py](runtime_config.py) reads the `.env` beside the application modules, regardless of the shell's working directory. Its required sandbox URL takes precedence over inherited values and replaces the obsolete `AGENTWARD_SANDBOX_PROXY_URL`. It derives `/health`, `/execute` and `/run-sandbox-test` with `urljoin`; existing URLs ending in those routes remain accepted. Missing/malformed URLs fail before sending a request. Live runs check Docker/protocol-v3 health before provider pre-flight, then still require authenticated execution and protected artifact-bound trace evidence.
 
 ## Verified results and security hardening
 
 | Evidence | Recorded result | Scope |
 | --- | --- | --- |
+| Routing/provider regression, 3 November | **100 passed, 12 optional Docker tests skipped** out of 112 discovered | Includes configuration and provider-policy regressions; Ruff, dependency and deployment-shell checks passed |
+| Live Meta-only run, 3 November | **`cwe_78_cmd.js` remediated; 13 Meta calls; 3 self-play attacks neutralized; 1 verified SARIF fix** | One command benchmark with real ingress and authenticated protocol-v3 Docker; only Spark and Wonder participated |
 | Full test suite, 1 November | **99 passed, zero skipped** | Includes opt-in real Docker tests; model fixtures in unit tests are not live-provider proof |
 | Live Node corpus, 1 November | **13 targets: 8 repaired, 4 false positives, 1 inconclusive** | Real classifier, Meta Spark/Wonder and authenticated remote Docker |
 | Static/normal contracts | **13 parse; 6 TypeScript transforms/scans; 17 exports execute normally** | All six Node extensions; no unsupported/invalid corpus targets |
@@ -213,14 +220,14 @@ python -m pip install -r requirements-dev.txt
 cp -n .env.example .env
 ```
 
-Populate `.env` with Meta credentials, the shared node token and the endpoint URLs described below. Configure optional reviewers if needed. Then start the WebSocket command center:
+Populate `.env` with Meta credentials, the shared node token and the endpoint URLs described below. `AGENTWARD_SANDBOX_URL` is deliberately empty in the example and must name your sandbox origin. Keep `AGENTWARD_META_ONLY=1` and `ENSEMBLE_MODE=meta_only` for exclusive Spark/Wonder execution. Then start the WebSocket command center:
 
 ```bash
 python -m uvicorn dashboard:app --host 127.0.0.1 --port 8080 \
   --ws-max-size 1024 --ws-max-queue 4
 ```
 
-Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Check the provider matrix, select an ensemble and launch a known vulnerable target or benign control. The dashboard shows seven phase cards, syscall observations, self-play results, verified unified/side-by-side diffs, an executive brief, a call/taint map and SARIF export.
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). Confirm Spark and Wonder are online in the provider matrix, then launch a known vulnerable target or benign control. Meta-only deployments reject selections of other ensemble modes. The dashboard shows seven phase cards, syscall observations, self-play results, verified unified/side-by-side diffs, an executive brief, a call/taint map and SARIF export.
 
 From another activated terminal, the same pipeline runs through the CLI:
 
@@ -246,6 +253,8 @@ sudo apt-get update
 sudo apt-get install -y git python3-venv python3-pip curl acl
 git clone https://github.com/ephraimcrypto21/AgentWard-MuseVerify.git /home/ubuntu/agentward-node
 cd /home/ubuntu/agentward-node
+# Create a service-user-readable .env here and set AGENTWARD_SANDBOX_URL
+# to the sandbox origin reachable from this node before running deployment.
 sudo docker build -t agentward-sandbox:multilang-v3 -f security/Dockerfile.sandbox .
 sudo bash deploy_remote_services.sh
 sudo systemctl is-active agentward-ingress.service museverify-sandbox.service
@@ -254,6 +263,8 @@ curl --fail --max-time 20 http://127.0.0.1:8001/health
 ```
 
 For an existing checkout, update it before the build with `git pull --ff-only` instead of cloning again. The script installs node dependencies, provisions the pinned model, and installs/restarts both services on loopback. It **reuses an existing image tag**, so explicitly rebuild the image when upgrading its runtime. Review health for protocol v3 and trace capability; connectivity alone does not establish full acceptance.
+
+The ingress service also requires `AGENTWARD_SANDBOX_URL` in `/home/ubuntu/agentward-node/.env`. Configure its reachable sandbox origin explicitly; the service no longer supplies a localhost proxy default. The deployment script validates this setting before restarting services and checks the derived `/health` URL. `python-dotenv` is included in `requirements-node.txt`.
 
 First installation creates a random `AGENTWARD_NODE_TOKEN` in root-owned mode-0600 `/etc/agentward/node.env`; subsequent deployments preserve it. Securely provision the same value into the workstation's `.env`. A missing/short service token returns 503; missing or incorrect request authorization returns 401. Do not place provider keys on the node merely to run its classifier or sandbox.
 
@@ -271,7 +282,7 @@ Workstation `.env`:
 
 ```dotenv
 AGENTWARD_INGRESS_URL=http://127.0.0.1:18000/scan-ingress
-AGENTWARD_SANDBOX_URL=http://127.0.0.1:18001/execute
+AGENTWARD_SANDBOX_URL=http://127.0.0.1:18001
 ```
 
 For services on the same Linux workstation, use loopback ports 8000 and 8001 directly; forwarding is unnecessary.
@@ -291,7 +302,7 @@ Use the printed private address or enabled MagicDNS name in workstation `.env`:
 
 ```dotenv
 AGENTWARD_INGRESS_URL=http://<NODE_TAILSCALE_IP>:8000/scan-ingress
-AGENTWARD_SANDBOX_URL=http://<NODE_TAILSCALE_IP>:8001/execute
+AGENTWARD_SANDBOX_URL=http://<NODE_TAILSCALE_IP>:8001
 ```
 
 These TCP forwards remain within the tailnet and carry HTTP inside Tailscale's encrypted network. Restrict access with tailnet grants/ACLs and retain node bearer authentication. Public exposure requires an appropriate authenticated TLS boundary. The recorded deployment uses persistent Serve forwarding and does not depend on an SSH session.
